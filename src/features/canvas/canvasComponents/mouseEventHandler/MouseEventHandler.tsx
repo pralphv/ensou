@@ -86,5 +86,5 @@ export function useMouseEvents(
       window.removeEventListener("keydown", handleKeyDownListener, false);
       window.removeEventListener("keyup", handleKeyUpListener, false);
     };
-  }, [app, dispatch, getCurrentTick]);
+  }, [app, dispatch]);
 }
