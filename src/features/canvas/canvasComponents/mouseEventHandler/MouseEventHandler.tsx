@@ -7,7 +7,6 @@ import { setPlayRange } from "features/midiPlayerStatus/midiPlayerStatusSlice";
 import { PlayRange } from "features/midiPlayerStatus/types";
 import { convertCanvasHeightToMidiTick } from "../../utils";
 
-
 export function useMouseEvents(
   app: PIXI.Application | undefined,
   getCurrentTick: () => number | undefined
@@ -87,5 +86,5 @@ export function useMouseEvents(
       window.removeEventListener("keydown", handleKeyDownListener, false);
       window.removeEventListener("keyup", handleKeyUpListener, false);
     };
-  }, [app]);
+  }, [app, dispatch, getCurrentTick]);
 }

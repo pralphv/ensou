@@ -1,7 +1,7 @@
-import React, { useRef, useMemo, useEffect } from "react";
+import React, { useRef, useEffect } from "react";
 
 import { RootState } from "app/rootReducer";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 
 import * as types from "audio/types";
 import { createCanvasBackground } from "./canvasComponents/canvasBackground/CanvasBackground";
@@ -14,7 +14,7 @@ import * as beatLines from "./canvasComponents/beatLines/BeatLines";
 import * as highlighter from "./canvasComponents/highlighter/Highlighter";
 import * as mouseEvents from "./canvasComponents/mouseEventHandler/MouseEventHandler";
 import { PlayRange } from "features/midiPlayerStatus/types";
-import { useIsMobile, useWindow, useStateToRef } from "utils/customHooks";
+import { useIsMobile, useWindow } from "utils/customHooks";
 import { KALIMBA_STANDARD_TUNING } from "./constants";
 import { convertMidiTickToCanvasHeight } from "./utils";
 
@@ -28,7 +28,6 @@ interface CanvasProps {
   setIsHovering: (hovering: boolean) => void;
 }
 
-let APP: PIXI.Application;
 let PIXI_CANVAS: HTMLDivElement;
 
 export default function Canvas({
@@ -52,11 +51,8 @@ export default function Canvas({
   const playRange: PlayRange = useSelector(
     (state: RootState) => state.midiPlayerStatus.playRange
   );
-  const canvasHeightRef = useStateToRef(canvasHeight);
-  const dispatch = useDispatch();
 
   let playingNotes: Set<number> = new Set();
-  let playingNotesArray: number[] = [];
   const currentTick = getCurrentTick() || 0;
   groupedNotes.forEach((note: types.GroupedNotes) => {
     if (currentTick >= note.on && currentTick <= note.off) {
@@ -97,7 +93,6 @@ export default function Canvas({
       app.current
     );
     app.current.start();
-    APP = app.current;
   }, []);
 
   useEffect(() => {
@@ -106,7 +101,7 @@ export default function Canvas({
       noteWidth,
       app.current as PIXI.Application
     );
-  }, [groupedNotes, canvasWidth]);
+  }, [noteWidth, groupedNotes, canvasWidth]);
 
   useEffect(() => {
     if (!app.current || !currentTick) {
@@ -133,7 +128,7 @@ export default function Canvas({
       flashingLightsBottomTiles.draw(playingNotes);
       beatLines.draw(app.current, currentTick, ticksPerBeat * 4);
     }
-  }, [currentTick, canvasWidth]);
+  }, [currentTick, canvasWidth, ticksPerBeat, playingNotes]);
   mouseEvents.useMouseEvents(app.current, getCurrentTick);
 
   return (

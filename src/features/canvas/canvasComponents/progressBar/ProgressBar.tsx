@@ -2,12 +2,9 @@ import React from "react";
 import clsx from "clsx";
 
 import { withStyles } from "@material-ui/core/styles";
-import { Grid, makeStyles, Paper, Typography } from "@material-ui/core";
+import { makeStyles } from "@material-ui/core";
 import Slider from "@material-ui/core/Slider";
 import { useHotkeys } from "react-hotkeys-hook";
-
-import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "app/rootReducer";
 
 interface ProgressBarProps {
   songRemaining: number;
@@ -55,7 +52,7 @@ const PrettoSlider = withStyles({
   },
 })(Slider);
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   root: {
     "&:hover": {
       opacity: 1,
@@ -78,7 +75,6 @@ export default function ProgressBar({
   setIsHovering,
 }: ProgressBarProps): JSX.Element {
   console.log("Rendering ProgressBar");
-  const dispatch = useDispatch();
 
   const classes = useStyles();
 

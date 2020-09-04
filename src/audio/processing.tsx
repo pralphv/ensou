@@ -62,16 +62,6 @@ export function generateDataToDraw(
       notesToDraw.push(oneNote);
     }
   }
-  const startingBeat = currentTick % ticksPerBeat;
-  const beatsToDraw: number[] = [];
-  const justARandomNumbre = 10000;
-  // for (let i = 0; i < justARandomNumbre; i++) {
-  //   const nextBeat = startingBeat + ticksPerBeat * i;
-  //   if (currentTick + ticksPerBeat * i >= maxTick) {
-  //     break;
-  //   }
-  //   beatsToDraw.push(nextBeat);
-  // }
-  const data = { notesToDraw, beatsToDraw };
+  const data = { notesToDraw };
   return data;
 }

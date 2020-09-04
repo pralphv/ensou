@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 import { RootState } from "app/rootReducer";
 import { useSelector, useDispatch } from "react-redux";
@@ -6,8 +6,6 @@ import { useSelector, useDispatch } from "react-redux";
 import { Player as SoundFontPlayer } from "soundfont-player";
 
 import MidiPlayer from "midi-player-js";
-
-import { now } from "tone";
 
 import { useInstrument } from "./loadInstrument";
 import * as types from "./types";
@@ -59,7 +57,6 @@ function useMidiData(): [
   const groupedNotes = useRef<types.GroupedNotes[]>([]);
   const lastTick = useRef<number>(0);
   const originalTempoRef = useRef<number>();
-  const ticksPerBeat = useRef<number>();
 
   const isLoopRef = useStateToRef(isLoop);
   const playRangeRef = useStateToRef(playRange);
@@ -111,14 +108,14 @@ function useMidiData(): [
     return midiPlayerRef.current?.getTotalTicks();
   }
 
-  function changeTempo() {
+  const changeTempo = useCallback(() => {
     if (tempoChangeRef.current && originalTempoRef.current) {
       const tempoChange = tempoChangeRef.current / 100;
       // it is there stupid
       // @ts-ignore
       midiPlayerRef.current?.setTempo(originalTempoRef.current * tempoChange);
     }
-  }
+  }, [tempoChangeRef]);
 
   function play(noSkip = false, skipDispatch = false) {
     if (midiStatusRef.current === MidiStatus.MidiNotLoaded) {

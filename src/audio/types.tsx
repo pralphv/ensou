@@ -21,7 +21,6 @@ export interface NotesToDraw {
 
 export interface DataToDraw {
   notesToDraw: NotesToDraw[];
-  beatsToDraw: number[];
 }
 
 export interface Tick {

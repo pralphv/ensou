@@ -5,7 +5,6 @@ import { useSelector } from "react-redux";
 import PauseIcon from "@material-ui/icons/Pause";
 import PlayArrowIcon from "@material-ui/icons/PlayArrow";
 import { useHotkeys } from "react-hotkeys-hook";
-import { makeStyles } from "@material-ui/core";
 
 import { useStateToRef } from "utils/customHooks";
 import { BUTTON_WIDTH, BUTTON_HEIGHT } from "../constants";
@@ -16,17 +15,10 @@ interface PlayButtonProps {
   pause: () => void;
 }
 
-const useStyles = makeStyles({
-  nonFocus: {
-    tabIndex: -1,
-  },
-});
-
 export default function PlayButton({
   play,
   pause,
 }: PlayButtonProps): JSX.Element {
-  const classes = useStyles();
   const isPlaying: boolean = useSelector(
     (state: RootState) => state.midiPlayerStatus.isPlaying
   );

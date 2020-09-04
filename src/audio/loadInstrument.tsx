@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import {
   setInstrumentLoading,
   setInstrumentNotLoading,
 } from "features/midiPlayerStatus/midiPlayerStatusSlice";
 
-import { Sampler, Reverb, Gain } from "tone";
+import { Sampler, Reverb } from "tone";
 import { storageRef } from "firebaseApi/firebase";
 import { set, get } from "idb-keyval";
 
@@ -72,8 +72,6 @@ export function useInstrument(): InstrumentApi {
   useEffect(() => {
     async function getSamples() {
       const reverb = new Reverb({ wet: 1, decay: 4 }).toDestination();
-      // const gainNode = new Gain(0.9).toDestination();
-      // gainNode.gain.rampTo(0.5, 0.1)
       dispatch(setInstrumentLoading());
       const sampleMap = await fetchInstruments();
       sampler.current = new Sampler(sampleMap, {
@@ -90,7 +88,7 @@ export function useInstrument(): InstrumentApi {
       }).connect(reverb);
     }
     getSamples();
-  }, []);
+  }, [dispatch]);
 
   function triggerAttack(note: string, velocity: number) {
     sampler.current?.triggerAttack(note, undefined, velocity);
@@ -105,7 +103,7 @@ export function useInstrument(): InstrumentApi {
   function changeVolume(volume: number) {
     if (sampler.current) {
       if (volume <= -15) {
-        volume = -1000
+        volume = -1000;
       }
       sampler.current.volume.value = volume;
     }

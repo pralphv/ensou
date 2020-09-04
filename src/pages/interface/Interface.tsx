@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 
-import { Grid, makeStyles, Paper, Typography } from "@material-ui/core";
-import { useHotkeys } from "react-hotkeys-hook";
-import { useSelector, useDispatch } from "react-redux";
+import { Grid, makeStyles, Typography } from "@material-ui/core";
+import { useSelector } from "react-redux";
 import { RootState } from "app/rootReducer";
 
 import LoadingScreen from "features/loadingScreen/LoadingScreen";
@@ -51,7 +50,6 @@ export default function Interface(): JSX.Element {
   const instrumentLoading: boolean = useSelector(
     (state: RootState) => state.midiPlayerStatus.instrumentLoading
   );
-  const midiPlayer = getMidiPlayer();
   const classes = useStyles();
   const isMobile: boolean = useIsMobile();
   const { width, height } = useWindow();
@@ -86,7 +84,11 @@ export default function Interface(): JSX.Element {
         forceRerender={forceRerender}
       />
     ),
-    [isPlaying, isHovering, forceRender]
+    [
+      isPlaying,
+      isHovering,
+      forceRender,
+    ]
   );
 
   const canvasMemo = useMemo(
@@ -99,7 +101,7 @@ export default function Interface(): JSX.Element {
         setIsHovering={setIsHovering}
       />
     ),
-    [JSON.stringify(groupedNotes), currentTick]
+    [JSON.stringify(groupedNotes), currentTick, midiFunctions]
   );
 
   const progressBarMemo = useMemo(

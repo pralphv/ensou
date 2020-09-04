@@ -18,7 +18,7 @@ export function initHighlighter(
   startY: number,
   endY: number
 ) {
-  console.log("Constructing new Highlighter");
+  // console.log("Constructing new Highlighter");
   try {
     SPRITE.destroy({ children: true, texture: true, baseTexture: true });
     OLD_TEXTURE.destroy(true);
