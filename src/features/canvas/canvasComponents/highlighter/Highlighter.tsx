@@ -10,7 +10,6 @@ function initRectangle(width: number, height: number): PIXI.Graphics {
   rect.lineStyle(3, 0x4dafff, 0.6);
   rect.drawRect(0, 0, width * 0.999, height);
   rect.endFill();
-  rect.zIndex = 1000;
   return rect;
 }
 

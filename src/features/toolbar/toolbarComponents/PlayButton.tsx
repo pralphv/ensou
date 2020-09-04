@@ -1,10 +1,9 @@
-import React, { useRef } from "react";
+import React from "react";
 import { RootState } from "app/rootReducer";
 import { useSelector } from "react-redux";
 
 import PauseIcon from "@material-ui/icons/Pause";
 import PlayArrowIcon from "@material-ui/icons/PlayArrow";
-import ToggleButton from "@material-ui/lab/ToggleButton";
 import { useHotkeys } from "react-hotkeys-hook";
 import { makeStyles } from "@material-ui/core";
 

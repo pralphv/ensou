@@ -14,7 +14,6 @@ import * as beatLines from "./canvasComponents/beatLines/BeatLines";
 import * as highlighter from "./canvasComponents/highlighter/Highlighter";
 import * as mouseEvents from "./canvasComponents/mouseEventHandler/MouseEventHandler";
 import { PlayRange } from "features/midiPlayerStatus/types";
-import { setHovering } from "./canvasSlice";
 import { useIsMobile, useWindow, useStateToRef } from "utils/customHooks";
 import { KALIMBA_STANDARD_TUNING } from "./constants";
 import { convertMidiTickToCanvasHeight } from "./utils";
@@ -26,6 +25,7 @@ interface CanvasProps {
   ticksPerBeat: number;
   groupedNotes: types.GroupedNotes[];
   totalTicks: number;
+  setIsHovering: (hovering: boolean) => void;
 }
 
 let APP: PIXI.Application;
@@ -36,6 +36,7 @@ export default function Canvas({
   groupedNotes,
   ticksPerBeat,
   totalTicks,
+  setIsHovering,
 }: CanvasProps): JSX.Element {
   const isMobile: boolean = useIsMobile();
   const { width, height } = useWindow();
@@ -65,6 +66,7 @@ export default function Canvas({
 
   const app = useRef<PIXI.Application>();
   useEffect(() => {
+    console.log("Starting new canvas...");
     app.current = new PIXI.Application({
       width: canvasWidth,
       height: canvasHeight,
@@ -73,11 +75,23 @@ export default function Canvas({
     });
 
     PIXI_CANVAS.appendChild(app.current.view);
-    bottomTiles.initBottomTiles(noteWidth, 33, noOfNotes, app.current);
-    flashingLightsBottomTiles.initFlashingLightsBottomTiles(noOfNotes, noteWidth, app.current);
     beatLines.initBeatLine(app.current);
+    beatLines.draw(app.current, currentTick, ticksPerBeat * 4); // to init container, + 1 zIndex
     flashingColumns.initFlashingColumns(noOfNotes, noteWidth, app.current);
+    fallingNotes.initFallingNotes(
+      // to init container, + 1 zIndex
+      groupedNotes,
+      noteWidth,
+      app.current as PIXI.Application
+    );
+    bottomTiles.initBottomTiles(noteWidth, 33, noOfNotes, app.current);
+
     flashingBottomTiles.initFlashingBottomTiles(
+      noOfNotes,
+      noteWidth,
+      app.current
+    );
+    flashingLightsBottomTiles.initFlashingLightsBottomTiles(
       noOfNotes,
       noteWidth,
       app.current
@@ -127,6 +141,8 @@ export default function Canvas({
       ref={(thisDiv: HTMLDivElement) => {
         PIXI_CANVAS = thisDiv;
       }}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
     ></div>
   );
 }

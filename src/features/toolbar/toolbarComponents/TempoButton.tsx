@@ -11,10 +11,6 @@ import { BUTTON_WIDTH, BUTTON_HEIGHT } from "../constants";
 import CustomButton from "./CustomButton";
 
 export default function TempoButton(): JSX.Element {
-  const isPlaying: boolean = useSelector(
-    (state: RootState) => state.midiPlayerStatus.isPlaying
-  );
-
   const tempo: number = useSelector(
     (state: RootState) => state.midiPlayerStatus.tempo
   );
@@ -35,7 +31,6 @@ export default function TempoButton(): JSX.Element {
     <div>
       <CustomButton
         onClick={handleClick}
-        disabled={isPlaying}
         style={{ width: BUTTON_WIDTH, height: BUTTON_HEIGHT }}
       >
         <Typography variant="body2">{tempo}%</Typography>

@@ -8,12 +8,13 @@ import { useHotkeys } from "react-hotkeys-hook";
 
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "app/rootReducer";
-import { setHovering } from "features/canvas/canvasSlice";
 
 interface ProgressBarProps {
   songRemaining: number;
   skipToPercent: (percent: number) => void;
   isPlaying: boolean;
+  isHovering: boolean;
+  setIsHovering: (hovering: boolean) => void;
 }
 
 const PrettoSlider = withStyles({
@@ -59,7 +60,7 @@ const useStyles = makeStyles((theme) => ({
     "&:hover": {
       opacity: 1,
     },
-    zIndex: 1000
+    zIndex: 1000,
   },
   hide: {
     opacity: 0,
@@ -73,14 +74,13 @@ export default function ProgressBar({
   songRemaining,
   skipToPercent,
   isPlaying,
+  isHovering,
+  setIsHovering,
 }: ProgressBarProps): JSX.Element {
   console.log("Rendering ProgressBar");
   const dispatch = useDispatch();
 
   const classes = useStyles();
-  const isHoveringCanvas: boolean = useSelector(
-    (state: RootState) => state.canvas.isHovering
-  );
 
   function handleChange(e: any, newValue: number | number[]) {
     const value = newValue as number;
@@ -106,12 +106,12 @@ export default function ProgressBar({
       value={100 - songRemaining}
       max={100}
       onChange={handleChange}
-      onMouseEnter={() => dispatch(setHovering(true))}
-      onMouseLeave={() => dispatch(setHovering(false))}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
       className={clsx({
         [classes.root]: true,
         [classes.hide]: isPlaying,
-        [classes.show]: !isPlaying || isHoveringCanvas,
+        [classes.show]: !isPlaying || isHovering,
       })}
     />
   );

@@ -5,21 +5,21 @@ import { makeStyles } from "@material-ui/core";
 
 // import { useUserProfile } from "utils/customHooks";
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   backdrop: {
-    background: "#000",
-    zIndex: 10000,
+    background: "rgba(0, 0, 0, 0.2)",
+    zIndex: theme.zIndex.drawer + 1,
   },
 }));
 
 export default function LoadingScreen() {
-  console.log("LoadingScreen rerender")
+  console.log("LoadingScreen rerender");
   const classes = useStyles();
   // const profile = useUserProfile();
-    // <Backdrop className={classes.backdrop} open={!profile.isLoaded}>
+  // <Backdrop className={classes.backdrop} open={!profile.isLoaded}>
 
   return (
-    <Backdrop className={classes.backdrop} open={false}>
+    <Backdrop className={classes.backdrop} open={true} invisible={true}>
       <CircularProgress color="inherit" />
     </Backdrop>
   );

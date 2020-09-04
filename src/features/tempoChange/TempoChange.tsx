@@ -11,8 +11,8 @@ import { MidiStatus } from "features/midiPlayerStatus/constants";
 const useStyles = makeStyles({
   slider: {
     width: 100,
-    paddingTop: 15,
-    paddingBottom: 15,
+    paddingTop: 20,
+    paddingBottom: 20,
     marginLeft: 20,
     marginRight: 20,
   },
@@ -34,6 +34,7 @@ function TempoChange() {
 
   return (
     <Slider
+      color="secondary"
       value={tempo}
       onChange={handleChange}
       disabled={midiPlayerStatus === MidiStatus.Playing}

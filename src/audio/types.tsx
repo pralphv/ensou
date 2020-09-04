@@ -52,4 +52,6 @@ export interface MidiFunctions {
   getTotalTicks: () => number | undefined;
   getSongPercentRemaining: () => number | undefined;
   loadArrayBuffer: (blob: XMLHttpRequest["response"]) => void;
+  changeVolume: (volume: number) => void;
+  getVolumeDb: () => number | undefined;
 }

@@ -65,7 +65,7 @@ export default function Home(): JSX.Element {
 
   return (
     <div>
-      <LoadingScreen />
+      {/* <LoadingScreen /> */}
       {loading ? (
         <LoadingSpinner />
       ) : (

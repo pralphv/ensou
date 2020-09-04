@@ -21,7 +21,6 @@ function initRectangle(width: number, height: number): PIXI.Graphics {
   rect.beginTextureFill({ texture: gradient("#121212", "#5efab9", height) });
   rect.alpha = 0.33;
   rect.drawRect(0, 0, width, height);
-  rect.zIndex = 1;
   return rect;
 }
 
@@ -37,6 +36,8 @@ export function initFlashingColumns(
 
   let container = new PIXI.Container();
   app.stage.addChild(container);
+  console.log(app.stage)
+  app.stage.setChildIndex(container, 1);
 
   const rect = initRectangle(noteWidth, app.screen.height);
   // @ts-ignore

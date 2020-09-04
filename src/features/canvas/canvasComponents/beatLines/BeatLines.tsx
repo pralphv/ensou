@@ -38,6 +38,7 @@ export function draw(
   } catch {}
   let container = new PIXI.Container();
   app.stage.addChild(container);
+  app.stage.setChildIndex(container, 0);
   const startTick = Math.ceil(currentTick / ticksPerBar) * ticksPerBar;
   for (let i = 0; i < 3; i++) {
     const tick = startTick + ticksPerBar * i;
@@ -49,7 +50,6 @@ export function draw(
     );
     sprite.position.y = y;
     container.addChild(sprite);
-    break;
   }
   CONTAINER = container;
 }

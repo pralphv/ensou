@@ -18,14 +18,28 @@ interface FallingNotes {
 let FALLING_NOTES: FallingNotes[] = [];
 let CONTAINER: PIXI.Container;
 
+function gradient(from: string, to: string, height: number) {
+  const c = document.createElement("canvas");
+  c.height = height;
+  let ctx = c.getContext("2d") as CanvasRenderingContext2D;
+  const grd = ctx.createLinearGradient(0, 0, 0, height);
+  grd.addColorStop(0, from);
+  grd.addColorStop(1, to);
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, 100, height);
+  const texture = PIXI.Texture.from(c);
+  return texture;
+}
+
 function initRectangle(width: number, height: number): PIXI.Graphics {
   const rect = new PIXI.Graphics();
-  rect.beginFill(0x00e4fc);
-  rect.drawRect(0, 0, width, height);
-  rect.zIndex = 1;
+  rect.beginTextureFill({ texture: gradient("#63F0FF", "#35D1FC", height) });
+  rect.drawRoundedRect(0, 0, width, height, width / 2.5);
+
   rect.endFill();
   return rect;
 }
+
 export function initFallingNotes(
   groupedNotes: types.GroupedNotes[],
   noteWidth: number,
@@ -36,8 +50,8 @@ export function initFallingNotes(
     CONTAINER.destroy({ children: true, texture: true, baseTexture: true });
   } catch {}
   let container = new PIXI.Container();
-  container.zIndex = 1;
   app.stage.addChild(container);
+  app.stage.setChildIndex(container, 2);
   CONTAINER = container;
   FALLING_NOTES = [];
 
@@ -67,14 +81,13 @@ export function draw(currentTick: number, canvasHeight: number) {
   FALLING_NOTES.forEach((note: FallingNotes) => {
     const sprite = note.rectSprite;
     if (
-      currentTick >= note.on * CANVAS_SLOW_DOWN_FACTOR - 3000 &&
+      currentTick >= note.on * CANVAS_SLOW_DOWN_FACTOR - 5000 &&
       currentTick <= note.off * CANVAS_SLOW_DOWN_FACTOR
     ) {
       const on = note.on - currentTick / CANVAS_SLOW_DOWN_FACTOR;
       sprite.position.x = note.x;
       sprite.position.y = canvasHeight - on - note.height - 35;
       sprite.visible = true;
-      sprite.zIndex = 1;
     } else {
       sprite.visible = false;
     }

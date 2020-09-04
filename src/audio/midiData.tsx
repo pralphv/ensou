@@ -7,7 +7,9 @@ import { Player as SoundFontPlayer } from "soundfont-player";
 
 import MidiPlayer from "midi-player-js";
 
-import { loadInstruments } from "./loadInstrument";
+import { now } from "tone";
+
+import { useInstrument } from "./loadInstrument";
 import * as types from "./types";
 import * as processing from "./processing";
 import {
@@ -50,7 +52,7 @@ function useMidiData(): [
   const [currentTick, setCurrentTick] = useState<number>(0); // just for force rerendering
 
   // sadly types provided by libraries are incomplete
-  const instrumentRef: any = useRef<SoundFontPlayer>();
+  const instrumentRef = useRef<SoundFontPlayer>();
   const midiPlayerRef = useRef<
     MidiPlayer.Player & MidiPlayer.Event & MidiPlayer.Track
   >();
@@ -106,7 +108,7 @@ function useMidiData(): [
     }
   }
   function getTotalTicks(): number | undefined {
-      return midiPlayerRef.current?.getTotalTicks();
+    return midiPlayerRef.current?.getTotalTicks();
   }
 
   function changeTempo() {
@@ -167,13 +169,9 @@ function useMidiData(): [
       fakePlay();
     }
   }
+
+  const intrumentApi = useInstrument();
   useEffect(() => {
-    async function loadInstrumentAsync() {
-      const instrument_: SoundFontPlayer = await loadInstruments();
-      // probably need to cache this for offline
-      instrumentRef.current = instrument_;
-    }
-    loadInstrumentAsync();
     midiPlayerRef.current = new MidiPlayer.Player() as MidiPlayer.Player &
       MidiPlayer.Event &
       MidiPlayer.Track;
@@ -195,7 +193,7 @@ function useMidiData(): [
         isMetronomeRef.current &&
         (firstBeat || secondBeat || thirdBeat || fourthBeat)
       ) {
-        instrumentRef.current.play("A0", null, null);
+        instrumentRef.current?.play("A0");
       }
 
       // handle song loop
@@ -233,14 +231,18 @@ function useMidiData(): [
       }
     });
     midiPlayerRef.current.on("midiEvent", (midiEvent: any) => {
-      if (midiEvent.name === "Set Tempo") {
-        // originalTempoRef.current = midiPlayerRef.current.tempo;
-        // changeTempo();
+      if (midiEvent.name === "Set Tempo" && midiPlayerRef.current) {
+        originalTempoRef.current = midiPlayerRef.current.tempo;
+        changeTempo();
       }
       if (midiEvent.name === "Note on") {
-        instrumentRef.current.play(midiEvent.noteName, null, {
-          gain: midiEvent.velocity / 100,
-        });
+        intrumentApi.triggerAttack(
+          midiEvent.noteName,
+          midiEvent.velocity / 100
+        );
+        return;
+      } else if (midiEvent.name === "Note off") {
+        intrumentApi.triggerRelease(midiEvent.noteName);
       }
     });
   }, []);
@@ -258,7 +260,9 @@ function useMidiData(): [
     getSongPercentRemaining,
     loadArrayBuffer,
     getTicksPerBeat,
-    getTotalTicks
+    getTotalTicks,
+    changeVolume: intrumentApi.changeVolume,
+    getVolumeDb: intrumentApi.getVolumeDb,
   };
 
   return [getMidiPlayer, playerFunctions, groupedNotes.current];

@@ -145,5 +145,5 @@ export const KALIMBA_STANDARD_TUNING: { [key: string]: number } = {
   C8: 87,
 };
 
-export const CURRENT_TICK_UPPER_LIMIT: number = 500;
-export const CANVAS_SLOW_DOWN_FACTOR = 3;
+export const CURRENT_TICK_UPPER_LIMIT: number = 3000;
+export const CANVAS_SLOW_DOWN_FACTOR = 6;

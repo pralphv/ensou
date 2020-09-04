@@ -17,6 +17,7 @@
     "@types/react-redux": "^7.1.9",
     "@types/react-router-dom": "^5.1.5",
     "firebase": "^7.17.1",
+    "idb-keyval": "^3.2.0",
     "konva": "^7.0.3",
     "midi-player-js": "^2.0.13",
     "notistack": "^0.9.17",
@@ -31,6 +32,7 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.1",
     "soundfont-player": "^0.12.0",
+    "tone": "^14.7.39",
     "typescript": "~3.7.2"
   },
   "scripts": {

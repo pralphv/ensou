@@ -25,6 +25,7 @@ export function initFlashingBottomTiles(
 
   let container = new PIXI.Container();
   app.stage.addChild(container);
+  app.stage.setChildIndex(container, 4);
 
   const rect = initRectangle(noteWidth, 50);
   // @ts-ignore
