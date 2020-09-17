@@ -1,17 +1,16 @@
 import React from "react";
-import clsx from "clsx";
 
 import { withStyles } from "@material-ui/core/styles";
-import { makeStyles } from "@material-ui/core";
 import Slider from "@material-ui/core/Slider";
 import { useHotkeys } from "react-hotkeys-hook";
+import * as types from "types";
 
 interface ProgressBarProps {
-  songRemaining: number;
-  skipToPercent: (percent: number) => void;
-  isPlaying: boolean;
-  isHovering: boolean;
+  songProgress: number;
+  skipToTick: types.IMidiFunctions["skipToTick"];
   setIsHovering: (hovering: boolean) => void;
+  forceRerender: types.forceRerender;
+  totalTicks: number;
 }
 
 const PrettoSlider = withStyles({
@@ -52,63 +51,42 @@ const PrettoSlider = withStyles({
   },
 })(Slider);
 
-const useStyles = makeStyles(() => ({
-  root: {
-    "&:hover": {
-      opacity: 1,
-    },
-    zIndex: 1000,
-  },
-  hide: {
-    opacity: 0,
-  },
-  show: {
-    opacity: 1,
-  },
-}));
-
 export default function ProgressBar({
-  songRemaining,
-  skipToPercent,
-  isPlaying,
-  isHovering,
+  songProgress,
+  skipToTick,
   setIsHovering,
+  forceRerender,
+  totalTicks,
 }: ProgressBarProps): JSX.Element {
-  console.log("Rendering ProgressBar");
-
-  const classes = useStyles();
+  // console.log("Progressbar Rerender");
 
   function handleChange(e: any, newValue: number | number[]) {
     const value = newValue as number;
-    skipToPercent(value);
+    skipToTick((value / 100) * totalTicks);
+    forceRerender();
   }
 
   // no loops rip
-  useHotkeys("0", () => skipToPercent(0));
-  useHotkeys("1", () => skipToPercent(10));
-  useHotkeys("2", () => skipToPercent(20));
-  useHotkeys("3", () => skipToPercent(30));
-  useHotkeys("4", () => skipToPercent(40));
-  useHotkeys("5", () => skipToPercent(50));
-  useHotkeys("6", () => skipToPercent(60));
-  useHotkeys("7", () => skipToPercent(70));
-  useHotkeys("8", () => skipToPercent(80));
-  useHotkeys("9", () => skipToPercent(90));
+  // useHotkeys("0", () => skipToPercent(0));
+  // useHotkeys("1", () => skipToPercent(10));
+  // useHotkeys("2", () => skipToPercent(20));
+  // useHotkeys("3", () => skipToPercent(30));
+  // useHotkeys("4", () => skipToPercent(40));
+  // useHotkeys("5", () => skipToPercent(50));
+  // useHotkeys("6", () => skipToPercent(60));
+  // useHotkeys("7", () => skipToPercent(70));
+  // useHotkeys("8", () => skipToPercent(80));
+  // useHotkeys("9", () => skipToPercent(90));
 
   return (
     <PrettoSlider
       valueLabelDisplay="auto"
       defaultValue={0}
-      value={100 - songRemaining}
+      value={songProgress}
       max={100}
       onChange={handleChange}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
-      className={clsx({
-        [classes.root]: true,
-        [classes.hide]: isPlaying,
-        [classes.show]: !isPlaying || isHovering,
-      })}
     />
   );
 }

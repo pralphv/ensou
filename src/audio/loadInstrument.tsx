@@ -9,6 +9,8 @@ import { Sampler, Reverb } from "tone";
 import { storageRef } from "firebaseApi/firebase";
 import { set, get } from "idb-keyval";
 
+import * as types from "types";
+
 function getAudioContext(): AudioContext {
   const isAudioContextSupported =
     "AudioContext" in window || "webkitAudioContext" in window;
@@ -64,12 +66,15 @@ async function fetchInstruments() {
   return sampleMap;
 }
 
-export function useInstrument(): InstrumentApi {
+export function useInstrument(
+  getIsSoundEffect: types.IMidiFunctions["soundEffect"]["getIsSoundEffect"]
+): InstrumentApi {
   const dispatch = useDispatch();
   const sampler = useRef<Sampler>();
   const effects = useRef<Sampler>();
 
   useEffect(() => {
+    console.log("Reloading useInstrument");
     async function getSamples() {
       const reverb = new Reverb({ wet: 1, decay: 4 }).toDestination();
       dispatch(setInstrumentLoading());
@@ -88,11 +93,13 @@ export function useInstrument(): InstrumentApi {
       }).connect(reverb);
     }
     getSamples();
-  }, [dispatch]);
+  }, []);
 
   function triggerAttack(note: string, velocity: number) {
     sampler.current?.triggerAttack(note, undefined, velocity);
-    effects.current?.triggerAttack(note, undefined, velocity);
+    if (getIsSoundEffect()) {
+      effects.current?.triggerAttack(note, undefined, velocity);
+    }
   }
 
   function triggerRelease(note: string) {

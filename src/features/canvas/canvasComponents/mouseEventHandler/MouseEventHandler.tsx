@@ -7,9 +7,12 @@ import { setPlayRange } from "features/midiPlayerStatus/midiPlayerStatusSlice";
 import { PlayRange } from "features/midiPlayerStatus/types";
 import { convertCanvasHeightToMidiTick } from "../../utils";
 
+import * as types from "types";
+
 export function useMouseEvents(
   app: PIXI.Application | undefined,
-  getCurrentTick: () => number | undefined
+  getCurrentTick: types.IMidiFunctions["getCurrentTick"],
+  getIsPlaying: types.IMidiFunctions["getIsPlaying"]
 ) {
   const dispatch = useDispatch();
   const lastClickedTick = useRef<number>(0);
@@ -52,6 +55,10 @@ export function useMouseEvents(
       }
     });
     interaction.on("pointerdown", (e: PIXI.InteractionEvent) => {
+      if (getIsPlaying() === true) {
+        return;
+      }
+
       isDraggingRef.current = true;
       const y: number = e.data.global.y;
       let tick: number = convertCanvasHeightToMidiTick(
@@ -81,10 +88,13 @@ export function useMouseEvents(
     interaction.on("pointerup", (e: PIXI.InteractionEvent) => {
       isDraggingRef.current = false;
     });
+    interaction.on("pointerout", (e: PIXI.InteractionEvent) => {
+      isDraggingRef.current = false;
+    });
     return () => {
       interaction.destroy();
       window.removeEventListener("keydown", handleKeyDownListener, false);
       window.removeEventListener("keyup", handleKeyUpListener, false);
     };
-  }, [app, dispatch]);
+  }, [app]);
 }

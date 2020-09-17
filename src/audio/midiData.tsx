@@ -8,26 +8,19 @@ import { Player as SoundFontPlayer } from "soundfont-player";
 import MidiPlayer from "midi-player-js";
 
 import { useInstrument } from "./loadInstrument";
-import * as types from "./types";
 import * as processing from "./processing";
-import {
-  setMidiNotPlaying,
-  setMidiPlaying,
-  setPlayRange,
-} from "features/midiPlayerStatus/midiPlayerStatusSlice";
-import { useEventListener, useStateToRef } from "utils/customHooks";
-import { MidiStatus } from "features/midiPlayerStatus/constants";
+import { setPlayRange } from "features/midiPlayerStatus/midiPlayerStatusSlice";
+import { useStateToRef } from "utils/customHooks";
 import { PlayRange } from "features/midiPlayerStatus/types";
 
+import * as types from "types";
+
 const BEAT_BUFFER = 0.02;
+interface Tick {
+  tick: number;
+}
 
-type MidiPlayerType = MidiPlayer.Player & MidiPlayer.Event & MidiPlayer.Track;
-
-function useMidiData(): [
-  () => MidiPlayerType | undefined,
-  types.MidiFunctions,
-  types.GroupedNotes[]
-] {
+function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
   const dispatch = useDispatch();
   const isMetronome: boolean = useSelector(
     (state: RootState) => state.midiPlayerStatus.metronome
@@ -35,14 +28,8 @@ function useMidiData(): [
   const tempoChange: number = useSelector(
     (state: RootState) => state.midiPlayerStatus.tempo
   );
-  const isPlaying: boolean = useSelector(
-    (state: RootState) => state.midiPlayerStatus.isPlaying
-  );
   const isLoop: boolean = useSelector(
     (state: RootState) => state.midiPlayerStatus.loop
-  );
-  const midiStatus: string = useSelector(
-    (state: RootState) => state.midiPlayerStatus.status
   );
   const playRange: PlayRange = useSelector(
     (state: RootState) => state.midiPlayerStatus.playRange
@@ -51,37 +38,43 @@ function useMidiData(): [
 
   // sadly types provided by libraries are incomplete
   const instrumentRef = useRef<SoundFontPlayer>();
+  const ticksPerBeatRef = useRef<number>(0);
   const midiPlayerRef = useRef<
     MidiPlayer.Player & MidiPlayer.Event & MidiPlayer.Track
   >();
-  const groupedNotes = useRef<types.GroupedNotes[]>([]);
-  const lastTick = useRef<number>(0);
+  const groupedNotes = useRef<types.IGroupedNotes[]>([]);
+  const totalTicksRef = useRef<number>(0);
   const originalTempoRef = useRef<number>();
+  const isPlayingRef = useRef<boolean>();
+  const isSoundEffectRef = useRef<boolean>(true);
 
   const isLoopRef = useStateToRef(isLoop);
   const playRangeRef = useStateToRef(playRange);
   const isMetronomeRef = useStateToRef(isMetronome);
   const tempoChangeRef = useStateToRef(tempoChange);
-  const midiStatusRef = useStateToRef(midiStatus);
-  const isPlayingRef = useStateToRef(isPlaying);
 
-  useEventListener("wheel", (e) => {
-    // scroll up and down
-    if (midiPlayerRef.current) {
-      const currentTick: number = midiPlayerRef.current.getCurrentTick();
-      let newTick: number = currentTick + e.deltaY / 2;
-      const SCROLL_BUFFER: number = 300;
-      const withinUpperLimit = newTick + SCROLL_BUFFER < lastTick.current;
-      const withinLowerLimit = newTick > 0;
-      if (withinUpperLimit && withinLowerLimit) {
-        midiPlayerRef.current?.skipToTick(newTick);
-        fakePlay();
-      }
-    }
-  });
+  function getIsPlaying(): boolean | undefined {
+    return isPlayingRef.current;
+  }
 
-  function getMidiPlayer(): MidiPlayerType | undefined {
-    return midiPlayerRef.current;
+  function setIsPlaying() {
+    isPlayingRef.current = true;
+  }
+
+  function setIsNotPlaying() {
+    isPlayingRef.current = false;
+  }
+
+  function getIsSoundEffect(): boolean {
+    return isSoundEffectRef.current;
+  }
+
+  function setIsSoundEffect() {
+    isSoundEffectRef.current = true;
+  }
+
+  function setIsNotSoundEffect() {
+    isSoundEffectRef.current = false;
   }
 
   function getCurrentTick(): number | undefined {
@@ -96,16 +89,12 @@ function useMidiData(): [
     midiPlayerRef.current?.loadArrayBuffer(blob);
   }
 
-  function getTicksPerBeat(): number | undefined {
-    try {
-      // @ts-ignore
-      return midiPlayerRef.current?.getDivision()?.division;
-    } catch {
-      return undefined;
-    }
+  function getTicksPerBeat(): number {
+    return ticksPerBeatRef.current;
   }
+
   function getTotalTicks(): number | undefined {
-    return midiPlayerRef.current?.getTotalTicks();
+    return totalTicksRef.current;
   }
 
   const changeTempo = useCallback(() => {
@@ -118,25 +107,22 @@ function useMidiData(): [
   }, [tempoChangeRef]);
 
   function play(noSkip = false, skipDispatch = false) {
-    if (midiStatusRef.current === MidiStatus.MidiNotLoaded) {
-      return;
-    }
     if (!noSkip && playRangeRef?.current?.startTick !== 0) {
       midiPlayerRef.current?.skipToTick(playRangeRef?.current?.startTick);
     }
     if (!skipDispatch) {
-      dispatch(setMidiPlaying());
+      setIsPlaying();
     }
     midiPlayerRef.current?.play();
   }
 
   function stop() {
-    dispatch(setMidiNotPlaying());
+    setIsNotPlaying();
     midiPlayerRef.current?.stop();
   }
 
   function pause() {
-    dispatch(setMidiNotPlaying());
+    setIsNotPlaying();
     midiPlayerRef.current?.pause();
   }
 
@@ -144,36 +130,28 @@ function useMidiData(): [
     skipToPercent(0);
     dispatch(setPlayRange({ startTick: 0, endTick: 0 }));
   }
-  /**
-   * To make canvas rerender
-   */
-  function fakePlay() {
-    play(true, true);
-    if (!isPlayingRef.current) {
-      setTimeout(pause, 80);
-    }
-  }
 
-  /**
-   * After skipping, only midi is skipped.
-   * Canvas is still in old position.
-   * So play slightly to update cavas.
-   * @param percent target percentage
-   */
   function skipToPercent(percent: number) {
-    if (midiStatusRef.current !== MidiStatus.MidiNotLoaded) {
-      midiPlayerRef.current?.skipToPercent(percent);
-      fakePlay();
+    midiPlayerRef.current?.skipToPercent(percent);
+    if (isPlayingRef.current) {
+      play(true, true);
     }
   }
 
-  const intrumentApi = useInstrument();
+  function skipToTick(tick: number) {
+    midiPlayerRef.current?.skipToTick(tick);
+    if (isPlayingRef.current) {
+      play(true, true);
+    }
+  }
+
+  const intrumentApi = useInstrument(getIsSoundEffect);
   useEffect(() => {
     midiPlayerRef.current = new MidiPlayer.Player() as MidiPlayer.Player &
       MidiPlayer.Event &
       MidiPlayer.Track;
 
-    midiPlayerRef.current.on("playing", (currentTick: types.Tick) => {
+    midiPlayerRef.current.on("playing", (currentTick: Tick) => {
       // handle metronome
       setCurrentTick(currentTick.tick);
       const ticksPerBeat_ = getTicksPerBeat() as number;
@@ -194,7 +172,7 @@ function useMidiData(): [
       }
 
       // handle song loop
-      const songEnded: boolean = currentTick.tick >= lastTick.current;
+      const songEnded: boolean = currentTick.tick >= totalTicksRef.current;
       const playRangeReached: boolean =
         currentTick.tick >= (playRangeRef?.current?.endTick as number);
       const hasPlayRange =
@@ -209,22 +187,23 @@ function useMidiData(): [
           midiPlayerRef.current?.skipToTick(playRangeRef?.current?.startTick);
           play();
         } else {
-          dispatch(setMidiNotPlaying());
-          stop();
-          midiPlayerRef.current?.skipToTick(playRangeRef?.current?.startTick);
-          fakePlay();
+          setIsNotPlaying();
+          restart();
         }
       }
     });
     midiPlayerRef.current.on("fileLoaded", () => {
       if (midiPlayerRef.current) {
         const allEvents: MidiPlayer.Event[] = midiPlayerRef.current.getEvents();
-        dispatch(setMidiNotPlaying());
-        const groupedNotes_: types.GroupedNotes[] = processing.groupNotes(
+        setIsNotPlaying();
+
+        const groupedNotes_: types.IGroupedNotes[] = processing.groupNotes(
           allEvents
         );
-        lastTick.current = groupedNotes_[groupedNotes_.length - 1].off;
+        totalTicksRef.current = groupedNotes_[groupedNotes_.length - 1].off;
         groupedNotes.current = groupedNotes_;
+        // @ts-ignore
+        ticksPerBeatRef.current = midiPlayerRef.current?.getDivision()?.division;
       }
     });
     midiPlayerRef.current.on("midiEvent", (midiEvent: any) => {
@@ -247,10 +226,11 @@ function useMidiData(): [
     changeTempo();
   }, [tempoChange, changeTempo]);
 
-  const playerFunctions: types.MidiFunctions = {
+  const playerFunctions: types.IMidiFunctions = {
     play,
     stop,
     pause,
+    getIsPlaying,
     skipToPercent,
     restart,
     getCurrentTick,
@@ -258,11 +238,17 @@ function useMidiData(): [
     loadArrayBuffer,
     getTicksPerBeat,
     getTotalTicks,
+    skipToTick,
     changeVolume: intrumentApi.changeVolume,
     getVolumeDb: intrumentApi.getVolumeDb,
+    soundEffect: {
+      getIsSoundEffect,
+      setIsSoundEffect,
+      setIsNotSoundEffect,
+    },
   };
 
-  return [getMidiPlayer, playerFunctions, groupedNotes.current];
+  return [playerFunctions, groupedNotes.current];
 }
 
 export default useMidiData;

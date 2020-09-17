@@ -77,11 +77,16 @@ export function initFallingNotes(
   return FALLING_NOTES;
 }
 
-export function draw(currentTick: number, canvasHeight: number) {
+export function draw(
+  currentTick: number,
+  canvasHeight: number,
+  ticksPerBeat: number
+) {
+  const upperLimit = ticksPerBeat * 4 * 3; // assume 4 beats per bar, show 3 bars
   FALLING_NOTES.forEach((note: FallingNotes) => {
     const sprite = note.rectSprite;
     if (
-      currentTick >= note.on * CANVAS_SLOW_DOWN_FACTOR - 5000 &&
+      currentTick >= note.on * CANVAS_SLOW_DOWN_FACTOR - upperLimit &&
       currentTick <= note.off * CANVAS_SLOW_DOWN_FACTOR
     ) {
       const on = note.on - currentTick / CANVAS_SLOW_DOWN_FACTOR;

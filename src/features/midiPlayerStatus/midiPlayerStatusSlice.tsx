@@ -5,7 +5,6 @@ import { MidiPlayerStatus, PlayRange } from "./types";
 
 const initialState: MidiPlayerStatus = {
   status: MidiStatus.MidiNotLoaded,
-  isPlaying: false,
   instrumentLoading: false,
   metronome: false,
   tempo: 100,
@@ -15,22 +14,14 @@ const initialState: MidiPlayerStatus = {
     startTick: 0,
     endTick: 0,
   },
+  isLoading: false,
+  fileName: "",
 };
 
 const midiPlayerStatusSlice = createSlice({
   name: "midiPlayerStatus",
   initialState,
   reducers: {
-    setMidiPlaying(state) {
-      state.status = MidiStatus.Playing;
-      state.isPlaying = true;
-      return state;
-    },
-    setMidiNotPlaying(state) {
-      state.status = MidiStatus.NotPlaying;
-      state.isPlaying = false;
-      return state;
-    },
     setMidiNotLoaded(state) {
       state.status = MidiStatus.MidiNotLoaded;
       return state;
@@ -72,12 +63,22 @@ const midiPlayerStatusSlice = createSlice({
       state.volume = action.payload;
       return state;
     },
+    setisLoading(state) {
+      state.isLoading = true;
+      return state;
+    },
+    setisNotLoading(state) {
+      state.isLoading = false;
+      return state;
+    },
+    setFileName(state, action: PayloadAction<string>) {
+      state.fileName = action.payload;
+      return state;
+    },
   },
 });
 
 export const {
-  setMidiPlaying,
-  setMidiNotPlaying,
   setMidiNotLoaded,
   setMetronomeOn,
   setMetronomeOff,
@@ -88,6 +89,9 @@ export const {
   setInstrumentLoading,
   setInstrumentNotLoading,
   setVolume,
+  setisLoading,
+  setisNotLoading,
+  setFileName,
 } = midiPlayerStatusSlice.actions;
 
 export default midiPlayerStatusSlice.reducer;

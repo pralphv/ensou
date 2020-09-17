@@ -88,6 +88,19 @@ export async function registerUser(
   }
 }
 
+export async function updateDisplayName(
+  firebase: ExtendedAuthInstance,
+  username: string
+): Promise<types.Resp> {
+  try {
+    await firebase.auth().currentUser?.updateProfile({displayName: username});
+    return { status: "ok", message: "success" };
+  } catch (error) {
+    console.log(error);
+    return { status: "error", message: error };
+  }
+}
+
 export async function sendPasswordResetEmail(
   firebase: ExtendedAuthInstance,
   email: string

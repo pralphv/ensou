@@ -5,6 +5,7 @@ import { ReactReduxFirebaseProvider } from "react-redux-firebase";
 import { ThemeProvider } from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import { SnackbarProvider } from 'notistack';
+import { createFirestoreInstance } from 'redux-firestore'
 
 import "./App.css";
 import MainLayout from "../layouts/mainLayout";
@@ -20,6 +21,7 @@ const rrfProps = {
   firebase,
   config: rrfConfig,
   dispatch: store.dispatch,
+  createFirestoreInstance 
 };
 
 export default function App() {

@@ -1,31 +1,30 @@
 import React from "react";
-import { RootState } from "app/rootReducer";
-import { useSelector } from "react-redux";
 
 import PauseIcon from "@material-ui/icons/Pause";
 import PlayArrowIcon from "@material-ui/icons/PlayArrow";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { useStateToRef } from "utils/customHooks";
 import { BUTTON_WIDTH, BUTTON_HEIGHT } from "../constants";
 import CustomButton from "./CustomButton";
+import * as types from "types";
 
 interface PlayButtonProps {
-  play: () => void;
-  pause: () => void;
+  play: types.IMidiFunctions["play"];
+  pause: types.IMidiFunctions["pause"];
+  getIsPlaying: types.IMidiFunctions["getIsPlaying"];
+  forceRerender: types.forceRerender;
 }
 
 export default function PlayButton({
   play,
   pause,
+  getIsPlaying,
+  forceRerender,
 }: PlayButtonProps): JSX.Element {
-  const isPlaying: boolean = useSelector(
-    (state: RootState) => state.midiPlayerStatus.isPlaying
-  );
-  const isPlayingRef = useStateToRef(isPlaying);
+  const isPlaying = getIsPlaying() === true; // can be undefined
 
   function toggle() {
-    if (isPlayingRef.current) {
+    if (isPlaying) {
       pause();
     } else {
       play();
@@ -37,14 +36,23 @@ export default function PlayButton({
     <div>
       {isPlaying ? (
         <CustomButton
-          onClick={pause}
+          onClick={() => {
+            pause();
+            forceRerender();
+          }}
           style={{ width: BUTTON_WIDTH, height: BUTTON_HEIGHT }}
         >
           <PauseIcon />
         </CustomButton>
       ) : (
         // make arrow function to prevent event insterting into play()
-        <CustomButton onClick={() => play()} style={{ width: BUTTON_WIDTH }}>
+        <CustomButton
+          onClick={() => {
+            play();
+            forceRerender();
+          }}
+          style={{ width: BUTTON_WIDTH }}
+        >
           <PlayArrowIcon />
         </CustomButton>
       )}

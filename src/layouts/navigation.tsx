@@ -10,15 +10,17 @@ export interface NavigationProps {
 
 export default function Navigation({ children }: NavigationProps): JSX.Element {
   return (
-    <Grid
-      container
-      spacing={0}
-      direction="column"
-      alignItems="center"
-      justify="center"
-    >
+    <div>
       <NavigationBar />
-      {children}
-    </Grid>
+      <Grid
+        container
+        spacing={0}
+        direction="column"
+        alignItems="center"
+        justify="center"
+      >
+        {children}
+      </Grid>
+    </div>
   );
 }

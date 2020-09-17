@@ -14,7 +14,7 @@ import {
 } from "@material-ui/core";
 
 import LoadingSpinner from "features/loadingSpinner/LoadingSpinner";
-// import BoldTitle from "features/boldTitle/BoldTitle";
+import BoldTitle from "features/boldTitle/BoldTitle";
 import { Pages } from "layouts/constants";
 
 // import { PADDING_SPACE, MAX_WIDTH } from "../styles";
@@ -35,7 +35,7 @@ const useStyles = makeStyles((theme) => ({
     width: "100%",
   },
   paper: {
-    // padding: theme.spacing(PADDING_SPACE),
+    padding: theme.spacing(2),
     // maxWidth: MAX_WIDTH,
     marginTop: "20%"
   },
@@ -84,7 +84,7 @@ export default function Login({ history }: LoginProps) {
   return (
     <Paper className={classes.paper}>
       {loggingIn && <LoadingSpinner />}
-      {/* <BoldTitle>Welcome</BoldTitle> */}
+      <BoldTitle>Welcome</BoldTitle>
       <form onSubmit={handleOnSubmit} noValidate className={classes.form}>
         <TextField
           className={classes.fieldWidth}

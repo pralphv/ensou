@@ -1,61 +1,82 @@
 import React from "react";
-import clsx from "clsx";
 
-import { makeStyles } from "@material-ui/core";
 import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup";
 
 import MetronomeButton from "./toolbarComponents/MetronomeButton";
 import LoopButton from "./toolbarComponents/LoopButton";
 import PlayButton from "./toolbarComponents/PlayButton";
 import VolumeButton from "./toolbarComponents/VolumeButton";
-
+import FileReaderButton from "./toolbarComponents/FileReaderButton";
 import TempoButton from "./toolbarComponents/TempoButton";
 import RestartButton from "./toolbarComponents/RestartButton";
+import SettingsButton from "./toolbarComponents/SettingsButton";
 import { BUTTON_WIDTH, BUTTON_HEIGHT } from "./constants";
+import * as types from "types";
 
 interface ToolBarProps {
-  play: () => void;
-  pause: () => void;
-  restart: () => void;
-  isPlaying: boolean;
+  play: types.IMidiFunctions["play"];
+  pause: types.IMidiFunctions["pause"];
+  restart: types.IMidiFunctions["restart"];
   isHovering: boolean;
   setIsHovering: (hovering: boolean) => void;
   changeVolume: (volume: number) => void;
-  getVolumeDb: () => number | undefined;
-  forceRerender: () => void;
+  getVolumeDb: types.IMidiFunctions["getVolumeDb"];
+  forceRerender: types.forceRerender;
+  loadArrayBuffer: types.IMidiFunctions["loadArrayBuffer"];
+  getIsPlaying: types.IMidiFunctions["getIsPlaying"];
+  soundEffect: types.IMidiFunctions["soundEffect"];
 }
 
 export default function ToolBar({
   play,
   pause,
   restart,
-  isPlaying,
   isHovering,
   setIsHovering,
   changeVolume,
   getVolumeDb,
   forceRerender,
+  loadArrayBuffer,
+  getIsPlaying,
+  soundEffect,
 }: ToolBarProps) {
   console.log("Toolbar Rerender");
-  let opacity = isPlaying ? 0 : 1;
+  let opacity = getIsPlaying() === true ? 0 : 1;
   opacity = isHovering ? 1 : opacity;
 
   return (
-    <ToggleButtonGroup
-      style={{ opacity, marginTop: -15 }}
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        opacity,
+        marginTop: -15,
+      }}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      <RestartButton restart={restart} />
-      <PlayButton play={play} pause={pause} />
-      <VolumeButton
-        getVolumeDb={getVolumeDb}
-        changeVolume={changeVolume}
-        forceRerender={forceRerender}
-      />
-      <LoopButton />
-      <MetronomeButton />
-      <TempoButton />
-    </ToggleButtonGroup>
+      <ToggleButtonGroup>
+        <RestartButton restart={restart} />
+        <PlayButton
+          play={play}
+          pause={pause}
+          getIsPlaying={getIsPlaying}
+          forceRerender={forceRerender}
+        />
+        <VolumeButton
+          getVolumeDb={getVolumeDb}
+          changeVolume={changeVolume}
+          forceRerender={forceRerender}
+        />
+        <LoopButton />
+        <MetronomeButton />
+        <TempoButton getIsPlaying={getIsPlaying} />
+        <FileReaderButton
+          loadArrayBuffer={loadArrayBuffer}
+          getIsPlaying={getIsPlaying}
+        />
+      </ToggleButtonGroup>
+      <SettingsButton soundEffect={soundEffect} forceRerender={forceRerender} />
+    </div>
   );
 }

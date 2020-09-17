@@ -2,6 +2,7 @@ import * as PIXI from "pixi.js";
 
 let SPRITE: PIXI.Sprite;
 let OLD_TEXTURE: PIXI.Texture;
+let canBeDestroyed: boolean; // why code so shit and hacky
 
 function initRectangle(width: number, height: number): PIXI.Graphics {
   const rect = new PIXI.Graphics();
@@ -19,17 +20,23 @@ export function initHighlighter(
   endY: number
 ) {
   // console.log("Constructing new Highlighter");
-  try {
-    SPRITE.destroy({ children: true, texture: true, baseTexture: true });
-    OLD_TEXTURE.destroy(true);
-  } catch {}
+  destroy();
   const rect = initRectangle(app.screen.width, Math.abs(endY - startY));
   // @ts-ignore
   const texture = app.renderer.generateTexture(rect);
   const sprite = new PIXI.Sprite(texture);
-  sprite.position.y = endY > startY ? startY : endY ;
+  sprite.position.y = endY > startY ? startY : endY;
   app.stage.addChild(sprite);
   SPRITE = sprite;
   OLD_TEXTURE = texture;
+  canBeDestroyed = true;
   rect.destroy({ children: true, texture: true, baseTexture: true });
+}
+
+export function destroy() {
+  if (canBeDestroyed) {
+    SPRITE.destroy({ children: true, texture: true, baseTexture: true });
+    OLD_TEXTURE.destroy(true);
+    canBeDestroyed = false;
+  }
 }

@@ -1,18 +1,22 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 
 import useMediaQuery from "@material-ui/core/useMediaQuery";
+import { VariantType, useSnackbar } from "notistack";
 
 import { RootState } from "app/rootReducer";
 import * as types from "./types";
+import {
+  setFileName,
+  setisLoading,
+  setisNotLoading,
+} from "features/midiPlayerStatus/midiPlayerStatusSlice";
 
 export function useWindow(): types.Window {
   const [width, setWidth] = useState<number>(window.innerHeight);
   const [height, setHeight] = useState<number>(window.screen.width);
 
   useEffect(() => {
-    console.log("WTF")
-    console.log(window.screen.width)
     // Bind the event listener
     window.addEventListener("resize", handleSetTable);
     return () => {
@@ -35,17 +39,17 @@ export function useIsMobile(): boolean {
   return isMobile;
 }
 
-// export function useIsVerified(): boolean {
-//   const isVerified = useSelector(
-//     (state: any) => state.firebase.auth.emailVerified
-//   );
-//   return isVerified;
-// }
+export function useIsVerified(): boolean {
+  const isVerified = useSelector(
+    (state: any) => state.firebase.auth.emailVerified
+  );
+  return isVerified;
+}
 
-// export function useUserId(): string {
-//   const userId = useSelector((state: any) => state.firebase.auth.uid);
-//   return userId;
-// }
+export function useUserId(): string {
+  const userId = useSelector((state: any) => state.firebase.auth.uid);
+  return userId;
+}
 
 // export function useUserProfile(): any {
 //   const profile = useSelector((state: RootState) => state.firebase.profile);
@@ -79,7 +83,7 @@ export function useEventListener(
 
   useEffect(() => {
     savedHandler.current = handler;
-  }, [handler]);
+  }, []);
 
   useEffect(() => {
     const isSupported = element && element.addEventListener;
@@ -90,17 +94,55 @@ export function useEventListener(
         savedHandler.current(e);
       }
     }
-
     element.addEventListener(eventName, eventListener);
 
     return () => {
       element.removeEventListener(eventName, eventListener);
     };
-  }, [eventName, element]);
+  }, [eventName]);
 }
 
 export function useStateToRef(state: any): any {
   const ref = useRef<any>();
   ref.current = state;
   return ref;
+}
+
+export function useLoadLocal(
+  loadArrayBuffer: (blob: XMLHttpRequest["response"]) => void
+): [(acceptedFiles: any) => void] {
+  const { enqueueSnackbar } = useSnackbar();
+  const dispatch = useDispatch();
+
+  const handleNotification = (message: string, variant: VariantType) => () => {
+    // variant could be success, error, warning, info, or default
+    enqueueSnackbar(message, { variant });
+  };
+
+  const onDrop = useCallback((acceptedFiles) => {
+    const reader = new FileReader();
+    reader.onabort = (e) => handleNotification("onabort error", "error");
+    reader.onerror = (e) => handleNotification("load error", "error");
+    reader.onload = (r: any) => {
+      const data: any = r.target.result;
+      if (data) {
+        loadArrayBuffer(data);
+        dispatch(setisNotLoading());
+      }
+    };
+    try {
+      if (acceptedFiles[0]) {
+        dispatch(setisLoading());
+        console.log(`Reading: ${acceptedFiles[0].name}`);
+        reader.readAsArrayBuffer(acceptedFiles[0]);
+        dispatch(setFileName(acceptedFiles[0].name));
+        console.log(`Successfully read: ${acceptedFiles[0].name}`);
+      }
+    } catch (error) {
+      handleNotification(error, "error");
+      dispatch(setisNotLoading());
+      console.log(error);
+    }
+  }, []);
+  return [onDrop];
 }

@@ -13,7 +13,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function LoadingScreen() {
-  console.log("LoadingScreen rerender");
+  console.log("Loading Screen rerender");
   const classes = useStyles();
   // const profile = useUserProfile();
   // <Backdrop className={classes.backdrop} open={!profile.isLoaded}>

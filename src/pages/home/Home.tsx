@@ -41,7 +41,6 @@ function useAvailableUserUploadedMidis(): string[] {
       const midisRef = storageRef.child("midi");
       try {
         const result = await midisRef.listAll();
-        console.log(result.items)
         const midiNames_: string[] = result.items.map(
           (itemRef) => itemRef.name
         );
@@ -70,7 +69,7 @@ export default function Home(): JSX.Element {
         <LoadingSpinner />
       ) : (
         <div>
-          <Autocomplete
+          {/* <Autocomplete
             options={midiNames}
             getOptionLabel={(option) => option}
             renderInput={(params) => (
@@ -81,7 +80,7 @@ export default function Home(): JSX.Element {
                   width: "50vw",
                 }}
               >
-                {/* <SearchIcon
+                <SearchIcon
                   style={{
                     position: "absolute",
                     left: 0,
@@ -89,11 +88,11 @@ export default function Home(): JSX.Element {
                     width: 20,
                     height: 20,
                   }}
-                /> */}
+                />
                 <TextField {...params} variant="outlined" />
               </div>
             )}
-          />
+          /> */}
           <SongTable />
         </div>
       )}
