@@ -1,13 +1,12 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 
-import { Grid, makeStyles, Typography } from "@material-ui/core";
+import { Typography } from "@material-ui/core";
 import { useSelector } from "react-redux";
 import { RootState } from "app/rootReducer";
 import { useFirestore } from "react-redux-firebase";
 
 import LoadingScreen from "features/loadingScreen/LoadingScreen";
 import LoadingSpinner from "features/loadingSpinner/LoadingSpinner";
-import { useIsMobile, useWindow } from "utils/customHooks";
 import Canvas from "features/canvas/Canvas";
 import Toolbar from "features/toolbar/Toolbar";
 import FileReader from "features/fileReader/FileReader";
@@ -18,24 +17,7 @@ import * as types from "types";
 import { useParams } from "react-router";
 
 import { storageRef } from "firebaseApi/firebase";
-import { useEventListener, useStateToRef } from "utils/customHooks";
-
-const useStyles = makeStyles((theme) => ({
-  root: {
-    flexGrow: 1,
-    height: "200px",
-  },
-  width: {
-    width: "250px",
-  },
-  paper: {
-    padding: theme.spacing(2),
-    cursor: "pointer",
-    "&:hover": {
-      background: "#353535",
-    },
-  },
-}));
+import { useEventListener } from "utils/customHooks";
 
 async function downloadMidi(
   loadArrayBuffer: (blob: XMLHttpRequest["response"]) => void,
@@ -55,7 +37,7 @@ async function downloadMidi(
   return true;
 }
 
-export default function Interface(): JSX.Element {
+export default function Player(): JSX.Element {
   const [midiFunctions, groupedNotes]: [
     types.IMidiFunctions,
     types.IGroupedNotes[]
@@ -64,15 +46,9 @@ export default function Interface(): JSX.Element {
   const [isHovering, setIsHovering] = useState<boolean>(false);
   const [forceRender, setForceRender] = useState<number>(0); // for re-render on volume change
 
-  const instrumentLoading: boolean = useSelector(
-    (state: RootState) => state.midiPlayerStatus.instrumentLoading
-  );
   const urlParams: any = useParams();
   const firestore = useFirestore();
 
-  // const classes = useStyles();
-  // const isMobile: boolean = useIsMobile();
-  // const { width, height } = useWindow();
   // const loading: boolean = false;
   useEffect(() => {
     const songId: string = urlParams.songId;
@@ -89,14 +65,10 @@ export default function Interface(): JSX.Element {
   }, []);
 
   const loadingScreenMemo = useMemo(
-    () => instrumentLoading && <LoadingScreen />,
-    [instrumentLoading]
+    () => midiFunctions.instrumentLoading && <LoadingScreen />,
+    [midiFunctions.instrumentLoading]
   );
 
-  const x = useMemo(
-    () => <FileReader loadArrayBuffer={midiFunctions.loadArrayBuffer} />,
-    []
-  );
   const currentTick = midiFunctions.getCurrentTick();
 
   function forceRerender() {
@@ -119,6 +91,7 @@ export default function Interface(): JSX.Element {
         loadArrayBuffer={midiFunctions.loadArrayBuffer}
         getIsPlaying={midiFunctions.getIsPlaying}
         soundEffect={midiFunctions.soundEffect}
+        metronomeApi={midiFunctions.metronomeApi}
       />
     ),
     [
@@ -138,6 +111,9 @@ export default function Interface(): JSX.Element {
         ticksPerBeat={midiFunctions.getTicksPerBeat() || 0}
         setIsHovering={setIsHovering}
         getIsPlaying={midiFunctions.getIsPlaying}
+        playRangeApi={midiFunctions.playRangeApi}
+        getForceRerender={() => forceRerenderRef.current}
+        forceRender={forceRender}
       />
     ),
     [currentTick, forceRender]

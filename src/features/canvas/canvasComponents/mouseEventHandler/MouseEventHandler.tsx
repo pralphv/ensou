@@ -3,7 +3,6 @@ import { useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import * as PIXI from "pixi.js";
 
-import { setPlayRange } from "features/midiPlayerStatus/midiPlayerStatusSlice";
 import { PlayRange } from "features/midiPlayerStatus/types";
 import { convertCanvasHeightToMidiTick } from "../../utils";
 
@@ -12,9 +11,9 @@ import * as types from "types";
 export function useMouseEvents(
   app: PIXI.Application | undefined,
   getCurrentTick: types.IMidiFunctions["getCurrentTick"],
-  getIsPlaying: types.IMidiFunctions["getIsPlaying"]
+  getIsPlaying: types.IMidiFunctions["getIsPlaying"],
+  setPlayRange: types.PlayRangeApi["setPlayRange"]
 ) {
-  const dispatch = useDispatch();
   const lastClickedTick = useRef<number>(0);
   const isShift = useRef<boolean>(false);
   const isDraggingRef = useRef<boolean>(false);
@@ -51,7 +50,7 @@ export function useMouseEvents(
         let endTick = newIsLarger ? tick : lastClickedTick.current;
         // prevent small ranges due to slow clicks
         endTick = endTick - startTick > 10 ? endTick : startTick;
-        dispatch(setPlayRange({ startTick, endTick }));
+        setPlayRange({startTick, endTick})
       }
     });
     interaction.on("pointerdown", (e: PIXI.InteractionEvent) => {
@@ -74,7 +73,7 @@ export function useMouseEvents(
         ? Math.max(lastClickedTick.current, tick)
         : tick;
       const newRange: PlayRange = { startTick, endTick };
-      dispatch(setPlayRange(newRange));
+      setPlayRange(newRange);
 
       if (!isShift.current) {
         // for multi shift clicking

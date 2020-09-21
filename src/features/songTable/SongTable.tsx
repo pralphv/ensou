@@ -1,9 +1,5 @@
 import React, { useEffect, useState } from "react";
 
-import { ExtendedFirebaseInstance, useFirebase } from "react-redux-firebase";
-import { useFirestoreConnect } from "react-redux-firebase";
-import { useSelector } from "react-redux";
-import { RootState } from "app/rootReducer";
 import { useFirestore } from "react-redux-firebase";
 import { useHistory } from "react-router-dom";
 import { Pages } from "layouts/constants";
@@ -77,7 +73,7 @@ export default function SongTable() {
   }
 
   function handleOnClick(songId: string) {
-    history.push(`${Pages.Interface}/${songId}`);
+    history.push(`${Pages.Player}/${songId}`);
   }
 
   const firestore = useFirestore();

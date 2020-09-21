@@ -5,5 +5,5 @@ export enum Pages {
   Register = "/register",
   ForgotPassword = "/forgot-password",
   Verify = "/verify",
-  Interface = "/watch",
+  Player = "/watch",
 }

@@ -21,6 +21,7 @@ export default function FileReaderButton({
   const [onLoadMidiFile] = useLoadLocal(loadArrayBuffer);
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: onLoadMidiFile,
+    disabled: getIsPlaying()
   });
 
   return (

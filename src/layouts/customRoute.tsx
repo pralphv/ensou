@@ -8,17 +8,8 @@ import Navigation from "./navigation";
 import { Pages } from "./constants";
 import { useIsMobile } from "utils/customHooks";
 
-const useStyles = makeStyles((theme) => ({
-  paddingLeft: {
-    paddingLeft: theme.spacing(7) + 1,
-  },
-  paddingBottom: {
-    paddingBottom: "60px",
-  },
-}));
-
 export interface CustomRouteProps {
-  Component: React.ReactType;
+  Component: React.ElementType;
   isPrivate: boolean;
   [x: string]: any;
 }
@@ -34,8 +25,6 @@ function CustomRoute({
   const isLoggedIn = true;
   const isVerified = true;
   const isAuthLoaded = true;
-  const isMobile: boolean = useIsMobile();
-  const classes = useStyles();
 
   return (
     <Route
@@ -48,12 +37,7 @@ function CustomRoute({
         } else {
           return (
             <Navigation>
-              <div
-                className={clsx({
-                  [classes.paddingLeft]: !isMobile,
-                  [classes.paddingBottom]: isMobile,
-                })}
-              >
+              <div>
                 <Component {...renderProps} />
               </div>
             </Navigation>

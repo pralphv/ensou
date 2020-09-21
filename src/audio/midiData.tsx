@@ -1,17 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 
 import { RootState } from "app/rootReducer";
-import { useSelector, useDispatch } from "react-redux";
-
-import { Player as SoundFontPlayer } from "soundfont-player";
+import { useSelector } from "react-redux";
 
 import MidiPlayer from "midi-player-js";
 
 import { useInstrument } from "./loadInstrument";
 import * as processing from "./processing";
-import { setPlayRange } from "features/midiPlayerStatus/midiPlayerStatusSlice";
 import { useStateToRef } from "utils/customHooks";
-import { PlayRange } from "features/midiPlayerStatus/types";
 
 import * as types from "types";
 
@@ -21,23 +17,17 @@ interface Tick {
 }
 
 function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
-  const dispatch = useDispatch();
-  const isMetronome: boolean = useSelector(
-    (state: RootState) => state.midiPlayerStatus.metronome
-  );
   const tempoChange: number = useSelector(
     (state: RootState) => state.midiPlayerStatus.tempo
   );
   const isLoop: boolean = useSelector(
     (state: RootState) => state.midiPlayerStatus.loop
   );
-  const playRange: PlayRange = useSelector(
-    (state: RootState) => state.midiPlayerStatus.playRange
-  );
+  const isMetronomeRef = useRef<boolean>(false);
+  const playRangeRef = useRef<types.PlayRange>({ startTick: 0, endTick: 0 });
   const [currentTick, setCurrentTick] = useState<number>(0); // just for force rerendering
 
   // sadly types provided by libraries are incomplete
-  const instrumentRef = useRef<SoundFontPlayer>();
   const ticksPerBeatRef = useRef<number>(0);
   const midiPlayerRef = useRef<
     MidiPlayer.Player & MidiPlayer.Event & MidiPlayer.Track
@@ -49,9 +39,27 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
   const isSoundEffectRef = useRef<boolean>(true);
 
   const isLoopRef = useStateToRef(isLoop);
-  const playRangeRef = useStateToRef(playRange);
-  const isMetronomeRef = useStateToRef(isMetronome);
   const tempoChangeRef = useStateToRef(tempoChange);
+
+  function getIsMetronome(): boolean {
+    return isMetronomeRef.current;
+  }
+
+  function setIsMetronome() {
+    isMetronomeRef.current = true;
+  }
+
+  function setIsNotMetronome() {
+    isMetronomeRef.current = false;
+  }
+
+  function getPlayRange(): types.PlayRange {
+    return playRangeRef.current;
+  }
+
+  function setPlayRange(playRange: types.PlayRange) {
+    playRangeRef.current = playRange;
+  }
 
   function getIsPlaying(): boolean | undefined {
     return isPlayingRef.current;
@@ -128,7 +136,7 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
 
   function restart() {
     skipToPercent(0);
-    dispatch(setPlayRange({ startTick: 0, endTick: 0 }));
+    setPlayRange({ startTick: 0, endTick: 0 });
   }
 
   function skipToPercent(percent: number) {
@@ -145,7 +153,7 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
     }
   }
 
-  const intrumentApi = useInstrument(getIsSoundEffect);
+  const instrumentApi = useInstrument(getIsSoundEffect);
   useEffect(() => {
     midiPlayerRef.current = new MidiPlayer.Player() as MidiPlayer.Player &
       MidiPlayer.Event &
@@ -158,17 +166,10 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
       const remainder = currentTick.tick % ticksPerBeat_;
       const progressToOneBeat = remainder / (ticksPerBeat_ * 4); // 1 is on the beat
       const fourthBeat = progressToOneBeat <= 0.0 + BEAT_BUFFER;
-      const firstBeat =
-        progressToOneBeat <= 0.25 + BEAT_BUFFER && progressToOneBeat >= 0.25;
       const secondBeat =
         progressToOneBeat <= 0.5 + BEAT_BUFFER && progressToOneBeat >= 0.5;
-      const thirdBeat =
-        progressToOneBeat <= 0.75 + BEAT_BUFFER && progressToOneBeat >= 0.75;
-      if (
-        isMetronomeRef.current &&
-        (firstBeat || secondBeat || thirdBeat || fourthBeat)
-      ) {
-        instrumentRef.current?.play("A0");
+      if (isMetronomeRef.current && (secondBeat || fourthBeat)) {
+        instrumentApi.triggerMetronome();
       }
 
       // handle song loop
@@ -212,15 +213,18 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
         changeTempo();
       }
       if (midiEvent.name === "Note on") {
-        intrumentApi.triggerAttack(
+        instrumentApi.triggerAttack(
           midiEvent.noteName,
           midiEvent.velocity / 100
         );
         return;
       } else if (midiEvent.name === "Note off") {
-        intrumentApi.triggerRelease(midiEvent.noteName);
+        instrumentApi.triggerRelease(midiEvent.noteName);
       }
     });
+    return function cleanup() {
+      midiPlayerRef.current = undefined;
+    };
   }, []);
   useEffect(() => {
     changeTempo();
@@ -239,13 +243,23 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
     getTicksPerBeat,
     getTotalTicks,
     skipToTick,
-    changeVolume: intrumentApi.changeVolume,
-    getVolumeDb: intrumentApi.getVolumeDb,
+    changeVolume: instrumentApi.changeVolume,
+    getVolumeDb: instrumentApi.getVolumeDb,
+    instrumentLoading: instrumentApi.instrumentLoading,
     soundEffect: {
       getIsSoundEffect,
       setIsSoundEffect,
       setIsNotSoundEffect,
     },
+    playRangeApi: {
+      getPlayRange,
+      setPlayRange,
+    },
+    metronomeApi: {
+      getIsMetronome, 
+      setIsMetronome,
+      setIsNotMetronome
+    }
   };
 
   return [playerFunctions, groupedNotes.current];

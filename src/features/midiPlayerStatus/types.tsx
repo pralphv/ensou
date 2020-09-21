@@ -1,6 +1,5 @@
 export interface MidiPlayerStatus {
   status: string;
-  instrumentLoading: boolean;
   metronome: boolean;
   tempo: number;
   loop: boolean;

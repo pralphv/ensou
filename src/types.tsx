@@ -1,3 +1,4 @@
+import * as types from "types";
 // export type getIsPlaying = () => boolean | undefined;
 export interface IMidiFunctions {
   play: () => void;
@@ -15,12 +16,26 @@ export interface IMidiFunctions {
   changeVolume: (volume: number) => void;
   getVolumeDb: () => number | undefined;
   soundEffect: SoundEffectApi;
+  instrumentLoading: boolean;
+  playRangeApi: PlayRangeApi;
+  metronomeApi: MetronomeApi;
 }
 
 interface SoundEffectApi {
   getIsSoundEffect: () => boolean;
   setIsSoundEffect: () => void;
   setIsNotSoundEffect: () => void;
+}
+
+interface MetronomeApi {
+  getIsMetronome: () => boolean;
+  setIsMetronome: () => void;
+  setIsNotMetronome: () => void;
+}
+
+export interface PlayRangeApi {
+  getPlayRange: () => PlayRange;
+  setPlayRange: (playRange: PlayRange) => void;
 }
 
 export interface IGroupedNotes {
@@ -33,3 +48,8 @@ export interface IGroupedNotes {
 }
 
 export type forceRerender = () => void;
+
+export interface PlayRange {
+  startTick: number;
+  endTick: number;
+}

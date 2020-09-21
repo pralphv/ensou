@@ -17,7 +17,7 @@ interface RouteProps {
 const ROUTES: RouteProps[] = [
   { path: Pages.Login, Component: pages.Login, isPrivate: false },
   { path: Pages.Home, Component: pages.Home, isPrivate: false },
-  { path: `${Pages.Interface}/:songId`, Component: pages.Interface, isPrivate: false },
+  { path: `${Pages.Player}/:songId`, Component: pages.Player, isPrivate: false },
   {
     path: Pages.Register,
     Component: pages.Register,

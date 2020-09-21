@@ -3,13 +3,11 @@ import * as PIXI from "pixi.js";
 let COLUMNS: PIXI.Sprite[] = [];
 let CONTAINER: PIXI.Container;
 
-
 function initRectangle(width: number, height: number): PIXI.Graphics {
   const rect = new PIXI.Graphics();
   rect.beginFill(0x7fdded);
   rect.drawRect(0, 0, width, height);
   rect.endFill();
-  // rect.visible = false
   return rect;
 }
 
@@ -20,8 +18,9 @@ export function initFlashingBottomTiles(
 ) {
   console.log("Constructing new Flashing Bottom Tiles");
   try {
-    CONTAINER.destroy({children: true, texture: true, baseTexture: true});
+    CONTAINER.destroy({ children: true, texture: true, baseTexture: true });
   } catch {}
+  COLUMNS = [];
 
   let container = new PIXI.Container();
   app.stage.addChild(container);
@@ -38,7 +37,7 @@ export function initFlashingBottomTiles(
     COLUMNS.push(sprite);
   }
   CONTAINER = container;
-  rect.destroy({children:true, baseTexture: true, texture: true});
+  rect.destroy({ children: true, baseTexture: true, texture: true });
 }
 
 export function draw(playingNotes: Set<number>) {
@@ -48,67 +47,3 @@ export function draw(playingNotes: Set<number>) {
     COLUMNS[i].visible = flash;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// export function createFlashingBottomTilesRefs(
-//   noteWidth: number,
-//   canvasHeight: number,
-//   layerRef: any
-// ) {
-//   console.log("Creating new flashing bottom tiles refs");
-//   REFS.forEach((ref: any) => {
-//     ref.destroy();
-//   });
-//   REFS = [];
-//   const rect = new konva.Rect({
-//     visible: false,
-//     cornerRadius: 5,
-//     width: noteWidth * 0.8,
-//     height: 35,
-//     stroke: "rgba(127,221,237, 0.9)",
-//     shadowBlur: 10,
-//     shadowColor: "#00e4fc",
-//     shadowOpacity: 1,
-//     fill: "rgba(127,221,237, 0.8)",
-//     perfectDrawEnabled: false,
-//     listening: false,
-//   });
-//   rect.cache();
-//   let lastI: number;
-//   Object.values(KALIMBA_STANDARD_TUNING).forEach((i: number) => {
-//     if (i !== lastI) {
-//       // handle C# Db
-//       const clone = rect.clone({
-//         x: i * noteWidth,
-//         y: canvasHeight - 35,
-//         id: `${ID}_${i}`,
-//       });
-//       clone.cache();
-//       REFS.push(clone);
-//       layerRef?.current?.add(clone);
-//     }
-//     lastI = i;
-//   });
-// }

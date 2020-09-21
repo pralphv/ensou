@@ -1,15 +1,18 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
-import {
-  setInstrumentLoading,
-  setInstrumentNotLoading,
-} from "features/midiPlayerStatus/midiPlayerStatusSlice";
-
 import { Sampler, Reverb } from "tone";
 import { storageRef } from "firebaseApi/firebase";
 import { set, get } from "idb-keyval";
 
 import * as types from "types";
+
+interface ICachedSounds {
+  main: Sampler;
+  effect: Sampler;
+  effectsSettings: Object;
+}
+
+let MAIN_CACHED: ICachedSounds;
 
 function getAudioContext(): AudioContext {
   const isAudioContextSupported =
@@ -27,6 +30,8 @@ interface InstrumentApi {
   triggerRelease: (note: string) => void;
   changeVolume: (volume: number) => void;
   getVolumeDb: () => number | undefined;
+  triggerMetronome: () => void;
+  instrumentLoading: boolean;
 }
 
 async function fetchInstruments() {
@@ -42,7 +47,6 @@ async function fetchInstruments() {
       .listAll();
     await Promise.all(
       items.items.map(async (item) => {
-        console.log(item);
         const note = item.name.slice(0, item.name.length - 4);
         const url: string = await item.getDownloadURL();
         const resp = await fetch(url);
@@ -66,33 +70,81 @@ async function fetchInstruments() {
   return sampleMap;
 }
 
+async function fetchMetronome(): Promise<Sampler> {
+  const cache: any = await get("metronome");
+  let metronome: ArrayBuffer;
+  if (cache) {
+    console.log("Getting metronome from cache");
+    metronome = cache;
+  } else {
+    console.log("No cache. Fetching metronome...");
+    const item = await storageRef.child("samples/metronome/metronome.mp3");
+    const url: string = await item.getDownloadURL();
+    const resp = await fetch(url);
+    metronome = await resp.arrayBuffer();
+
+    console.log("Finished downloading metronome. Saving...");
+    await set("metronome", metronome);
+    console.log("Saved");
+  }
+  console.log("Converting metronome to AudioBuffer...");
+  const context = getAudioContext();
+  const audio = await context.decodeAudioData(metronome);
+  console.log("Converted metronome to AudioBuffer!");
+  const metronomeSampler = new Sampler(
+    { A1: audio },
+    {
+      attack: 0.01,
+    }
+  ).toDestination();
+
+  return metronomeSampler;
+}
+
+async function getSamples(): Promise<ICachedSounds> {
+  if (MAIN_CACHED) {
+    return MAIN_CACHED;
+  }
+  const sampleMap = await fetchInstruments();
+  const main = new Sampler(sampleMap, {
+    attack: 0.01,
+  }).toDestination();
+  const reverb = new Reverb({ wet: 1, decay: 4 }).toDestination();
+  const effect = new Sampler(sampleMap).connect(reverb);
+  const soundObj = { main, effect, effectsSettings: { reverb } };
+  MAIN_CACHED = soundObj;
+  return soundObj;
+}
+
 export function useInstrument(
   getIsSoundEffect: types.IMidiFunctions["soundEffect"]["getIsSoundEffect"]
 ): InstrumentApi {
+  const [instrumentLoading, setInstrmentLoading] = useState<boolean>(false);
   const dispatch = useDispatch();
+  const metronome = useRef<Sampler>();
   const sampler = useRef<Sampler>();
   const effects = useRef<Sampler>();
+  const effectsSettings = useRef<any>();
 
   useEffect(() => {
     console.log("Reloading useInstrument");
-    async function getSamples() {
-      const reverb = new Reverb({ wet: 1, decay: 4 }).toDestination();
-      dispatch(setInstrumentLoading());
-      const sampleMap = await fetchInstruments();
-      sampler.current = new Sampler(sampleMap, {
-        attack: 0.01,
-        onload: () => {
-          console.log("Instrument loaded");
-        },
-      }).toDestination();
-      effects.current = new Sampler(sampleMap, {
-        onload: () => {
-          console.log("Effects loaded");
-          dispatch(setInstrumentNotLoading());
-        },
-      }).connect(reverb);
+    async function getSamples_() {
+      setInstrmentLoading(true);
+      const soundObj = await getSamples();
+      sampler.current = soundObj.main;
+      effects.current = soundObj.effect;
+      effectsSettings.current = soundObj.effectsSettings;
+      const metronomeSampler = await fetchMetronome();
+      metronome.current = metronomeSampler;
+      setInstrmentLoading(false);
+
     }
-    getSamples();
+    getSamples_();
+    return function cleanup() {
+      sampler.current = undefined;
+      effects.current = undefined;
+      metronome.current = undefined;
+    };
   }, []);
 
   function triggerAttack(note: string, velocity: number) {
@@ -107,6 +159,10 @@ export function useInstrument(
     // effects.current?.triggerRelease(note, undefined);
   }
 
+  function triggerMetronome() {
+    metronome.current?.triggerAttackRelease("A1", "64n");
+  }
+
   function changeVolume(volume: number) {
     if (sampler.current) {
       if (volume <= -15) {
@@ -116,6 +172,9 @@ export function useInstrument(
     }
     if (effects.current) {
       effects.current.volume.value = volume;
+    }
+    if (metronome.current) {
+      metronome.current.volume.value = volume;
     }
   }
 
@@ -128,6 +187,8 @@ export function useInstrument(
     triggerRelease,
     changeVolume,
     getVolumeDb,
+    triggerMetronome,
+    instrumentLoading
   };
   return api;
 }

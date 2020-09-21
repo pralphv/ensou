@@ -34,7 +34,7 @@ const PrettoSlider = withStyles({
     width: 15,
     marginTop: -5,
     marginLeft: -10,
-    "&:focus, &:hover, &$active": {
+    "&:focus, &:hover": {
       boxShadow: "inherit",
     },
   },

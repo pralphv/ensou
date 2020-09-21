@@ -12,8 +12,6 @@ import * as fallingNotes from "./canvasComponents/fallingNotes/FallingNotes";
 import * as beatLines from "./canvasComponents/beatLines/BeatLines";
 import * as highlighter from "./canvasComponents/highlighter/Highlighter";
 import * as mouseEvents from "./canvasComponents/mouseEventHandler/MouseEventHandler";
-import { PlayRange } from "features/midiPlayerStatus/types";
-import { useIsMobile, useWindow } from "utils/customHooks";
 import { KALIMBA_STANDARD_TUNING } from "./constants";
 import { convertMidiTickToCanvasHeight } from "./utils";
 
@@ -27,6 +25,9 @@ interface CanvasProps {
   groupedNotes: types.IGroupedNotes[];
   setIsHovering: (hovering: boolean) => void;
   getIsPlaying: types.IMidiFunctions["getIsPlaying"];
+  playRangeApi: types.IMidiFunctions["playRangeApi"];
+  getForceRerender: () => types.forceRerender;
+  forceRender: number;
 }
 
 let PIXI_CANVAS: HTMLDivElement;
@@ -41,15 +42,14 @@ export default function Canvas({
   ticksPerBeat,
   setIsHovering,
   getIsPlaying,
+  playRangeApi,
+  getForceRerender,
+  forceRender,
 }: CanvasProps): JSX.Element {
   const canvasWidth: number = WIDTH >= 800 ? window.innerWidth * 0.75 : WIDTH;
   const canvasHeight: number = (canvasWidth / 16) * 9;
   const noOfNotes: number = Math.max(...Object.values(KALIMBA_STANDARD_TUNING));
   const noteWidth: number = canvasWidth / noOfNotes;
-
-  const playRange: PlayRange = useSelector(
-    (state: RootState) => state.midiPlayerStatus.playRange
-  );
 
   let playingNotes: Set<number> = new Set();
   const currentTick = getCurrentTick() || 0;
@@ -95,6 +95,10 @@ export default function Canvas({
       app.current
     );
     app.current.start();
+    return function cleanup() {
+      console.log("Destroying app");
+      app.current?.destroy();
+    };
   }, []);
 
   useEffect(() => {
@@ -106,6 +110,7 @@ export default function Canvas({
   }, [groupedNotes]);
 
   useEffect(() => {
+    const playRange_ = playRangeApi.getPlayRange();
     if (!app.current || !currentTick) {
       return;
     }
@@ -113,8 +118,8 @@ export default function Canvas({
     const upperLimit = ticksPerBeat * 4 * 3; // 4 beats, 3 bars
     if (
       !(
-        playRange.startTick < currentTick + upperLimit &&
-        playRange.endTick > currentTick
+        playRange_.startTick < currentTick + upperLimit &&
+        playRange_.endTick > currentTick
       )
     ) {
       // destroy only when highlighter is near current tick
@@ -123,17 +128,17 @@ export default function Canvas({
       return;
     }
     const endY = convertMidiTickToCanvasHeight(
-      playRange.endTick || 0,
+      playRangeApi.getPlayRange().endTick || 0,
       currentTick,
       app.current.screen.height
     );
     const startY = convertMidiTickToCanvasHeight(
-      playRange.startTick || 0,
+      playRangeApi.getPlayRange().startTick || 0,
       currentTick,
       app.current.screen.height
     );
     highlighter.initHighlighter(app.current, startY, endY);
-  }, [playRange.startTick, playRange.endTick, currentTick]);
+  }, [forceRender, currentTick]);
 
   useEffect(() => {
     if (app.current) {
@@ -148,7 +153,15 @@ export default function Canvas({
       beatLines.draw(app.current, currentTick, ticksPerBeat * 4);
     }
   }, [currentTick]);
-  mouseEvents.useMouseEvents(app.current, getCurrentTick, getIsPlaying);
+  mouseEvents.useMouseEvents(
+    app.current,
+    getCurrentTick,
+    getIsPlaying,
+    (playRange) => {
+      playRangeApi.setPlayRange(playRange);
+      getForceRerender()();
+    }
+  );
 
   return (
     <div

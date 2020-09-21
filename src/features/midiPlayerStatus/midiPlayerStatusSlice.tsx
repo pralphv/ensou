@@ -5,7 +5,6 @@ import { MidiPlayerStatus, PlayRange } from "./types";
 
 const initialState: MidiPlayerStatus = {
   status: MidiStatus.MidiNotLoaded,
-  instrumentLoading: false,
   metronome: false,
   tempo: 100,
   volume: 100,
@@ -24,14 +23,6 @@ const midiPlayerStatusSlice = createSlice({
   reducers: {
     setMidiNotLoaded(state) {
       state.status = MidiStatus.MidiNotLoaded;
-      return state;
-    },
-    setInstrumentLoading(state) {
-      state.instrumentLoading = true;
-      return state;
-    },
-    setInstrumentNotLoading(state) {
-      state.instrumentLoading = false;
       return state;
     },
     setMetronomeOn(state) {
@@ -86,8 +77,6 @@ export const {
   setLoopOn,
   setLoopOff,
   setPlayRange,
-  setInstrumentLoading,
-  setInstrumentNotLoading,
   setVolume,
   setisLoading,
   setisNotLoading,

@@ -59,7 +59,7 @@ export function initFlashingLightsBottomTiles(
   try {
     CONTAINER.destroy({ children: true, texture: true, baseTexture: true });
   } catch {}
-
+  COLUMNS = [];
   let container = new PIXI.Container();
   app.stage.addChild(container);
   app.stage.setChildIndex(container, 5);
