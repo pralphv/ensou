@@ -1,35 +1,32 @@
 import React from "react";
-import { RootState } from "app/rootReducer";
-import { useSelector, useDispatch } from "react-redux";
 
 import LoopIcon from "@material-ui/icons/Loop";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import {
-  setLoopOn,
-  setLoopOff,
-} from "features/midiPlayerStatus/midiPlayerStatusSlice";
-import { useStateToRef } from "utils/customHooks";
 import CustomButton from "./CustomButton";
+import * as types from "types";
 
-export default function LoopButton(): JSX.Element {
-  const dispatch = useDispatch();
-  const isLoop: boolean = useSelector(
-    (state: RootState) => state.midiPlayerStatus.loop
-  );
-  const isLoopRef = useStateToRef(isLoop);
+interface ILoopButtonProps {
+  loopApi: types.IMidiFunctions["loopApi"];
+  forceRerender: types.forceRerender;
+}
 
+export default function LoopButton({
+  loopApi,
+  forceRerender,
+}: ILoopButtonProps): JSX.Element {
   function handleOnClick() {
-    if (isLoopRef.current) {
-      dispatch(setLoopOff());
+    if (loopApi.getIsLoop()) {
+      loopApi.setIsNotLoop();
     } else {
-      dispatch(setLoopOn());
+      loopApi.setIsLoop();
     }
+    forceRerender();
   }
   useHotkeys("l", handleOnClick);
 
   return (
-    <CustomButton onClick={handleOnClick} selected={isLoop} >
+    <CustomButton onClick={handleOnClick} selected={loopApi.getIsLoop()}>
       <LoopIcon />
     </CustomButton>
   );

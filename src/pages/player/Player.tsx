@@ -1,15 +1,12 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 
 import { Typography } from "@material-ui/core";
-import { useSelector } from "react-redux";
-import { RootState } from "app/rootReducer";
 import { useFirestore } from "react-redux-firebase";
 
 import LoadingScreen from "features/loadingScreen/LoadingScreen";
 import LoadingSpinner from "features/loadingSpinner/LoadingSpinner";
 import Canvas from "features/canvas/Canvas";
 import Toolbar from "features/toolbar/Toolbar";
-import FileReader from "features/fileReader/FileReader";
 import ProgressBar from "features/canvas/canvasComponents/progressBar/ProgressBar";
 
 import useMidiData from "audio/midiData";
@@ -92,6 +89,8 @@ export default function Player(): JSX.Element {
         getIsPlaying={midiFunctions.getIsPlaying}
         soundEffect={midiFunctions.soundEffect}
         metronomeApi={midiFunctions.metronomeApi}
+        loopApi={midiFunctions.loopApi}
+        tempoApi={midiFunctions.tempoApi}
       />
     ),
     [

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { useDispatch } from "react-redux";
 import { Sampler, Reverb } from "tone";
 import { storageRef } from "firebaseApi/firebase";
 import { set, get } from "idb-keyval";
@@ -120,7 +119,6 @@ export function useInstrument(
   getIsSoundEffect: types.IMidiFunctions["soundEffect"]["getIsSoundEffect"]
 ): InstrumentApi {
   const [instrumentLoading, setInstrmentLoading] = useState<boolean>(false);
-  const dispatch = useDispatch();
   const metronome = useRef<Sampler>();
   const sampler = useRef<Sampler>();
   const effects = useRef<Sampler>();

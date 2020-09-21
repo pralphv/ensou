@@ -19,6 +19,8 @@ export interface IMidiFunctions {
   instrumentLoading: boolean;
   playRangeApi: PlayRangeApi;
   metronomeApi: MetronomeApi;
+  loopApi: LoopApi;
+  tempoApi: TempoApi;
 }
 
 interface SoundEffectApi {
@@ -33,9 +35,21 @@ interface MetronomeApi {
   setIsNotMetronome: () => void;
 }
 
+interface LoopApi {
+  getIsLoop: () => boolean;
+  setIsLoop: () => void;
+  setIsNotLoop: () => void;
+}
+
 export interface PlayRangeApi {
   getPlayRange: () => PlayRange;
   setPlayRange: (playRange: PlayRange) => void;
+}
+
+export interface TempoApi {
+  getTempo: () => number;
+  setTempo: (tempo: number, isPercent?: boolean) => void;
+  setTempoPercent: (percent: number) => void;
 }
 
 export interface IGroupedNotes {

@@ -1,14 +1,13 @@
 import React from "react";
 
-import { useHotkeys } from 'react-hotkeys-hook';
-import { MidiFunctions } from "audio/types";
+import { useHotkeys } from "react-hotkeys-hook";
+import { IMidiFunctions } from "types";
 
 interface HotKeysProps {
-  midiFunctions: MidiFunctions
+  midiFunctions: IMidiFunctions;
 }
 
-
-export default function HotKeys({midiFunctions}: HotKeysProps) {
-  useHotkeys('space', midiFunctions.play);
-  return (<div></div>)
+export default function HotKeys({ midiFunctions }: HotKeysProps) {
+  useHotkeys("space", midiFunctions.play);
+  return <div></div>;
 }

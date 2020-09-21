@@ -1,8 +1,5 @@
 import React, { useRef, useEffect } from "react";
 
-import { RootState } from "app/rootReducer";
-import { useSelector } from "react-redux";
-
 // import { createCanvasBackground } from "./canvasComponents/canvasBackground/CanvasBackground";
 import * as flashingColumns from "./canvasComponents/flashingColumns/FlashingColumns";
 import * as bottomTiles from "./canvasComponents/bottomTiles/BottomTiles";

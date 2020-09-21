@@ -26,6 +26,8 @@ interface ToolBarProps {
   getIsPlaying: types.IMidiFunctions["getIsPlaying"];
   soundEffect: types.IMidiFunctions["soundEffect"];
   metronomeApi: types.IMidiFunctions["metronomeApi"];
+  loopApi: types.IMidiFunctions["loopApi"];
+  tempoApi: types.IMidiFunctions["tempoApi"];
 }
 
 export default function ToolBar({
@@ -41,7 +43,8 @@ export default function ToolBar({
   getIsPlaying,
   soundEffect,
   metronomeApi,
-
+  loopApi,
+  tempoApi,
 }: ToolBarProps) {
   console.log("Toolbar Rerender");
   let opacity = getIsPlaying() === true ? 0 : 1;
@@ -71,9 +74,16 @@ export default function ToolBar({
           changeVolume={changeVolume}
           forceRerender={forceRerender}
         />
-        <LoopButton />
-        <MetronomeButton metronomeApi={metronomeApi} forceRerender={forceRerender}/>
-        <TempoButton getIsPlaying={getIsPlaying} />
+        <LoopButton loopApi={loopApi} forceRerender={forceRerender} />
+        <MetronomeButton
+          metronomeApi={metronomeApi}
+          forceRerender={forceRerender}
+        />
+        <TempoButton
+          getIsPlaying={getIsPlaying}
+          tempoApi={tempoApi}
+          forceRerender={forceRerender}
+        />
         <FileReaderButton
           loadArrayBuffer={loadArrayBuffer}
           getIsPlaying={getIsPlaying}

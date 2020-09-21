@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 
-import { useDispatch } from "react-redux";
 import * as PIXI from "pixi.js";
 
 import { PlayRange } from "features/midiPlayerStatus/types";

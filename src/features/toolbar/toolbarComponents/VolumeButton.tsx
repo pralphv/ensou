@@ -34,7 +34,7 @@ export default function VolumeButton({
   const classes = useStyles();
   const [muteVolume, setMuteVolume] = useState<number>(0); // for preserving pre mute value
 
-    useHotkeys("m", () => changeVolume(-16));
+  useHotkeys("m", () => changeVolume(-16));
   let IconToShow;
 
   const volume = getVolumeDb() || 0;
@@ -51,12 +51,10 @@ export default function VolumeButton({
     if (volume >= -15) {
       setMuteVolume(volume);
       changeVolume(-16);
-      
     } else {
       changeVolume(muteVolume);
     }
     forceRerender();
-
   }
 
   return (

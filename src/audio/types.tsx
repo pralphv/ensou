@@ -39,20 +39,3 @@ export interface MidiEvent {
   noteName: string;
   noteNumber: number;
 }
-
-export interface MidiFunctions {
-  play: () => void;
-  pause: () => void;
-  stop: () => void;
-  skipToPercent: (percent: number) => void;
-  restart: () => void;
-  getIsPlaying: () => boolean | undefined;
-  getCurrentTick: () => number | undefined;
-  getTicksPerBeat: () => number | undefined;
-  getTotalTicks: () => number | undefined;
-  getSongPercentRemaining: () => number | undefined;
-  loadArrayBuffer: (blob: XMLHttpRequest["response"]) => void;
-  skipToTick: (tick: number) => void;
-  changeVolume: (volume: number) => void;
-  getVolumeDb: () => number | undefined;
-}

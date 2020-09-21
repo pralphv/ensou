@@ -1,7 +1,4 @@
-import React from "react";
-
-import { RootState } from "app/rootReducer";
-import { useSelector } from "react-redux";
+import React, { useState } from "react";
 
 import { Typography } from "@material-ui/core/";
 import Popover from "@material-ui/core/Popover";
@@ -12,14 +9,16 @@ import CustomButton from "./CustomButton";
 import * as types from "types";
 interface ITempoButtonProps {
   getIsPlaying: types.IMidiFunctions["getIsPlaying"];
+  tempoApi: types.IMidiFunctions["tempoApi"];
+  forceRerender: types.forceRerender;
 }
 
 export default function TempoButton({
   getIsPlaying,
+  tempoApi,
+  forceRerender,
 }: ITempoButtonProps): JSX.Element {
-  const tempo: number = useSelector(
-    (state: RootState) => state.midiPlayerStatus.tempo
-  );
+  const [value, setValue] = useState<number>(100);
 
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
     null
@@ -40,7 +39,7 @@ export default function TempoButton({
         style={{ width: BUTTON_WIDTH, height: BUTTON_HEIGHT }}
         disabled={getIsPlaying() === true}
       >
-        <Typography variant="body2">{tempo}%</Typography>
+        <Typography variant="body2">{value}%</Typography>
       </CustomButton>
       <Popover
         open={Boolean(anchorEl)}
@@ -55,7 +54,15 @@ export default function TempoButton({
           horizontal: "center",
         }}
       >
-        <TempoChange />
+        <TempoChange
+          forceRerender={forceRerender}
+          value={value}
+          setValue={(tempo) => {
+            tempoApi.setTempoPercent(tempo);
+            // tempoApi.setTempo(tempo);
+            setValue(tempo);
+          }}
+        />
       </Popover>
     </div>
   );

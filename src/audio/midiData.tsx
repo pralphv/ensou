@@ -1,13 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 
-import { RootState } from "app/rootReducer";
-import { useSelector } from "react-redux";
-
 import MidiPlayer from "midi-player-js";
 
 import { useInstrument } from "./loadInstrument";
 import * as processing from "./processing";
-import { useStateToRef } from "utils/customHooks";
 
 import * as types from "types";
 
@@ -17,13 +13,6 @@ interface Tick {
 }
 
 function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
-  const tempoChange: number = useSelector(
-    (state: RootState) => state.midiPlayerStatus.tempo
-  );
-  const isLoop: boolean = useSelector(
-    (state: RootState) => state.midiPlayerStatus.loop
-  );
-  const isMetronomeRef = useRef<boolean>(false);
   const playRangeRef = useRef<types.PlayRange>({ startTick: 0, endTick: 0 });
   const [currentTick, setCurrentTick] = useState<number>(0); // just for force rerendering
 
@@ -37,9 +26,45 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
   const originalTempoRef = useRef<number>();
   const isPlayingRef = useRef<boolean>();
   const isSoundEffectRef = useRef<boolean>(true);
+  const isLoopRef = useRef<boolean>(true);
+  const isMetronomeRef = useRef<boolean>(false);
+  const tempoPercentRef = useRef<number>(1); // tempo % and tempo is different
+  // midi can change tempo, so need a % to keep the user's change
 
-  const isLoopRef = useStateToRef(isLoop);
-  const tempoChangeRef = useStateToRef(tempoChange);
+  function getTempo(): number {
+    if (midiPlayerRef.current && originalTempoRef.current) {
+      return midiPlayerRef.current?.tempo / originalTempoRef?.current || 100;
+    } else {
+      return 100;
+    }
+  }
+
+  function setTempo(tempo: number) {
+    // it is there stupid
+    // @ts-ignore
+    midiPlayerRef.current?.setTempo(tempo);
+  }
+
+  function setTempoPercent(percent: number) {
+    if (originalTempoRef.current) {
+      tempoPercentRef.current = percent / 100;
+      const newValue = (originalTempoRef.current * percent) / 100;
+      // @ts-ignore
+      midiPlayerRef.current?.setTempo(newValue);
+    }
+  }
+
+  function getIsLoop(): boolean {
+    return isLoopRef.current;
+  }
+
+  function setIsLoop() {
+    isLoopRef.current = true;
+  }
+
+  function setIsNotLoop() {
+    isLoopRef.current = false;
+  }
 
   function getIsMetronome(): boolean {
     return isMetronomeRef.current;
@@ -104,15 +129,6 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
   function getTotalTicks(): number | undefined {
     return totalTicksRef.current;
   }
-
-  const changeTempo = useCallback(() => {
-    if (tempoChangeRef.current && originalTempoRef.current) {
-      const tempoChange = tempoChangeRef.current / 100;
-      // it is there stupid
-      // @ts-ignore
-      midiPlayerRef.current?.setTempo(originalTempoRef.current * tempoChange);
-    }
-  }, [tempoChangeRef]);
 
   function play(noSkip = false, skipDispatch = false) {
     if (!noSkip && playRangeRef?.current?.startTick !== 0) {
@@ -189,7 +205,11 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
           play();
         } else {
           setIsNotPlaying();
-          restart();
+          if (playRangeRef?.current?.startTick) {
+            midiPlayerRef.current?.skipToTick(playRangeRef?.current?.startTick);
+          } else {
+            restart();
+          }
         }
       }
     });
@@ -210,7 +230,10 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
     midiPlayerRef.current.on("midiEvent", (midiEvent: any) => {
       if (midiEvent.name === "Set Tempo" && midiPlayerRef.current) {
         originalTempoRef.current = midiPlayerRef.current.tempo;
-        changeTempo();
+
+        const customizedTempo =
+          midiPlayerRef.current.tempo * tempoPercentRef.current;
+        setTempo(customizedTempo);
       }
       if (midiEvent.name === "Note on") {
         instrumentApi.triggerAttack(
@@ -226,9 +249,6 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
       midiPlayerRef.current = undefined;
     };
   }, []);
-  useEffect(() => {
-    changeTempo();
-  }, [tempoChange, changeTempo]);
 
   const playerFunctions: types.IMidiFunctions = {
     play,
@@ -256,10 +276,20 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
       setPlayRange,
     },
     metronomeApi: {
-      getIsMetronome, 
+      getIsMetronome,
       setIsMetronome,
-      setIsNotMetronome
-    }
+      setIsNotMetronome,
+    },
+    loopApi: {
+      getIsLoop,
+      setIsLoop,
+      setIsNotLoop,
+    },
+    tempoApi: {
+      getTempo,
+      setTempo,
+      setTempoPercent,
+    },
   };
 
   return [playerFunctions, groupedNotes.current];

@@ -1,11 +1,9 @@
 import React from "react";
-import { RootState } from "app/rootReducer";
-import { useSelector, useDispatch } from "react-redux";
 
 import { makeStyles } from "@material-ui/core/styles";
 import Slider from "@material-ui/core/Slider";
 
-import { setTempoChange } from "features/midiPlayerStatus/midiPlayerStatusSlice";
+import * as types from "types";
 
 const useStyles = makeStyles({
   slider: {
@@ -17,21 +15,30 @@ const useStyles = makeStyles({
   },
 });
 
-function TempoChange() {
+interface ITempoChange {
+  forceRerender: types.forceRerender;
+  value: number;
+  setValue: (value: number) => void;
+}
+
+function TempoChange({
+  forceRerender,
+  value,
+  setValue,
+}: ITempoChange) {
   const classes = useStyles();
-  const dispatch = useDispatch();
-  const tempo: number = useSelector(
-    (state: RootState) => state.midiPlayerStatus.tempo
-  );
   const handleChange = (e: any, newValue: number | number[]) => {
-    dispatch(setTempoChange(newValue as number));
+    newValue = newValue as number;
+    setValue(Math.round(newValue));
+    forceRerender();
   };
 
   return (
     <Slider
       color="secondary"
-      value={tempo}
+      value={value}
       onChange={handleChange}
+      min={0}
       max={200}
       className={classes.slider}
     />
