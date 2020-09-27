@@ -1,5 +1,5 @@
 import React from "react";
-
+import clsx from "clsx";
 import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup";
 
 import MetronomeButton from "./toolbarComponents/MetronomeButton";
@@ -10,8 +10,9 @@ import FileReaderButton from "./toolbarComponents/FileReaderButton";
 import TempoButton from "./toolbarComponents/TempoButton";
 import RestartButton from "./toolbarComponents/RestartButton";
 import SettingsButton from "./toolbarComponents/SettingsButton";
-import { BUTTON_WIDTH, BUTTON_HEIGHT } from "./constants";
+import FullScreenButton from "./toolbarComponents/FullScreenButton";
 import * as types from "types";
+import "./styles.css";
 
 interface ToolBarProps {
   play: types.IMidiFunctions["play"];
@@ -28,6 +29,10 @@ interface ToolBarProps {
   metronomeApi: types.IMidiFunctions["metronomeApi"];
   loopApi: types.IMidiFunctions["loopApi"];
   tempoApi: types.IMidiFunctions["tempoApi"];
+  isFullScreen: boolean;
+  openFullScreen: () => void;
+  closeFullScreen: () => void;
+  isFullScreening: boolean;
 }
 
 export default function ToolBar({
@@ -45,6 +50,10 @@ export default function ToolBar({
   metronomeApi,
   loopApi,
   tempoApi,
+  isFullScreen,
+  openFullScreen,
+  closeFullScreen,
+  isFullScreening
 }: ToolBarProps) {
   console.log("Toolbar Rerender");
   let opacity = getIsPlaying() === true ? 0 : 1;
@@ -58,6 +67,7 @@ export default function ToolBar({
         opacity,
         marginTop: -15,
       }}
+      className={clsx({ toolbarFullScreen: isFullScreen })}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
@@ -89,7 +99,17 @@ export default function ToolBar({
           getIsPlaying={getIsPlaying}
         />
       </ToggleButtonGroup>
-      <SettingsButton soundEffect={soundEffect} forceRerender={forceRerender} />
+      <ToggleButtonGroup>
+        <SettingsButton
+          soundEffect={soundEffect}
+          forceRerender={forceRerender}
+        />
+        <FullScreenButton
+        isFullScreening={isFullScreening}
+          openFullScreen={openFullScreen}
+          closeFullScreen={closeFullScreen}
+        />
+      </ToggleButtonGroup>
     </div>
   );
 }

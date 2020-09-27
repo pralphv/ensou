@@ -1,10 +1,40 @@
 import * as types from "audio/types";
-import { KALIMBA_STANDARD_TUNING } from "audio/constants";
+import { PIANO_TUNING } from "audio/constants";
 import * as PIXI from "pixi.js";
 import { CANVAS_SLOW_DOWN_FACTOR } from "../../constants";
+import { BOTTOM_TILE_HEIGHT } from "features/canvas/constants";
+
+interface IPianoNoteXMap {
+  [note: string]: IPianoNote;
+}
+
+interface IPianoNote {
+  width: number;
+  x: number;
+}
+
+function createPianoNoteXMap(whiteKeyWidth: number): IPianoNoteXMap {
+  const blackKeyWidth = whiteKeyWidth * 0.55;
+  let x: number = 0;
+  let lastI: number; // to prevent duplicate notes from b and #
+  let pianoNoteXMap: IPianoNoteXMap = {};
+  Object.entries(PIANO_TUNING).forEach(([key, i]: [string, number]) => {
+    const isBlackKey = key.includes("#") || key.includes("b");
+    if (isBlackKey) {
+      pianoNoteXMap[key] = { width: blackKeyWidth, x: x - blackKeyWidth / 2 };
+    } else {
+      pianoNoteXMap[key] = { width: whiteKeyWidth, x };
+    }
+    if (!isBlackKey && i !== lastI) {
+      x += whiteKeyWidth;
+    }
+    lastI = i;
+  });
+  return pianoNoteXMap;
+}
 
 interface RectCache {
-  [key: number]: PIXI.Graphics;
+  [key: string]: PIXI.Graphics;
 }
 
 interface FallingNotes {
@@ -54,24 +84,27 @@ export function initFallingNotes(
   app.stage.setChildIndex(container, 2);
   CONTAINER = container;
   FALLING_NOTES = [];
+  const pianoNoteXMap = createPianoNoteXMap(app.screen.width / 52);
 
-  const rectHeightCached: RectCache = {};
+  const rectCached: RectCache = {};
   groupedNotes.forEach((note) => {
     const on = note.on / CANVAS_SLOW_DOWN_FACTOR;
     const off = note.off / CANVAS_SLOW_DOWN_FACTOR;
     const height = off - on;
-    const x = KALIMBA_STANDARD_TUNING[note.noteName] * noteWidth;
-    if (!rectHeightCached[height]) {
-      const rect = initRectangle(noteWidth, height);
-      rectHeightCached[height] = rect;
+    const x = pianoNoteXMap[note.noteName].x;
+    const width = pianoNoteXMap[note.noteName].width;
+    const cacheKey = `${height}_${width}`;
+    if (!rectCached[cacheKey]) {
+      const rect = initRectangle(width + 1, height);
+      rectCached[cacheKey] = rect;
     }
     // @ts-ignore
-    const texture = app.renderer.generateTexture(rectHeightCached[height]);
+    const texture = app.renderer.generateTexture(rectCached[cacheKey]);
     const rectSprite = new PIXI.Sprite(texture);
     container.addChild(rectSprite);
     FALLING_NOTES.push({ rectSprite, on, off, height, x });
   });
-  Object.values(rectHeightCached).forEach((rect: PIXI.Graphics) => {
+  Object.values(rectCached).forEach((rect: PIXI.Graphics) => {
     rect.destroy({ children: true, texture: true, baseTexture: true });
   });
   return FALLING_NOTES;
@@ -91,7 +124,7 @@ export function draw(
     ) {
       const on = note.on - currentTick / CANVAS_SLOW_DOWN_FACTOR;
       sprite.position.x = note.x;
-      sprite.position.y = canvasHeight - on - note.height - 35;
+      sprite.position.y = canvasHeight - on - note.height - BOTTOM_TILE_HEIGHT;
       sprite.visible = true;
     } else {
       sprite.visible = false;

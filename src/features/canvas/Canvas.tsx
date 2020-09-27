@@ -1,6 +1,6 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useMemo } from "react";
 
-// import { createCanvasBackground } from "./canvasComponents/canvasBackground/CanvasBackground";
+import * as canvasBackround from "./canvasComponents/canvasBackground/CanvasBackground";
 import * as flashingColumns from "./canvasComponents/flashingColumns/FlashingColumns";
 import * as bottomTiles from "./canvasComponents/bottomTiles/BottomTiles";
 import * as flashingBottomTiles from "./canvasComponents/flashingBottomTiles/FlashingBottomTiles";
@@ -9,11 +9,12 @@ import * as fallingNotes from "./canvasComponents/fallingNotes/FallingNotes";
 import * as beatLines from "./canvasComponents/beatLines/BeatLines";
 import * as highlighter from "./canvasComponents/highlighter/Highlighter";
 import * as mouseEvents from "./canvasComponents/mouseEventHandler/MouseEventHandler";
-import { KALIMBA_STANDARD_TUNING } from "./constants";
+import { PIANO_TUNING } from "audio/constants";
 import { convertMidiTickToCanvasHeight } from "./utils";
 
 import * as PIXI from "pixi.js";
 import * as types from "types";
+import { throttle } from "lodash";
 
 interface CanvasProps {
   getCurrentTick: types.IMidiFunctions["getCurrentTick"];
@@ -25,12 +26,26 @@ interface CanvasProps {
   playRangeApi: types.IMidiFunctions["playRangeApi"];
   getForceRerender: () => types.forceRerender;
   forceRender: number;
+  isFullScreen: boolean;
 }
 
 let PIXI_CANVAS: HTMLDivElement;
 
 const WIDTH = window.innerWidth;
 const HEIGHT = window.innerHeight;
+
+let TIMER: NodeJS.Timeout;
+
+function hideToolBarOnMouseInactive(
+  setIsHovering: (hovering: boolean) => void
+) {
+  return throttle(() => {
+    clearTimeout(TIMER);
+    setIsHovering(true);
+    const timer = setTimeout(() => setIsHovering(false), 3000);
+    TIMER = timer;
+  }, 1000);
+}
 
 export default function Canvas({
   getCurrentTick,
@@ -42,10 +57,12 @@ export default function Canvas({
   playRangeApi,
   getForceRerender,
   forceRender,
+  isFullScreen,
 }: CanvasProps): JSX.Element {
-  const canvasWidth: number = WIDTH >= 800 ? window.innerWidth * 0.75 : WIDTH;
-  const canvasHeight: number = (canvasWidth / 16) * 9;
-  const noOfNotes: number = Math.max(...Object.values(KALIMBA_STANDARD_TUNING));
+  let canvasWidth: number = WIDTH >= 800 ? window.innerWidth * 0.75 : WIDTH;
+  canvasWidth = isFullScreen ? window.innerWidth : canvasWidth;
+  let canvasHeight: number = (canvasWidth / 16) * 9;
+  const noOfNotes: number = Math.max(...Object.values(PIANO_TUNING));
   const noteWidth: number = canvasWidth / noOfNotes;
 
   let playingNotes: Set<number> = new Set();
@@ -69,7 +86,7 @@ export default function Canvas({
     });
 
     PIXI_CANVAS.appendChild(app.current.view);
-
+    canvasBackround.initGuideLine(app.current);
     beatLines.initBeatLine(app.current);
     beatLines.draw(app.current, currentTick, ticksPerBeat * 4); // to init container, + 1 zIndex
     flashingColumns.initFlashingColumns(noOfNotes, noteWidth, app.current);
@@ -86,6 +103,7 @@ export default function Canvas({
       noteWidth,
       app.current
     );
+
     flashingLightsBottomTiles.initFlashingLightsBottomTiles(
       noOfNotes,
       noteWidth,
@@ -94,9 +112,12 @@ export default function Canvas({
     app.current.start();
     return function cleanup() {
       console.log("Destroying app");
-      app.current?.destroy();
+      if (app.current?.view) {
+        PIXI_CANVAS.removeChild(app.current.view);
+        app.current.destroy();
+      }
     };
-  }, []);
+  }, [isFullScreen]);
 
   useEffect(() => {
     fallingNotes.initFallingNotes(
@@ -104,7 +125,7 @@ export default function Canvas({
       noteWidth,
       app.current as PIXI.Application
     );
-  }, [groupedNotes]);
+  }, [groupedNotes, isFullScreen]);
 
   useEffect(() => {
     const playRange_ = playRangeApi.getPlayRange();
@@ -150,6 +171,7 @@ export default function Canvas({
       beatLines.draw(app.current, currentTick, ticksPerBeat * 4);
     }
   }, [currentTick]);
+
   mouseEvents.useMouseEvents(
     app.current,
     getCurrentTick,
@@ -160,6 +182,11 @@ export default function Canvas({
     }
   );
 
+  const throttleMemo = useMemo(
+    () => hideToolBarOnMouseInactive(setIsHovering),
+    []
+  );
+
   return (
     <div
       ref={(thisDiv: HTMLDivElement) => {
@@ -168,6 +195,7 @@ export default function Canvas({
       style={{ background: "black" }}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
+      onMouseMove={throttleMemo}
     ></div>
   );
 }

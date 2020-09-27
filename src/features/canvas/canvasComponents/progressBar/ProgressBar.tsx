@@ -1,9 +1,11 @@
 import React from "react";
+import clsx from "clsx";
 
 import { withStyles } from "@material-ui/core/styles";
 import Slider from "@material-ui/core/Slider";
 import { useHotkeys } from "react-hotkeys-hook";
 import * as types from "types";
+import "./styles.css";
 
 interface ProgressBarProps {
   songProgress: number;
@@ -11,6 +13,7 @@ interface ProgressBarProps {
   setIsHovering: (hovering: boolean) => void;
   forceRerender: types.forceRerender;
   totalTicks: number;
+  isFullScreen: boolean;
 }
 
 const PrettoSlider = withStyles({
@@ -57,9 +60,9 @@ export default function ProgressBar({
   setIsHovering,
   forceRerender,
   totalTicks,
+  isFullScreen,
 }: ProgressBarProps): JSX.Element {
   // console.log("Progressbar Rerender");
-
   function handleChange(e: any, newValue: number | number[]) {
     const value = newValue as number;
     skipToTick((value / 100) * totalTicks);
@@ -79,7 +82,9 @@ export default function ProgressBar({
   // useHotkeys("9", () => skipToPercent(90));
 
   return (
+
     <PrettoSlider
+      className={clsx({ fullScreenSlider: isFullScreen })}
       valueLabelDisplay="auto"
       defaultValue={0}
       value={songProgress}
@@ -87,6 +92,6 @@ export default function ProgressBar({
       onChange={handleChange}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
-    />
+      />
   );
 }

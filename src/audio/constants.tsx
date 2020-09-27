@@ -25,7 +25,7 @@ export const KALIMBA_STANDARD_TUNING_: { [key: string]: number } = {
   E6: 16,
 };
 
-export const KALIMBA_STANDARD_TUNING: { [key: string]: number } = {
+export const PIANO_TUNING: { [key: string]: number } = {
   A0: 0,
   "A#0": 1,
   Bb0: 1,

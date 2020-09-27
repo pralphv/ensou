@@ -1,4 +1,6 @@
 import * as PIXI from "pixi.js";
+import { PIANO_TUNING } from "audio/constants";
+import { BOTTOM_TILE_HEIGHT } from "../../constants";
 
 let CONTAINER: PIXI.Container;
 function gradient(from: string, to: string, width: number, height: number) {
@@ -23,10 +25,12 @@ function initBlackColorOverlay(width: number, height: number): PIXI.Graphics {
   return rect;
 }
 
-function initRectangle(width: number, height: number) {
+function initRectangle(width: number, height: number, fill: boolean) {
   const rect = new PIXI.Graphics();
   rect.lineStyle(1.5, 0x7fdded);
-  rect.beginFill(0x000000);
+  if (fill) {
+    rect.beginFill(0x000000);
+  }
   rect.drawRect(0, 0, width, height);
   return rect;
 }
@@ -46,16 +50,47 @@ export function initBottomTiles(
   app.stage.addChild(container);
   app.stage.setChildIndex(container, 3);
 
-  const rect = initRectangle(noteWidth, tileHeight);
-  // @ts-ignore
-  const texture = app.renderer.generateTexture(rect);
-  for (let i = 0; i < noOfTiles; i++) {
-    const sprite = new PIXI.Sprite(texture);
-    sprite.position.x = i * noteWidth;
-    sprite.position.y = app.screen.height - 35;
+  const whiteKeyWidth = app.screen.width / 52;
+  const blackKeyWidth = whiteKeyWidth * 0.55;
 
-    container.addChild(sprite);
-  }
+  const whiteKey = initRectangle(whiteKeyWidth, BOTTOM_TILE_HEIGHT, true);
+  const blackKey = initRectangle(
+    blackKeyWidth,
+    BOTTOM_TILE_HEIGHT * 0.66,
+    true
+  );
+
+  // @ts-ignore
+  const whiteKeyTexture = app.renderer.generateTexture(whiteKey);
+  // @ts-ignore
+  const blackKeyTexture = app.renderer.generateTexture(blackKey);
+  let x: number = 0;
+  let lastI: number; // to prevent duplicate notes from b and #
+  const whiteKeyContainer = new PIXI.Container();
+  const blackKeyContainer = new PIXI.Container();
+
+  Object.entries(PIANO_TUNING).forEach(([key, i]: [string, number]) => {
+    if (i !== lastI) {
+      lastI = i;
+      const isBlackKey = key.includes("#") || key.includes("b");
+      let sprite: PIXI.Sprite;
+      if (isBlackKey) {
+        sprite = new PIXI.Sprite(blackKeyTexture);
+        blackKeyContainer.addChild(sprite);
+        sprite.position.x = x - blackKeyWidth / 2;
+      } else {
+        sprite = new PIXI.Sprite(whiteKeyTexture);
+        whiteKeyContainer.addChild(sprite);
+        sprite.position.x = x;
+        x += whiteKeyWidth;
+      }
+      sprite.position.y = app.screen.height - 51;
+    }
+  });
+  container.addChild(whiteKeyContainer);
+  container.addChild(blackKeyContainer);
+
+  // black top overlay
   const blackRect = initBlackColorOverlay(
     app.screen.width,
     app.screen.height * 0.3
@@ -68,5 +103,18 @@ export function initBottomTiles(
   container.addChild(sprite);
 
   CONTAINER = container;
-  rect.destroy({ children: true, texture: true, baseTexture: true });
+  whiteKey.destroy({ children: true, baseTexture: true, texture: true });
+  blackKey.destroy({ children: true, baseTexture: true, texture: true });
 }
+
+/**
+ *   const rect = initRectangle(noteWidth, tileHeight);
+  // @ts-ignore
+  const texture = app.renderer.generateTexture(rect);
+  for (let i = 0; i < noOfTiles; i++) {
+    const sprite = new PIXI.Sprite(texture);
+    sprite.position.x = i * noteWidth;
+    sprite.position.y = app.screen.height - 35;
+
+
+ */

@@ -32,7 +32,7 @@ export function groupNotes(allEvents: Event[]): types.GroupedNotes[] {
             on: obj.tick,
             off: found.tick,
             id: i,
-            x: constants.KALIMBA_STANDARD_TUNING[obj.noteName],
+            x: constants.PIANO_TUNING[obj.noteName],
           });
         }
       }
@@ -56,7 +56,7 @@ export function generateDataToDraw(
       const oneNote: types.NotesToDraw = {
         y: on,
         height: off - on,
-        x: constants.KALIMBA_STANDARD_TUNING[note.noteName],
+        x: constants.PIANO_TUNING[note.noteName],
         id: note.id,
       };
       notesToDraw.push(oneNote);
