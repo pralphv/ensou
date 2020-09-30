@@ -31,26 +31,28 @@ function convertDateToYYYYMMDD(d: Date): string {
 }
 
 interface Column {
-  id: "name" | "artist" | "instrument" | "uploader" | "date";
+  id: "filename" | "artist" | "transcribedBy" | "instrument" | "uploader" | "date";
   label: string;
   align?: "right";
 }
 
 const columns: Column[] = [
-  { id: "name", label: "" },
+  { id: "filename", label: "" },
   { id: "artist", label: "Artist", align: "right" },
+  { id: "transcribedBy", label: "Transcribed By", align: "right" },
   { id: "instrument", label: "Instrument", align: "right" },
   { id: "uploader", label: "Uploader", align: "right" },
   { id: "date", label: "Date", align: "right" },
 ];
 
 interface SongTableData {
-  name: string;
+  filename: string;
   artist: string;
   instrument: string;
   uploader: string;
   date: any;
   id: string;
+  transcribedBy: string;
 }
 
 const useStyles = makeStyles({
@@ -85,6 +87,7 @@ export default function SongTable() {
       const midi: SongTableData[] = snapshot.docs.map((doc) => {
         return { id: doc.id, ...doc.data() };
       }) as SongTableData[];
+      console.log(midi);
       setTableRows(midi);
     }
     fetchSongTable();
