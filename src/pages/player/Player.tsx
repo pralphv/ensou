@@ -43,6 +43,7 @@ export default function Player(): JSX.Element {
   const [songName, setSongName] = useState<string>("");
   const [artist, setArtist] = useState<string>("");
   const [isHovering, setIsHovering] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [forceRender, setForceRender] = useState<number>(0); // for re-render on volume change
   const urlParams: any = useParams();
   const firestore = useFirestore();
@@ -51,7 +52,9 @@ export default function Player(): JSX.Element {
   useEffect(() => {
     const songId: string = urlParams.songId;
     async function download() {
+      setIsLoading(true)
       await downloadMidi(midiFunctions.loadArrayBuffer, `${songId}.mid`);
+      setIsLoading(false)
     }
     async function fetchSongDetails() {
       const ref = await firestore.collection("midi").doc(songId);
@@ -65,8 +68,8 @@ export default function Player(): JSX.Element {
   }, []);
 
   const loadingScreenMemo = useMemo(
-    () => midiFunctions.instrumentLoading && <LoadingScreen />,
-    [midiFunctions.instrumentLoading]
+    () => (midiFunctions.instrumentLoading || isLoading) && <LoadingScreen />,
+    [midiFunctions.instrumentLoading, isLoading]
   );
 
   const currentTick = midiFunctions.getCurrentTick();
