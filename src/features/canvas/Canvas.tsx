@@ -15,6 +15,7 @@ import { convertMidiTickToCanvasHeight } from "./utils";
 import * as PIXI from "pixi.js";
 import * as types from "types";
 import { throttle } from "lodash";
+import "./styles.css";
 
 interface CanvasProps {
   getCurrentTick: types.IMidiFunctions["getCurrentTick"];
@@ -117,7 +118,7 @@ export default function Canvas({
         app.current.destroy();
       }
     };
-  }, [isFullScreen]);
+  }, []);
 
   useEffect(() => {
     fallingNotes.initFallingNotes(
