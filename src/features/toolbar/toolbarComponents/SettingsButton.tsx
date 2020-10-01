@@ -4,7 +4,6 @@ import SettingsIcon from "@material-ui/icons/Settings";
 import { useHotkeys } from "react-hotkeys-hook";
 import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 
-import { useStateToRef } from "utils/customHooks";
 import CustomButton from "./CustomButton";
 import SettingsMenu from "./SettingsMenu";
 import * as types from "types";
@@ -12,11 +11,15 @@ import * as types from "types";
 interface ISettingsButton {
   soundEffect: types.IMidiFunctions["soundEffect"];
   forceRerender: types.forceRerender;
+  isHqApi: types.IMidiFunctions["isHqApi"];
+  getIsPlaying: types.IMidiFunctions["getIsPlaying"];
 }
 
 export default function SettingsButton({
   soundEffect,
   forceRerender,
+  isHqApi,
+  getIsPlaying
 }: ISettingsButton): JSX.Element {
   const [open, setOpen] = useState<boolean>(false);
   function handleOnClick() {
@@ -34,6 +37,8 @@ export default function SettingsButton({
           <SettingsMenu
             soundEffect={soundEffect}
             forceRerender={forceRerender}
+            isHqApi={isHqApi}
+            getIsPlaying={getIsPlaying}
           />
         ) : null}
         <CustomButton onClick={handleOnClick}>

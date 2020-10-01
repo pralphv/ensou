@@ -33,6 +33,7 @@ interface ToolBarProps {
   openFullScreen: () => void;
   closeFullScreen: () => void;
   isFullScreening: boolean;
+  isHqApi: types.IMidiFunctions["isHqApi"];
 }
 
 export default function ToolBar({
@@ -53,7 +54,8 @@ export default function ToolBar({
   isFullScreen,
   openFullScreen,
   closeFullScreen,
-  isFullScreening
+  isFullScreening,
+  isHqApi,
 }: ToolBarProps) {
   console.log("Toolbar Rerender");
   let opacity = getIsPlaying() === true ? 0 : 1;
@@ -103,9 +105,11 @@ export default function ToolBar({
         <SettingsButton
           soundEffect={soundEffect}
           forceRerender={forceRerender}
+          isHqApi={isHqApi}
+          getIsPlaying={getIsPlaying}
         />
         <FullScreenButton
-        isFullScreening={isFullScreening}
+          isFullScreening={isFullScreening}
           openFullScreen={openFullScreen}
           closeFullScreen={closeFullScreen}
         />

@@ -23,19 +23,32 @@ const useStyles = makeStyles((theme: Theme) =>
 interface ISettingsMenu {
   soundEffect: types.IMidiFunctions["soundEffect"];
   forceRerender: types.forceRerender;
+  isHqApi: types.IMidiFunctions["isHqApi"];
+  getIsPlaying: types.IMidiFunctions["getIsPlaying"];
 }
 
 export default function SettingsMenu({
   soundEffect,
   forceRerender,
+  isHqApi,
+  getIsPlaying
 }: ISettingsMenu): JSX.Element {
   const classes = useStyles();
 
-  function handleOnChange() {
+  function handleOnChangeSoundEffect() {
     if (soundEffect.getIsSoundEffect()) {
       soundEffect.setIsNotSoundEffect();
     } else {
       soundEffect.setIsSoundEffect();
+    }
+    forceRerender();
+  }
+
+  function handleOnChangeHq() {
+    if (isHqApi.getIsHq()) {
+      isHqApi.setIsNotHq();
+    } else {
+      isHqApi.setIsHq();
     }
     forceRerender();
   }
@@ -49,19 +62,20 @@ export default function SettingsMenu({
       <ListItem button>
         <ListItemText primary="Sound Effect" />
         <Switch
-          // color="secondary"
+          color="primary"
           checked={soundEffect.getIsSoundEffect()}
-          onChange={handleOnChange}
+          onChange={handleOnChangeSoundEffect}
         />
       </ListItem>
-      {/* <ListItem button>
+      <ListItem button>
         <ListItemText primary="High Quality" />
         <Switch
           // color="secondary"
-          checked={soundEffect.getIsSoundEffect()}
-          onChange={handleOnChange}
+          checked={isHqApi.getIsHq()}
+          onChange={handleOnChangeHq}
+          disabled={getIsPlaying()}
         />
-      </ListItem> */}
+      </ListItem>
     </List>
   );
 }

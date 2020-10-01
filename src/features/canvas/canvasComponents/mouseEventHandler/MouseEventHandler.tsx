@@ -11,7 +11,7 @@ export function useMouseEvents(
   app: PIXI.Application | undefined,
   getCurrentTick: types.IMidiFunctions["getCurrentTick"],
   getIsPlaying: types.IMidiFunctions["getIsPlaying"],
-  setPlayRange: types.PlayRangeApi["setPlayRange"]
+  setPlayRange: types.IPlayRangeApi["setPlayRange"]
 ) {
   const lastClickedTick = useRef<number>(0);
   const isShift = useRef<boolean>(false);

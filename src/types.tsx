@@ -17,10 +17,13 @@ export interface IMidiFunctions {
   getVolumeDb: () => number | undefined;
   soundEffect: SoundEffectApi;
   instrumentLoading: boolean;
-  playRangeApi: PlayRangeApi;
+  playRangeApi: IPlayRangeApi;
   metronomeApi: MetronomeApi;
   loopApi: LoopApi;
   tempoApi: TempoApi;
+  instrumentApi: IInstrumentApi;
+  sampleApi: ISampleApi;
+  isHqApi: IIsHqApi;
 }
 
 interface SoundEffectApi {
@@ -41,7 +44,22 @@ interface LoopApi {
   setIsNotLoop: () => void;
 }
 
-export interface PlayRangeApi {
+interface IInstrumentApi {
+  getInstrument: () => types.Instrument;
+  setInstrument: (instrument: types.Instrument) => void;
+}
+
+interface ISampleApi {
+  getSample: () => string;
+  setSample: (sample: string) => void;
+}
+interface IIsHqApi {
+  getIsHq: () => boolean;
+  setIsHq: () => void;
+  setIsNotHq: () => void;
+}
+
+export interface IPlayRangeApi {
   getPlayRange: () => PlayRange;
   setPlayRange: (playRange: PlayRange) => void;
 }
@@ -67,3 +85,5 @@ export interface PlayRange {
   startTick: number;
   endTick: number;
 }
+
+export type Instrument = "piano" | "kalimba";

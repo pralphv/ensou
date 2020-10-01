@@ -177,7 +177,7 @@ export default function Canvas({
     app.current,
     getCurrentTick,
     getIsPlaying,
-    (playRange) => {
+    (playRange: types.PlayRange) => {
       playRangeApi.setPlayRange(playRange);
       getForceRerender()();
     }

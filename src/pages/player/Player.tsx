@@ -101,6 +101,7 @@ export default function Player(): JSX.Element {
         openFullScreen={handle.enter}
         closeFullScreen={handle.exit}
         isFullScreening={handle.active}
+        isHqApi={midiFunctions.isHqApi}
       />
     ),
     [

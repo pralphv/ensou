@@ -30,6 +30,37 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
   const isMetronomeRef = useRef<boolean>(false);
   const tempoPercentRef = useRef<number>(1); // tempo % and tempo is different
   // midi can change tempo, so need a % to keep the user's change
+  const instrumentRef = useRef<types.Instrument>("piano");
+  const isHqRef = useRef<boolean>(false);
+  const sampleRef = useRef<string>("PedalOffMezzoForte1");
+
+  function getInstrument(): types.Instrument {
+    return instrumentRef.current;
+  }
+
+  function setInstrument(instrument: types.Instrument) {
+    instrumentRef.current = instrument;
+  }
+
+  function getSample(): string {
+    return sampleRef.current;
+  }
+
+  function setSample(sample: string) {
+    sampleRef.current = sample;
+  }
+
+  function getIsHq(): boolean {
+    return isHqRef.current;
+  }
+
+  function setIsHq() {
+    isHqRef.current = true;
+  }
+
+  function setIsNotHq() {
+    isHqRef.current = false;
+  }
 
   function getTempo(): number {
     if (midiPlayerRef.current && originalTempoRef.current) {
@@ -169,7 +200,13 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
     }
   }
 
-  const instrumentApi = useInstrument(getIsSoundEffect);
+  const bitrate = isHqRef.current ? "124k" : "33k";
+  const instrumentApi = useInstrument(
+    getIsSoundEffect,
+    getInstrument,
+    getSample,
+    getIsHq
+  );
   useEffect(() => {
     midiPlayerRef.current = new MidiPlayer.Player() as MidiPlayer.Player &
       MidiPlayer.Event &
@@ -290,6 +327,19 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
       setTempo,
       setTempoPercent,
     },
+    instrumentApi: {
+      getInstrument, 
+      setInstrument
+    },
+    sampleApi: {
+      getSample,
+      setSample
+    },
+    isHqApi: {
+      getIsHq,
+      setIsHq,
+      setIsNotHq
+    }
   };
 
   return [playerFunctions, groupedNotes.current];
