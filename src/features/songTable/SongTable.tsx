@@ -6,12 +6,10 @@ import { Pages } from "layouts/constants";
 
 import { makeStyles } from "@material-ui/core/styles";
 import Paper from "@material-ui/core/Paper";
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableContainer from "@material-ui/core/TableContainer";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
+
+import LoadingScreen from "features/loadingScreen/LoadingScreen";
+import OneRowCard from "./OneRowCard";
+import * as types from "./types";
 
 function convertDateToYYYYMMDD(d: Date): string {
   return new Date(
@@ -29,42 +27,17 @@ function convertDateToYYYYMMDD(d: Date): string {
     .toISOString()
     .slice(0, 10);
 }
-
-interface Column {
-  id: "filename" | "artist" | "transcribedBy" | "instrument" | "uploader" | "date";
-  label: string;
-  align?: "right";
-}
-
-const columns: Column[] = [
-  { id: "filename", label: "" },
-  { id: "artist", label: "Artist", align: "right" },
-  { id: "transcribedBy", label: "Transcribed By", align: "right" },
-  { id: "instrument", label: "Instrument", align: "right" },
-  { id: "uploader", label: "Uploader", align: "right" },
-  { id: "date", label: "Date", align: "right" },
-];
-
-interface SongTableData {
-  filename: string;
-  artist: string;
-  instrument: string;
-  uploader: string;
-  date: any;
-  id: string;
-  transcribedBy: string;
-}
-
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   root: {
-    width: "100%",
+    width: "60vw",
+    [theme.breakpoints.down("sm")]: {
+      width: "100vw",
+    },
   },
-  row: {
-    cursor: "pointer",
-  },
-});
+}));
 
 export default function SongTable() {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   function handleChangePage(event: unknown, newPage: number) {
     setPage(newPage);
   }
@@ -79,63 +52,43 @@ export default function SongTable() {
   }
 
   const firestore = useFirestore();
-  const [tableRows, setTableRows] = useState<SongTableData[]>([]);
+  const [tableRows, setTableRows] = useState<types.ISongTableData[]>([]);
   useEffect(() => {
     async function fetchSongTable() {
+      setIsLoading(true);
       const ref = await firestore.collection("midi");
       const snapshot = await ref.get();
-      const midi: SongTableData[] = snapshot.docs.map((doc) => {
+      const midi: types.ISongTableData[] = snapshot.docs.map((doc) => {
         return { id: doc.id, ...doc.data() };
-      }) as SongTableData[];
-      console.log(midi);
+      }) as types.ISongTableData[];
       setTableRows(midi);
+      setIsLoading(false);
     }
     fetchSongTable();
   }, []);
   const classes = useStyles();
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
-  // console.log(midi);
 
   const history = useHistory();
 
   return (
+    isLoading? <LoadingScreen/>:
     <Paper className={classes.root}>
-      <TableContainer>
-        <Table stickyHeader aria-label="sticky table">
-          <TableHead>
-            <TableRow>
-              {columns.map((column: Column) => (
-                <TableCell key={column.id} align={column.align}>
-                  {column.label}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {tableRows
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row: SongTableData, i: number) => {
-                return (
-                  <TableRow
-                    hover
-                    key={i}
-                    className={classes.row}
-                    onClick={() => handleOnClick(row.id)}
-                  >
-                    {columns.map((column) => (
-                      <TableCell key={column.id} align={column.align}>
-                        {column.id === "date"
-                          ? convertDateToYYYYMMDD(row[column.id].toDate())
-                          : row[column.id]}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                );
-              })}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {tableRows
+        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+        .map((row: types.ISongTableData, i: number) => (
+          <OneRowCard
+            key={row.id}
+            instrument={row.instrument}
+            filename={row.filename}
+            artist={row.artist}
+            transcribedBy={row.transcribedBy}
+            uploader={row.uploader}
+            id={row.id}
+            date={convertDateToYYYYMMDD(row.date.toDate())}
+          />
+        ))}
     </Paper>
   );
 }
