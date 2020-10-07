@@ -61,11 +61,14 @@ export default function VolumeButton({
     <div>
       <CustomButton
         onClick={onClickVolume}
-        style={{ width: BUTTON_WIDTH, height: BUTTON_HEIGHT }}
+        // style={{ width: BUTTON_WIDTH, height: BUTTON_HEIGHT }}
+        size="small"
       >
         <IconToShow />
       </CustomButton>
-      <CustomButton style={{ width: BUTTON_WIDTH * 2, height: BUTTON_HEIGHT }}>
+      <CustomButton style={{ width: BUTTON_WIDTH * 2, height: BUTTON_HEIGHT }} 
+      size="small"
+      >
         <Slider
           value={volume}
           color="secondary"

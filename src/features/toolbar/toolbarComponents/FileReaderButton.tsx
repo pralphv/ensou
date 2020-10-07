@@ -28,7 +28,9 @@ export default function FileReaderButton({
     <div {...getRootProps()}>
       <input {...getInputProps()} />
       {isDragActive && <UploadBackdrop />}
-      <CustomButton disabled={getIsPlaying()}>
+      <CustomButton disabled={getIsPlaying()}
+      size="small"
+      >
         <FolderIcon />
       </CustomButton>
     </div>

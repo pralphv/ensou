@@ -29,6 +29,7 @@ export default function MetronomeButton({
     <CustomButton
       onClick={handleOnClick}
       selected={metronomeApi.getIsMetronome()}
+      size="small"
     >
       <Typography>Metronome</Typography>
     </CustomButton>

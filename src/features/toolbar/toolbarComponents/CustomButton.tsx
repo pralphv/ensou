@@ -6,6 +6,7 @@ const CustomButton = withStyles({
     backgroundColor: "rgba(0, 0, 0, 0)",
     border: "0",
     color: "#e5e5e5",
+    fontSize: 5, 
     "&:hover": {
       color: "#fff",
       backgroundColor: "rgba(0, 0, 0, 0)",

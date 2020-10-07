@@ -13,13 +13,18 @@ interface ISettingsButton {
   forceRerender: types.forceRerender;
   isHqApi: types.IMidiFunctions["isHqApi"];
   getIsPlaying: types.IMidiFunctions["getIsPlaying"];
+  metronomeApi: types.IMidiFunctions["metronomeApi"];
+  loopApi: types.IMidiFunctions["loopApi"];
+
 }
 
 export default function SettingsButton({
   soundEffect,
   forceRerender,
   isHqApi,
-  getIsPlaying
+  getIsPlaying,
+  metronomeApi,
+  loopApi
 }: ISettingsButton): JSX.Element {
   const [open, setOpen] = useState<boolean>(false);
   function handleOnClick() {
@@ -39,9 +44,13 @@ export default function SettingsButton({
             forceRerender={forceRerender}
             isHqApi={isHqApi}
             getIsPlaying={getIsPlaying}
+            metronomeApi={metronomeApi}
+            loopApi={loopApi}
           />
         ) : null}
-        <CustomButton onClick={handleOnClick}>
+        <CustomButton onClick={handleOnClick}
+        size="small"
+        >
           <SettingsIcon />
         </CustomButton>
       </div>

@@ -26,7 +26,7 @@ export default function LoopButton({
   useHotkeys("l", handleOnClick);
 
   return (
-    <CustomButton onClick={handleOnClick} selected={loopApi.getIsLoop()}>
+    <CustomButton onClick={handleOnClick} selected={loopApi.getIsLoop()} size="small">
       <LoopIcon />
     </CustomButton>
   );

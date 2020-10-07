@@ -52,9 +52,9 @@ export default function Player(): JSX.Element {
   useEffect(() => {
     const songId: string = urlParams.songId;
     async function download() {
-      setIsLoading(true)
+      setIsLoading(true);
       await downloadMidi(midiFunctions.loadArrayBuffer, `${songId}.mid`);
-      setIsLoading(false)
+      setIsLoading(false);
     }
     async function fetchSongDetails() {
       const ref = await firestore.collection("midi").doc(songId);

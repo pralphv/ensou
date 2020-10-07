@@ -40,7 +40,8 @@ export default function PlayButton({
             pause();
             forceRerender();
           }}
-          style={{ width: BUTTON_WIDTH, height: BUTTON_HEIGHT }}
+          // style={{ width: BUTTON_WIDTH, height: BUTTON_HEIGHT }}
+          size="small"
         >
           <PauseIcon />
         </CustomButton>
@@ -51,7 +52,8 @@ export default function PlayButton({
             play();
             forceRerender();
           }}
-          style={{ width: BUTTON_WIDTH }}
+          size="small"
+          // style={{ width: BUTTON_WIDTH }}
         >
           <PlayArrowIcon />
         </CustomButton>

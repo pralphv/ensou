@@ -28,12 +28,16 @@ export default function FullScreenButton({
       {isFullScreening ? (
         <CustomButton
           onClick={closeFullScreen}
-          style={{ width: BUTTON_WIDTH, height: BUTTON_HEIGHT }}
+          // style={{ width: BUTTON_WIDTH, height: BUTTON_HEIGHT }}
+          size="small"
         >
           <FullscreenExitIcon />
         </CustomButton>
       ) : (
-        <CustomButton onClick={openFullScreen} style={{ width: BUTTON_WIDTH }}>
+        <CustomButton onClick={openFullScreen}
+        //  style={{ width: BUTTON_WIDTH }}
+         size="small"
+         >
           <FullscreenIcon />
         </CustomButton>
       )}

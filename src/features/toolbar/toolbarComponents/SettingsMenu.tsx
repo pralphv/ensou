@@ -9,12 +9,11 @@ import * as types from "types";
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
-      width: "15%",
       position: "absolute",
       backgroundColor: theme.palette.background.paper,
       zIndex: 100,
-      marginTop: "-8%",
-      right: "5%",
+      marginTop: `-${55 * 4}px`,
+      right: "38px",
       opacity: 0.9,
     },
   })
@@ -25,13 +24,17 @@ interface ISettingsMenu {
   forceRerender: types.forceRerender;
   isHqApi: types.IMidiFunctions["isHqApi"];
   getIsPlaying: types.IMidiFunctions["getIsPlaying"];
+  metronomeApi: types.IMidiFunctions["metronomeApi"];
+  loopApi: types.IMidiFunctions["loopApi"];
 }
 
 export default function SettingsMenu({
   soundEffect,
   forceRerender,
   isHqApi,
-  getIsPlaying
+  getIsPlaying,
+  metronomeApi,
+  loopApi,
 }: ISettingsMenu): JSX.Element {
   const classes = useStyles();
 
@@ -53,16 +56,29 @@ export default function SettingsMenu({
     forceRerender();
   }
 
+  function handleOnChangeMetronome() {
+    if (metronomeApi.getIsMetronome()) {
+      metronomeApi.setIsNotMetronome();
+    } else {
+      metronomeApi.setIsMetronome();
+    }
+    forceRerender();
+  }
+
+  function handleOnChangeLoop() {
+    if (loopApi.getIsLoop()) {
+      loopApi.setIsNotLoop();
+    } else {
+      loopApi.setIsLoop();
+    }
+    forceRerender();
+  }
+
   return (
-    <List
-      component="nav"
-      aria-label="main mailbox folders"
-      className={classes.root}
-    >
+    <List component="nav" className={classes.root}>
       <ListItem button>
         <ListItemText primary="Sound Effect" />
         <Switch
-          color="primary"
           checked={soundEffect.getIsSoundEffect()}
           onChange={handleOnChangeSoundEffect}
         />
@@ -74,6 +90,22 @@ export default function SettingsMenu({
           checked={isHqApi.getIsHq()}
           onChange={handleOnChangeHq}
           disabled={getIsPlaying()}
+        />
+      </ListItem>
+      <ListItem button>
+        <ListItemText primary="Metronome" />
+        <Switch
+          // color="secondary"
+          checked={metronomeApi.getIsMetronome()}
+          onChange={handleOnChangeMetronome}
+        />
+      </ListItem>
+      <ListItem button>
+        <ListItemText primary="Loop" />
+        <Switch
+          // color="secondary"
+          checked={loopApi.getIsLoop()}
+          onChange={handleOnChangeLoop}
         />
       </ListItem>
     </List>

@@ -61,7 +61,6 @@ export default function Canvas({
   isFullScreen,
 }: CanvasProps): JSX.Element {
   let canvasWidth: number = WIDTH >= 800 ? window.innerWidth * 0.75 : WIDTH;
-  canvasWidth = isFullScreen ? window.innerWidth : canvasWidth;
   let canvasHeight: number = (canvasWidth / 16) * 9;
   const noOfNotes: number = Math.max(...Object.values(PIANO_TUNING));
   const noteWidth: number = canvasWidth / noOfNotes;
@@ -126,7 +125,7 @@ export default function Canvas({
       noteWidth,
       app.current as PIXI.Application
     );
-  }, [groupedNotes, isFullScreen]);
+  }, [groupedNotes]);
 
   useEffect(() => {
     const playRange_ = playRangeApi.getPlayRange();

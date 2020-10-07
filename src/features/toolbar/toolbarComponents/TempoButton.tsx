@@ -36,7 +36,8 @@ export default function TempoButton({
     <div>
       <CustomButton
         onClick={handleClick}
-        style={{ width: BUTTON_WIDTH, height: BUTTON_HEIGHT }}
+        // style={{ width: BUTTON_WIDTH, height: BUTTON_HEIGHT }}
+        size="small"
         disabled={getIsPlaying() === true}
       >
         <Typography variant="body2">{value}%</Typography>

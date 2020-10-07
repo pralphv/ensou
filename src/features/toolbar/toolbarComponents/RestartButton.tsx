@@ -11,7 +11,7 @@ export default function RestartButton({ restart }: RestartButton): JSX.Element {
   useHotkeys("home", restart);
 
   return (
-    <CustomButton  onClick={restart}>
+    <CustomButton onClick={restart} size="small">
       <SkipPreviousIcon />
     </CustomButton>
   );

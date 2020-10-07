@@ -81,16 +81,15 @@ export default function ToolBar({
           getIsPlaying={getIsPlaying}
           forceRerender={forceRerender}
         />
-        <VolumeButton
-          getVolumeDb={getVolumeDb}
-          changeVolume={changeVolume}
-          forceRerender={forceRerender}
-        />
-        <LoopButton loopApi={loopApi} forceRerender={forceRerender} />
-        <MetronomeButton
-          metronomeApi={metronomeApi}
-          forceRerender={forceRerender}
-        />
+        {window.innerWidth >= 500 && (
+          <VolumeButton
+            getVolumeDb={getVolumeDb}
+            changeVolume={changeVolume}
+            forceRerender={forceRerender}
+          />
+        )}
+      </ToggleButtonGroup>
+      <ToggleButtonGroup>
         <TempoButton
           getIsPlaying={getIsPlaying}
           tempoApi={tempoApi}
@@ -100,13 +99,14 @@ export default function ToolBar({
           loadArrayBuffer={loadArrayBuffer}
           getIsPlaying={getIsPlaying}
         />
-      </ToggleButtonGroup>
-      <ToggleButtonGroup>
+
         <SettingsButton
           soundEffect={soundEffect}
           forceRerender={forceRerender}
           isHqApi={isHqApi}
           getIsPlaying={getIsPlaying}
+          metronomeApi={metronomeApi}
+          loopApi={loopApi}
         />
         <FullScreenButton
           isFullScreening={isFullScreening}
