@@ -24,6 +24,7 @@ export interface IMidiFunctions {
   instrumentApi: IInstrumentApi;
   sampleApi: ISampleApi;
   isHqApi: IIsHqApi;
+  downloadProgress: number;
 }
 
 interface SoundEffectApi {

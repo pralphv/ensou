@@ -67,10 +67,14 @@ export default function Player(): JSX.Element {
     fetchSongDetails();
   }, []);
 
-  const loadingScreenMemo = useMemo(
-    () => (midiFunctions.instrumentLoading || isLoading) && <LoadingScreen />,
-    [midiFunctions.instrumentLoading, isLoading]
-  );
+  const loadingScreenMemo = useMemo(() => {
+    const progress = `${Math.floor(midiFunctions.downloadProgress * 100)}%`;
+    return (
+      (midiFunctions.instrumentLoading || isLoading) && (
+        <LoadingScreen text={progress} />
+      )
+    );
+  }, [midiFunctions.instrumentLoading, isLoading, midiFunctions.downloadProgress]);
 
   const currentTick = midiFunctions.getCurrentTick();
 

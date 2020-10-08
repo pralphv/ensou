@@ -200,7 +200,6 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
     }
   }
 
-  const bitrate = isHqRef.current ? "124k" : "33k";
   const instrumentApi = useInstrument(
     getIsSoundEffect,
     getInstrument,
@@ -303,6 +302,7 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
     changeVolume: instrumentApi.changeVolume,
     getVolumeDb: instrumentApi.getVolumeDb,
     instrumentLoading: instrumentApi.instrumentLoading,
+    downloadProgress: instrumentApi.downloadProgress,
     soundEffect: {
       getIsSoundEffect,
       setIsSoundEffect,

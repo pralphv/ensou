@@ -21,7 +21,7 @@ function getAudioContext(): AudioContext {
   const isAudioContextSupported =
     "AudioContext" in window || "webkitAudioContext" in window;
   if (!isAudioContextSupported) {
-    console.error("AudioContext not supported in your environment");
+    alert("AudioContext not supported in your environment");
     throw new Error("AudioContext not supported in your environment");
   }
   const audioContext = new AudioContext();
@@ -35,12 +35,14 @@ interface InstrumentApi {
   getVolumeDb: () => number | undefined;
   triggerMetronome: () => void;
   instrumentLoading: boolean;
+  downloadProgress: number;
 }
 
 async function fetchInstruments(
   instrument: types.Instrument,
   sample: string,
-  bitrate: string
+  bitrate: string,
+  setDownloadProgress: (progress: number) => void
 ) {
   const cacheKey: string = `${instrument}_${sample}_${bitrate}`;
   const cache: any = await get(cacheKey);
@@ -48,12 +50,15 @@ async function fetchInstruments(
   if (cache) {
     console.log(`Getting ${cacheKey} from cache`);
     sampleMap = cache;
+    setDownloadProgress(1);
   } else {
     console.log(`No cache. Fetching ${cacheKey}...`);
     const items = await storageRef
       .child(`samples/${instrument}/${bitrate}/${sample}`)
       // .child(`samples/piano-in-162/PedalOffMezzoForte1`)
       .listAll();
+    const total: number = items.items.length;
+    let progress: number = 0;
     await Promise.all(
       items.items.map(async (item) => {
         const note = item.name.slice(0, item.name.length - 4);
@@ -61,6 +66,8 @@ async function fetchInstruments(
         const resp = await fetch(url);
         const file: ArrayBuffer = await resp.arrayBuffer();
         sampleMap[note] = file;
+        progress++;
+        setDownloadProgress(progress / total);
       })
     );
     console.log(`Finished downloading ${cacheKey}. Saving...`);
@@ -98,6 +105,7 @@ async function fetchMetronome(): Promise<Sampler> {
   }
   console.log("Converting metronome to AudioBuffer...");
   const context = getAudioContext();
+  // const audio = await context.decodeAudioData(metronome);
   const audio = await context.decodeAudioData(metronome);
   console.log("Converted metronome to AudioBuffer!");
   const metronomeSampler = new Sampler(
@@ -113,14 +121,20 @@ async function fetchMetronome(): Promise<Sampler> {
 async function getSamples(
   instrument: types.Instrument,
   sample: string,
-  bitrate: string
+  bitrate: string,
+  setDownloadProgress: (progress: number) => void
 ): Promise<ICachedSounds> {
   const cacheKey: string = `${instrument}_${sample}_${bitrate}`;
   if (SAMPLE_CACH[cacheKey]) {
-    console.log(`Getting ${cacheKey} from this session`)
+    console.log(`Getting ${cacheKey} from this session`);
     return SAMPLE_CACH[cacheKey];
   }
-  const sampleMap = await fetchInstruments(instrument, sample, bitrate);
+  const sampleMap = await fetchInstruments(
+    instrument,
+    sample,
+    bitrate,
+    setDownloadProgress
+  );
   const main = new Sampler(sampleMap, {
     attack: 0.01,
   }).toDestination();
@@ -138,6 +152,7 @@ export function useInstrument(
   getIsHq: types.IMidiFunctions["isHqApi"]["getIsHq"]
 ): InstrumentApi {
   const [instrumentLoading, setInstrmentLoading] = useState<boolean>(false);
+  const [downloadProgress, setDownloadProgress] = useState<number>(0);
   const metronome = useRef<Sampler>();
   const sampler = useRef<Sampler>();
   const effects = useRef<Sampler>();
@@ -147,10 +162,12 @@ export function useInstrument(
     console.log("Reloading useInstrument");
     async function getSamples_() {
       setInstrmentLoading(true);
+      setDownloadProgress(0); // reset
       const soundObj = await getSamples(
         getInstrument(),
         getSample(),
-        getIsHq() ? "124k" : "33k"
+        getIsHq() ? "124k" : "33k",
+        setDownloadProgress
       );
       sampler.current = soundObj.main;
       effects.current = soundObj.effect;
@@ -209,6 +226,7 @@ export function useInstrument(
     getVolumeDb,
     triggerMetronome,
     instrumentLoading,
+    downloadProgress,
   };
   return api;
 }

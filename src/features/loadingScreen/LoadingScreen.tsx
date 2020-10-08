@@ -1,4 +1,6 @@
 import React from "react";
+
+import { Typography } from "@material-ui/core";
 import Backdrop from "@material-ui/core/Backdrop";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import { makeStyles } from "@material-ui/core";
@@ -12,7 +14,11 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function LoadingScreen() {
+interface ILoadingScreenProps {
+  text?: string | number;
+}
+
+export default function LoadingScreen({ text }: ILoadingScreenProps) {
   console.log("Loading Screen rerender");
   const classes = useStyles();
   // const profile = useUserProfile();
@@ -20,7 +26,10 @@ export default function LoadingScreen() {
 
   return (
     <Backdrop className={classes.backdrop} open={true} invisible={true}>
-      <CircularProgress color="inherit" />
+      <div>
+        <CircularProgress color="inherit" />
+        {text && <Typography align="center">{text}</Typography>}
+      </div>
     </Backdrop>
   );
 }
