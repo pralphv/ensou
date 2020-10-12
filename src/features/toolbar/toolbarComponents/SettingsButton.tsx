@@ -11,7 +11,7 @@ import * as types from "types";
 interface ISettingsButton {
   soundEffect: types.IMidiFunctions["soundEffect"];
   forceRerender: types.forceRerender;
-  isHqApi: types.IMidiFunctions["isHqApi"];
+  isUseSamplerApi: types.IMidiFunctions["isUseSamplerApi"];
   getIsPlaying: types.IMidiFunctions["getIsPlaying"];
   metronomeApi: types.IMidiFunctions["metronomeApi"];
   loopApi: types.IMidiFunctions["loopApi"];
@@ -21,7 +21,7 @@ interface ISettingsButton {
 export default function SettingsButton({
   soundEffect,
   forceRerender,
-  isHqApi,
+  isUseSamplerApi,
   getIsPlaying,
   metronomeApi,
   loopApi
@@ -42,7 +42,7 @@ export default function SettingsButton({
           <SettingsMenu
             soundEffect={soundEffect}
             forceRerender={forceRerender}
-            isHqApi={isHqApi}
+            isUseSamplerApi={isUseSamplerApi}
             getIsPlaying={getIsPlaying}
             metronomeApi={metronomeApi}
             loopApi={loopApi}

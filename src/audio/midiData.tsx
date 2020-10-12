@@ -6,8 +6,10 @@ import { useInstrument } from "./loadInstrument";
 import * as processing from "./processing";
 
 import * as types from "types";
+import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
 
 const BEAT_BUFFER = 0.02;
+let BLOCK_METRONOME: boolean; // serve as blocker when metronome played once already for 1 beat
 interface Tick {
   tick: number;
 }
@@ -25,13 +27,15 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
   const totalTicksRef = useRef<number>(0);
   const originalTempoRef = useRef<number>();
   const isPlayingRef = useRef<boolean>();
-  const isSoundEffectRef = useRef<boolean>(true);
+  const isSoundEffectRef = useRef<boolean>(
+    localStorageUtils.getIsSoundEffect() || false
+  );
   const isLoopRef = useRef<boolean>(true);
   const isMetronomeRef = useRef<boolean>(false);
   const tempoPercentRef = useRef<number>(1); // tempo % and tempo is different
   // midi can change tempo, so need a % to keep the user's change
   const instrumentRef = useRef<types.Instrument>("piano");
-  const isHqRef = useRef<boolean>(false);
+  const isUseSamplerRef = useRef<boolean>(false);
   const sampleRef = useRef<string>("PedalOffMezzoForte1");
 
   function getInstrument(): types.Instrument {
@@ -50,16 +54,16 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
     sampleRef.current = sample;
   }
 
-  function getIsHq(): boolean {
-    return isHqRef.current;
+  function getIsUseSampler(): boolean {
+    return isUseSamplerRef.current;
   }
 
-  function setIsHq() {
-    isHqRef.current = true;
+  function setIsUseSampler() {
+    isUseSamplerRef.current = true;
   }
 
-  function setIsNotHq() {
-    isHqRef.current = false;
+  function setIsNotUseSampler() {
+    isUseSamplerRef.current = false;
   }
 
   function getTempo(): number {
@@ -134,10 +138,12 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
   }
 
   function setIsSoundEffect() {
+    localStorageUtils.setIsSoundEffect(true);
     isSoundEffectRef.current = true;
   }
 
   function setIsNotSoundEffect() {
+    localStorageUtils.setIsSoundEffect(false);
     isSoundEffectRef.current = false;
   }
 
@@ -162,6 +168,7 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
   }
 
   function play(noSkip = false, skipDispatch = false) {
+    instrumentApi.clearPlayingNotes();
     if (!noSkip && playRangeRef?.current?.startTick !== 0) {
       midiPlayerRef.current?.skipToTick(playRangeRef?.current?.startTick);
     }
@@ -169,24 +176,29 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
       setIsPlaying();
     }
     midiPlayerRef.current?.play();
+    BLOCK_METRONOME = false;
   }
 
   function stop() {
+    instrumentApi.clearPlayingNotes();
     setIsNotPlaying();
     midiPlayerRef.current?.stop();
   }
 
   function pause() {
+    instrumentApi.clearPlayingNotes();
     setIsNotPlaying();
     midiPlayerRef.current?.pause();
   }
 
   function restart() {
+    instrumentApi.clearPlayingNotes();
     skipToPercent(0);
     setPlayRange({ startTick: 0, endTick: 0 });
   }
 
   function skipToPercent(percent: number) {
+    instrumentApi.clearPlayingNotes();
     midiPlayerRef.current?.skipToPercent(percent);
     if (isPlayingRef.current) {
       play(true, true);
@@ -194,6 +206,7 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
   }
 
   function skipToTick(tick: number) {
+    instrumentApi.clearPlayingNotes();
     midiPlayerRef.current?.skipToTick(tick);
     if (isPlayingRef.current) {
       play(true, true);
@@ -204,7 +217,7 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
     getIsSoundEffect,
     getInstrument,
     getSample,
-    getIsHq
+    getIsUseSampler
   );
   useEffect(() => {
     midiPlayerRef.current = new MidiPlayer.Player() as MidiPlayer.Player &
@@ -218,10 +231,13 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
       const remainder = currentTick.tick % ticksPerBeat_;
       const progressToOneBeat = remainder / (ticksPerBeat_ * 4); // 1 is on the beat
       const fourthBeat = progressToOneBeat <= 0.0 + BEAT_BUFFER;
-      const secondBeat =
-        progressToOneBeat <= 0.5 + BEAT_BUFFER && progressToOneBeat >= 0.5;
-      if (isMetronomeRef.current && (secondBeat || fourthBeat)) {
-        instrumentApi.triggerMetronome();
+      if (isMetronomeRef.current && fourthBeat) {
+        if (!BLOCK_METRONOME) {
+          instrumentApi.triggerMetronome();
+        }
+        BLOCK_METRONOME = true;
+      } else {
+        BLOCK_METRONOME = false;
       }
 
       // handle song loop
@@ -266,12 +282,10 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
     midiPlayerRef.current.on("midiEvent", (midiEvent: any) => {
       if (midiEvent.name === "Set Tempo" && midiPlayerRef.current) {
         originalTempoRef.current = midiPlayerRef.current.tempo;
-
         const customizedTempo =
           midiPlayerRef.current.tempo * tempoPercentRef.current;
         setTempo(customizedTempo);
-      }
-      if (midiEvent.name === "Note on") {
+      } else if (midiEvent.name === "Note on") {
         instrumentApi.triggerAttack(
           midiEvent.noteName,
           midiEvent.velocity / 100
@@ -282,7 +296,9 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
       }
     });
     return function cleanup() {
+      stop();
       midiPlayerRef.current = undefined;
+      console.log("Cleaned Midi Player");
     };
   }, []);
 
@@ -328,18 +344,18 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
       setTempoPercent,
     },
     instrumentApi: {
-      getInstrument, 
-      setInstrument
+      getInstrument,
+      setInstrument,
     },
     sampleApi: {
       getSample,
-      setSample
+      setSample,
     },
-    isHqApi: {
-      getIsHq,
-      setIsHq,
-      setIsNotHq
-    }
+    isUseSamplerApi: {
+      getIsUseSampler,
+      setIsUseSampler,
+      setIsNotUseSampler,
+    },
   };
 
   return [playerFunctions, groupedNotes.current];

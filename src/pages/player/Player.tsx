@@ -19,7 +19,8 @@ import { FullScreen, useFullScreenHandle } from "react-full-screen";
 
 async function downloadMidi(
   loadArrayBuffer: (blob: XMLHttpRequest["response"]) => void,
-  fileName: string
+  fileName: string,
+  onLoad: () => void
 ) {
   const midiRef = storageRef.child("midi").child(fileName);
   const url = await midiRef.getDownloadURL();
@@ -28,6 +29,7 @@ async function downloadMidi(
   xhr.onload = () => {
     const blob = xhr.response;
     loadArrayBuffer(blob);
+    onLoad();
     console.log("File Loaded");
   };
   xhr.open("GET", url);
@@ -48,13 +50,13 @@ export default function Player(): JSX.Element {
   const urlParams: any = useParams();
   const firestore = useFirestore();
   const handle = useFullScreenHandle();
-  // const loading: boolean = false;
   useEffect(() => {
     const songId: string = urlParams.songId;
     async function download() {
       setIsLoading(true);
-      await downloadMidi(midiFunctions.loadArrayBuffer, `${songId}.mid`);
-      setIsLoading(false);
+      await downloadMidi(midiFunctions.loadArrayBuffer, `${songId}.mid`, () =>
+        setIsLoading(false)
+      );
     }
     async function fetchSongDetails() {
       const ref = await firestore.collection("midi").doc(songId);
@@ -74,7 +76,11 @@ export default function Player(): JSX.Element {
         <LoadingScreen text={progress} />
       )
     );
-  }, [midiFunctions.instrumentLoading, isLoading, midiFunctions.downloadProgress]);
+  }, [
+    midiFunctions.instrumentLoading,
+    isLoading,
+    midiFunctions.downloadProgress,
+  ]);
 
   const currentTick = midiFunctions.getCurrentTick();
 
@@ -105,7 +111,7 @@ export default function Player(): JSX.Element {
         openFullScreen={handle.enter}
         closeFullScreen={handle.exit}
         isFullScreening={handle.active}
-        isHqApi={midiFunctions.isHqApi}
+        isUseSamplerApi={midiFunctions.isUseSamplerApi}
       />
     ),
     [
@@ -131,7 +137,7 @@ export default function Player(): JSX.Element {
         isFullScreen={handle.active}
       />
     ),
-    [currentTick, forceRender, handle.active]
+    [isLoading, currentTick, forceRender, handle.active]
   );
   const totalTicks = midiFunctions.getTotalTicks();
   const songProgress = totalTicks ? ((currentTick || 0) / totalTicks) * 100 : 0;

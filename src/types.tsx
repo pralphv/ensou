@@ -23,7 +23,7 @@ export interface IMidiFunctions {
   tempoApi: TempoApi;
   instrumentApi: IInstrumentApi;
   sampleApi: ISampleApi;
-  isHqApi: IIsHqApi;
+  isUseSamplerApi: IIsUseSamplerApi;
   downloadProgress: number;
 }
 
@@ -54,10 +54,10 @@ interface ISampleApi {
   getSample: () => string;
   setSample: (sample: string) => void;
 }
-interface IIsHqApi {
-  getIsHq: () => boolean;
-  setIsHq: () => void;
-  setIsNotHq: () => void;
+interface IIsUseSamplerApi {
+  getIsUseSampler: () => boolean;
+  setIsUseSampler: () => void;
+  setIsNotUseSampler: () => void;
 }
 
 export interface IPlayRangeApi {

@@ -22,7 +22,7 @@ const useStyles = makeStyles((theme: Theme) =>
 interface ISettingsMenu {
   soundEffect: types.IMidiFunctions["soundEffect"];
   forceRerender: types.forceRerender;
-  isHqApi: types.IMidiFunctions["isHqApi"];
+  isUseSamplerApi: types.IMidiFunctions["isUseSamplerApi"];
   getIsPlaying: types.IMidiFunctions["getIsPlaying"];
   metronomeApi: types.IMidiFunctions["metronomeApi"];
   loopApi: types.IMidiFunctions["loopApi"];
@@ -31,7 +31,7 @@ interface ISettingsMenu {
 export default function SettingsMenu({
   soundEffect,
   forceRerender,
-  isHqApi,
+  isUseSamplerApi,
   getIsPlaying,
   metronomeApi,
   loopApi,
@@ -48,10 +48,10 @@ export default function SettingsMenu({
   }
 
   function handleOnChangeHq() {
-    if (isHqApi.getIsHq()) {
-      isHqApi.setIsNotHq();
+    if (isUseSamplerApi.getIsUseSampler()) {
+      isUseSamplerApi.setIsNotUseSampler();
     } else {
-      isHqApi.setIsHq();
+      isUseSamplerApi.setIsUseSampler();
     }
     forceRerender();
   }
@@ -84,10 +84,10 @@ export default function SettingsMenu({
         />
       </ListItem>
       <ListItem button>
-        <ListItemText primary="High Quality" />
+        <ListItemText primary="Use Samples" />
         <Switch
           // color="secondary"
-          checked={isHqApi.getIsHq()}
+          checked={isUseSamplerApi.getIsUseSampler()}
           onChange={handleOnChangeHq}
           disabled={getIsPlaying()}
         />
