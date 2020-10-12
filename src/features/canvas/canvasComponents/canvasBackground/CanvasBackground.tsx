@@ -24,10 +24,10 @@ const GUIDE_LINES_NOTE_NUMBER = [
 function drawLine(height: number): PIXI.Graphics {
   const line = new PIXI.Graphics();
   line.position.set(0, 0);
-  line.lineStyle(3, 0x353535);
+  line.lineStyle(1.5, 0x353535);
   line.moveTo(0, 0);
   line.lineTo(0, height);
-  line.alpha = 0.5;
+  line.alpha = 0.9;
   line.endFill();
   return line;
 }
