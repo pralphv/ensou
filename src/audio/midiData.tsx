@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import MidiPlayer from "midi-player-js";
 
@@ -35,7 +35,9 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
   const tempoPercentRef = useRef<number>(1); // tempo % and tempo is different
   // midi can change tempo, so need a % to keep the user's change
   const instrumentRef = useRef<types.Instrument>("piano");
-  const isUseSamplerRef = useRef<boolean>(false);
+  const isUseSamplerRef = useRef<boolean>(
+    localStorageUtils.getIsUseSample() || false
+  );
   const sampleRef = useRef<string>("PedalOffMezzoForte1");
 
   function getInstrument(): types.Instrument {
@@ -60,10 +62,12 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
 
   function setIsUseSampler() {
     isUseSamplerRef.current = true;
+    localStorageUtils.setIsUseSample(true);
   }
 
   function setIsNotUseSampler() {
     isUseSamplerRef.current = false;
+    localStorageUtils.setIsUseSample(false);
   }
 
   function getTempo(): number {
@@ -252,6 +256,7 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
         isPlayingRef?.current &&
         (songEnded || (hasPlayRange && playRangeReached))
       ) {
+        instrumentApi.clearPlayingNotes();
         if (isLoopRef.current) {
           midiPlayerRef.current?.skipToTick(playRangeRef?.current?.startTick);
           play();
@@ -285,13 +290,13 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
         const customizedTempo =
           midiPlayerRef.current.tempo * tempoPercentRef.current;
         setTempo(customizedTempo);
-      } else if (midiEvent.name === "Note on") {
+      } else if (midiEvent.velocity !== 0 &&midiEvent.name === "Note on") {
+        // some stupid midi can have note on but 0 velocity to represent note off
         instrumentApi.triggerAttack(
           midiEvent.noteName,
           midiEvent.velocity / 100
         );
-        return;
-      } else if (midiEvent.name === "Note off") {
+      } else if (midiEvent.velocity === 0  || midiEvent.name === "Note off") {
         instrumentApi.triggerRelease(midiEvent.noteName);
       }
     });

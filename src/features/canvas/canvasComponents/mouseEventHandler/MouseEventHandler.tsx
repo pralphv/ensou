@@ -11,7 +11,8 @@ export function useMouseEvents(
   app: PIXI.Application | undefined,
   getCurrentTick: types.IMidiFunctions["getCurrentTick"],
   getIsPlaying: types.IMidiFunctions["getIsPlaying"],
-  setPlayRange: types.IPlayRangeApi["setPlayRange"]
+  setPlayRange: types.IPlayRangeApi["setPlayRange"],
+  pause: types.IMidiFunctions["pause"],
 ) {
   const lastClickedTick = useRef<number>(0);
   const isShift = useRef<boolean>(false);
@@ -52,8 +53,12 @@ export function useMouseEvents(
         setPlayRange({startTick, endTick})
       }
     });
+    interaction.on("pointertap", () => {
+      console.log("JER!!!!!!!!")
+    })
     interaction.on("pointerdown", (e: PIXI.InteractionEvent) => {
       if (getIsPlaying() === true) {
+        pause();
         return;
       }
 

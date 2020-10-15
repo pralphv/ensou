@@ -25,9 +25,11 @@ interface CanvasProps {
   setIsHovering: (hovering: boolean) => void;
   getIsPlaying: types.IMidiFunctions["getIsPlaying"];
   playRangeApi: types.IMidiFunctions["playRangeApi"];
+  pause: types.IMidiFunctions["pause"];
   getForceRerender: () => types.forceRerender;
   forceRender: number;
   isFullScreen: boolean;
+  setIsLoading: (loading: boolean) => void;
 }
 
 let PIXI_CANVAS: HTMLDivElement;
@@ -59,6 +61,8 @@ export default function Canvas({
   getForceRerender,
   forceRender,
   isFullScreen,
+  pause,
+  setIsLoading,
 }: CanvasProps): JSX.Element {
   let canvasWidth: number = WIDTH >= 800 ? window.innerWidth * 0.75 : WIDTH;
   let canvasHeight: number = (canvasWidth / 16) * 9;
@@ -94,7 +98,8 @@ export default function Canvas({
       // to init container, + 1 zIndex
       groupedNotes,
       noteWidth,
-      app.current as PIXI.Application
+      app.current as PIXI.Application,
+      setIsLoading
     );
     bottomTiles.initBottomTiles(noteWidth, 33, noOfNotes, app.current);
 
@@ -123,11 +128,13 @@ export default function Canvas({
     fallingNotes.initFallingNotes(
       groupedNotes,
       noteWidth,
-      app.current as PIXI.Application
+      app.current as PIXI.Application,
+      setIsLoading
     );
   }, [groupedNotes]);
 
   useEffect(() => {
+    //highlighter
     const playRange_ = playRangeApi.getPlayRange();
     if (!app.current || !currentTick) {
       return;
@@ -178,6 +185,10 @@ export default function Canvas({
     getIsPlaying,
     (playRange: types.PlayRange) => {
       playRangeApi.setPlayRange(playRange);
+      getForceRerender()();
+    },
+    () => {
+      pause();
       getForceRerender()();
     }
   );

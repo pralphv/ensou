@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 
 import SettingsIcon from "@material-ui/icons/Settings";
 import { useHotkeys } from "react-hotkeys-hook";

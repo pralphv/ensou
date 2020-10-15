@@ -8,7 +8,7 @@ interface RestartButton {
 }
 
 export default function RestartButton({ restart }: RestartButton): JSX.Element {
-  useHotkeys("home", restart);
+  // useHotkeys("home", restart);
 
   return (
     <CustomButton onClick={restart} size="small">

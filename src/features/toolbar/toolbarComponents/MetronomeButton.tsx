@@ -23,7 +23,7 @@ export default function MetronomeButton({
     }
     forceRerender();
   }
-  useHotkeys("m", handleOnClick);
+  // useHotkeys("m", handleOnClick);
 
   return (
     <CustomButton

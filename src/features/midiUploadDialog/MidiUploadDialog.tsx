@@ -118,7 +118,7 @@ export default function MidiUploadDialog({
   return (
     <Dialog open={open} onClose={() => setOpen(false)}>
       <DialogTitle>Upload Midi</DialogTitle>
-      <section className="container">
+      <section className="container" style={{ marginLeft: 8 * 3 }}>
         <input {...getInputProps()} />
         <div {...getRootProps({ className: "dropzone" })}>
           {acceptedFiles.length > 0 ? (

@@ -65,7 +65,6 @@ function initRectangle(width: number, height: number): PIXI.Graphics {
   const rect = new PIXI.Graphics();
   rect.beginTextureFill({ texture: gradient("#63F0FF", "#35D1FC", height) });
   rect.drawRoundedRect(0, 0, width, height, width / 2.5);
-
   rect.endFill();
   return rect;
 }
@@ -73,9 +72,11 @@ function initRectangle(width: number, height: number): PIXI.Graphics {
 export function initFallingNotes(
   groupedNotes: types.GroupedNotes[],
   noteWidth: number,
-  app: PIXI.Application
+  app: PIXI.Application,
+  setIsLoading: (loading: boolean) => void
 ): FallingNotes[] {
   console.log("Constructing new FallingNotes");
+  setIsLoading(true);
   try {
     CONTAINER.destroy({ children: true, texture: true, baseTexture: true });
   } catch {}
@@ -101,12 +102,14 @@ export function initFallingNotes(
     // @ts-ignore
     const texture = app.renderer.generateTexture(rectCached[cacheKey]);
     const rectSprite = new PIXI.Sprite(texture);
+    rectSprite.visible = false;
     container.addChild(rectSprite);
     FALLING_NOTES.push({ rectSprite, on, off, height, x });
   });
   Object.values(rectCached).forEach((rect: PIXI.Graphics) => {
     rect.destroy({ children: true, texture: true, baseTexture: true });
   });
+  setIsLoading(false);
   return FALLING_NOTES;
 }
 
@@ -115,7 +118,7 @@ export function draw(
   canvasHeight: number,
   ticksPerBeat: number
 ) {
-  const upperLimit = ticksPerBeat * 4 * 3; // assume 4 beats per bar, show 3 bars
+  const upperLimit = ticksPerBeat * 4 * 4; // assume 4 beats per bar, show 3 bars
   FALLING_NOTES.forEach((note: FallingNotes) => {
     const sprite = note.rectSprite;
     if (

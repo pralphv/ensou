@@ -23,7 +23,7 @@ export default function LoopButton({
     }
     forceRerender();
   }
-  useHotkeys("l", handleOnClick);
+  // useHotkeys("l", handleOnClick);
 
   return (
     <CustomButton onClick={handleOnClick} selected={loopApi.getIsLoop()} size="small">

@@ -9,14 +9,9 @@ import AccountBoxIcon from "@material-ui/icons/AccountBox";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import PublishIcon from "@material-ui/icons/Publish";
-import {
-  fade,
-  makeStyles,
-  Theme,
-  createStyles,
-} from "@material-ui/core/styles";
+import { makeStyles, Theme, createStyles } from "@material-ui/core/styles";
 
-import { useIsMobile, useUserId, useIsVerified } from "utils/customHooks";
+import { useUserId, useIsVerified } from "utils/customHooks";
 import { Pages } from "layouts/constants";
 import MidiUploadDialog from "features/midiUploadDialog/MidiUploadDialog";
 import { logout } from "firebaseApi/crud";
@@ -36,27 +31,26 @@ const useStyles = makeStyles((theme: Theme) =>
 export default function NavigationBar() {
   console.log("Navbar rerender");
   const classes = useStyles();
-  // const isMobile = useIsMobile();
   const history = useHistory();
   const [open, setOpen] = useState<boolean>(false);
-  // const isLoggedIn = useIsVerified();
+  const isVerified = useIsVerified();
   const uid = useUserId();
   const firebase: ExtendedAuthInstance = useFirebase();
 
   async function handleOnClick(path: string) {
     if (path === Pages.Login && uid) {
       await logout(firebase);
-      // window.location.reload();
     } else {
       history.push(path);
     }
   }
 
   function handleOpenDialog() {
-    if (uid) {
+    if (uid && isVerified) {
       setOpen(true);
+    } else if (uid && !isVerified) {
+      history.push(Pages.Verify);
     } else {
-      console.log("HJER");
       history.push(Pages.Login);
     }
   }
@@ -71,6 +65,7 @@ export default function NavigationBar() {
               className={classes.pointer}
             >
               <Typography variant="h6" noWrap>
+                <img src="/ensou.png" height={18} style={{ marginRight: 8 }} />
                 Ensou
               </Typography>
             </div>

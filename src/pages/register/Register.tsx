@@ -5,14 +5,17 @@ import { ExtendedAuthInstance, useFirebase } from "react-redux-firebase";
 
 import { makeStyles } from "@material-ui/core/styles";
 import { Grid, Button, TextField, Typography, Paper } from "@material-ui/core";
+import { useSnackbar } from "notistack";
 
 import LoadingSpinner from "features/loadingSpinner/LoadingSpinner";
 import BoldTitle from "features/boldTitle/BoldTitle";
-// import NotificationPopUp from "features/notificationPopUp/NotificationPopUp";
-import { registerUser, sendVerification, updateDisplayName } from "firebaseApi/crud";
+import {
+  registerUser,
+  sendVerification,
+  updateDisplayName,
+} from "firebaseApi/crud";
 import { Pages } from "layouts/constants";
 import { validateEmail } from "utils/helper";
-// import { PADDING_SPACE, MAX_WIDTH } from "../styles";
 
 const useStyles = makeStyles((theme) => ({
   form: {
@@ -24,7 +27,6 @@ const useStyles = makeStyles((theme) => ({
   },
   paper: {
     padding: theme.spacing(2),
-    // maxWidth: MAX_WIDTH,
     marginTop: "20%",
   },
 }));
@@ -41,7 +43,7 @@ export default function Register({ history }: HistoryProps) {
   const [password2, setPassword2] = useState<string>("");
   const [registering, setRegistering] = useState<boolean>(false);
   const [error, setError] = useState<string>(errorInitState);
-  const [notificationOpen, setNotificationOpen] = useState<boolean>(false);
+  const { enqueueSnackbar } = useSnackbar();
 
   const classes = useStyles();
   const firebase: ExtendedAuthInstance = useFirebase();
@@ -76,8 +78,10 @@ export default function Register({ history }: HistoryProps) {
     try {
       await registerUser(firebase, email, password);
       await updateDisplayName(firebase, username);
-      setNotificationOpen(true);
       await sendVerification(firebase);
+      enqueueSnackbar("Register successful. Please verify Email", {
+        variant: "success",
+      });
       history.push(Pages.Home);
     } catch (err) {
       console.log(err);
@@ -91,7 +95,7 @@ export default function Register({ history }: HistoryProps) {
       {registering && <LoadingSpinner />}
       <BoldTitle>Register</BoldTitle>
       <form onSubmit={handleOnSubmit} noValidate className={classes.form}>
-      <TextField
+        <TextField
           className={classes.fieldWidth}
           required
           label="Username"
@@ -141,11 +145,6 @@ export default function Register({ history }: HistoryProps) {
       <Typography color="error" variant="body2" align="center">
         {error}
       </Typography>
-      {/* <NotificationPopUp
-        active={notificationOpen}
-        setState={setNotificationOpen}
-        text="Please verify your email."
-      /> */}
     </Paper>
   );
 }

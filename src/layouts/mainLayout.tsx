@@ -17,17 +17,26 @@ interface RouteProps {
 const ROUTES: RouteProps[] = [
   { path: Pages.Login, Component: pages.Login, isPrivate: false },
   { path: Pages.Home, Component: pages.Home, isPrivate: false },
-  { path: `${Pages.Player}/:songId`, Component: pages.Player, isPrivate: false },
+  {
+    path: `${Pages.Player}/:songId`,
+    Component: pages.Player,
+    isPrivate: false,
+  },
   {
     path: Pages.Register,
     Component: pages.Register,
     isPrivate: false,
   },
-  // {
-  //   path: Pages.ForgotPassword,
-  //   Component: pages.ForgotPassword,
-  //   isPrivate: false,
-  // },
+  {
+    path: Pages.ForgotPassword,
+    Component: pages.ForgotPassword,
+    isPrivate: false,
+  },
+  {
+    path: Pages.Verify,
+    Component: pages.Verification,
+    isPrivate: false,
+  },
 ];
 
 function MainLayout(): JSX.Element {

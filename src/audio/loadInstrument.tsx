@@ -4,6 +4,7 @@ import { storageRef } from "firebaseApi/firebase";
 import { set, get } from "idb-keyval";
 import { PIANO_TUNING } from "./constants";
 import * as types from "types";
+import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
 
 let PLAYING_NOTES: any = {};
 let PLAYING_SYNTH: Set<number> = new Set();
@@ -47,7 +48,7 @@ async function fetchInstruments(
   sample: string,
   setDownloadProgress: (progress: number) => void
 ) {
-  const cacheKey: string = `${instrument}_${sample}`;
+  const cacheKey: string = `${instrument}_${sample}qweqweqwe`;
   const cache: any = await get(cacheKey);
   let sampleMap: any = {}; // {A1: AudioBuffer}
   if (cache) {
@@ -57,7 +58,8 @@ async function fetchInstruments(
   } else {
     console.log(`No cache. Fetching ${cacheKey}...`);
     const items = await storageRef
-      .child(`samples/${instrument}/124k/${sample}`)
+      .child(`samples/misc/gura`)
+      // .child(`samples/${instrument}/124k/${sample}`)
       // .child(`samples/piano-in-162/PedalOffMezzoForte1`)
       .listAll();
     const total: number = items.items.length;
@@ -160,7 +162,9 @@ function initSynthsEffects(
 ): Synth[] {
   const oscilators = [];
   for (let i = 0; i < n; i++) {
-    oscilators.push(new Synth().connect(effects.reverb));
+    const synth = new Synth().connect(effects.reverb);
+    synth.volume.value = -10;
+    oscilators.push(synth);
   }
   return oscilators;
 }
@@ -203,7 +207,13 @@ export function useInstrument(
         });
       }
       effectsSettings.current = { reverb };
-      metronome.current = new MembraneSynth().toDestination();
+      const metronomeSynth = new MembraneSynth().toDestination();
+      metronomeSynth.volume.value = -5;
+      metronome.current = metronomeSynth;
+      const cachedVolume = localStorageUtils.getVolume();
+      if (cachedVolume) {
+        changeVolume(cachedVolume);
+      }
       setInstrmentLoading(false);
     }
     getSamples_();
@@ -223,7 +233,12 @@ export function useInstrument(
       for (let i = 0; i <= CONCURRENT_SYNTHS; i++) {
         const isFreeSynth = !PLAYING_SYNTH.has(i);
         const isAlreadyPlaying = PLAYING_NOTES[note] !== undefined;
-        if (isFreeSynth && !isAlreadyPlaying) {
+        if (isAlreadyPlaying) {
+          // notes can be played twice without releasing
+          triggerRelease(note);
+        }
+        if (isFreeSynth) {
+          // console.log("REALLY PLAYING", note)
           PLAYING_SYNTH.add(i);
           PLAYING_NOTES[note] = i;
           synths.current[i].triggerAttack(note, undefined, velocity);
@@ -257,7 +272,7 @@ export function useInstrument(
     } else if (getIsUseSampler() && sampler.current && samplerEffects.current) {
       sampler.current?.triggerRelease(note, undefined);
       if (getIsSoundEffect()) {
-        samplerEffects.current?.triggerRelease(note, undefined);
+        // samplerEffects.current?.triggerRelease(note, undefined);
       }
     }
   }
@@ -281,16 +296,19 @@ export function useInstrument(
       }
     }
     if (metronome.current) {
-      metronome.current.volume.value = volume;
+      metronome.current.volume.value = volume - 5;
     }
+    localStorageUtils.setVolume(volume);
   }
 
   function getVolumeDb(): number | undefined {
     if (synths.current) {
       return synths.current[0].volume.value;
-    } else {
-      return undefined;
     }
+    if (sampler.current) {
+      return sampler.current.volume.value;
+    }
+    return undefined;
   }
 
   function clearPlayingNotes() {
@@ -306,12 +324,12 @@ export function useInstrument(
       PLAYING_NOTES = {};
     }
     if (getIsUseSampler() && sampler.current && samplerEffects.current) {
-      try {
-        Object.keys(PIANO_TUNING).forEach((note) => {
+      Object.keys(PIANO_TUNING).forEach((note) => {
+        try {
           sampler.current?.triggerRelease(note);
           samplerEffects.current?.triggerRelease(note);
-        });
-      } catch (error) {}
+        } catch (error) {}
+      });
     }
   }
 

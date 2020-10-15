@@ -8,6 +8,6 @@ interface HotKeysProps {
 }
 
 export default function HotKeys({ midiFunctions }: HotKeysProps) {
-  useHotkeys("space", midiFunctions.play);
+  // useHotkeys("space", midiFunctions.play);
   return <div></div>;
 }

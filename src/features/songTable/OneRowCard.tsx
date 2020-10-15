@@ -32,6 +32,7 @@ export default function OneRowCard({
   transcribedBy,
   date,
   id,
+  uploader,
 }: types.ISongTableData) {
   const classes = useStyles();
   const history = useHistory();
@@ -50,20 +51,23 @@ export default function OneRowCard({
       <Grid item>{instrument}</Grid>
       <Grid item xs={6} container direction="column">
         <Grid item xs>
-          <Typography variant="body2" gutterBottom>
+          <Typography variant="body2" gutterBottom> 
             {filename}
           </Typography>
         </Grid>
         <Grid item xs>
           <Typography variant="body2" color="textSecondary">
-            {artist}
+            {artist}{" "}
+            <Typography variant="caption">
+              Transcribed by {transcribedBy}
+            </Typography>
           </Typography>
         </Grid>
       </Grid>
       <Grid item xs container direction="column" alignItems="flex-end">
         <Grid item xs>
           <Typography variant="body2" gutterBottom className={classes.nowrap}>
-            {transcribedBy}
+            {uploader}
           </Typography>
         </Grid>
         <Grid item xs>

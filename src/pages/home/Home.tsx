@@ -6,7 +6,6 @@ import { Grid, makeStyles, Paper, Typography } from "@material-ui/core";
 
 import LoadingScreen from "features/loadingScreen/LoadingScreen";
 import LoadingSpinner from "features/loadingSpinner/LoadingSpinner";
-import { useIsMobile, useWindow } from "utils/customHooks";
 import { storageRef } from "firebaseApi/firebase";
 import SongTable from "features/songTable/SongTable";
 
@@ -57,7 +56,6 @@ function useAvailableUserUploadedMidis(): string[] {
 
 export default function Home(): JSX.Element {
   const classes = useStyles();
-  const isMobile: boolean = useIsMobile();
   const history = useHistory();
   const loading: boolean = false;
   const midiNames = useAvailableUserUploadedMidis();

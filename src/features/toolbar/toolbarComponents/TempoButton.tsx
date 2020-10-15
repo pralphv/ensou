@@ -4,7 +4,6 @@ import { Typography } from "@material-ui/core/";
 import Popover from "@material-ui/core/Popover";
 
 import TempoChange from "features/tempoChange/TempoChange";
-import { BUTTON_WIDTH, BUTTON_HEIGHT } from "../constants";
 import CustomButton from "./CustomButton";
 import * as types from "types";
 interface ITempoButtonProps {
@@ -47,11 +46,11 @@ export default function TempoButton({
         anchorEl={anchorEl}
         onClose={handleClose}
         anchorOrigin={{
-          vertical: "bottom",
+          vertical: "top",
           horizontal: "center",
         }}
         transformOrigin={{
-          vertical: "top",
+          vertical: "bottom",
           horizontal: "center",
         }}
       >

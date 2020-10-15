@@ -2,8 +2,6 @@ import React from "react";
 import clsx from "clsx";
 import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup";
 
-import MetronomeButton from "./toolbarComponents/MetronomeButton";
-import LoopButton from "./toolbarComponents/LoopButton";
 import PlayButton from "./toolbarComponents/PlayButton";
 import VolumeButton from "./toolbarComponents/VolumeButton";
 import FileReaderButton from "./toolbarComponents/FileReaderButton";
@@ -57,7 +55,6 @@ export default function ToolBar({
   isFullScreening,
   isUseSamplerApi,
 }: ToolBarProps) {
-  console.log("Toolbar Rerender");
   let opacity = getIsPlaying() === true ? 0 : 1;
   opacity = isHovering ? 1 : opacity;
 

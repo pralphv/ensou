@@ -1,9 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
+import { keys } from "idb-keyval";
+
 import { createStyles, Theme, makeStyles } from "@material-ui/core/styles";
+import Button from "@material-ui/core/Button";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
 import Switch from "@material-ui/core/Switch";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+
 import * as types from "types";
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -36,8 +45,7 @@ export default function SettingsMenu({
   metronomeApi,
   loopApi,
 }: ISettingsMenu): JSX.Element {
-  const classes = useStyles();
-
+  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   function handleOnChangeSoundEffect() {
     if (soundEffect.getIsSoundEffect()) {
       soundEffect.setIsNotSoundEffect();
@@ -47,7 +55,20 @@ export default function SettingsMenu({
     forceRerender();
   }
 
-  function handleOnChangeHq() {
+  async function handleOnChangeDialog() {
+    if (isUseSamplerApi.getIsUseSampler()) {
+      handleOnChangeIsUseSampler();
+    } else {
+      const idbCachedKeys = (await keys()) as string[];
+      if (!idbCachedKeys.includes("piano_PedalOffMezzoForte1")) {
+        setDialogOpen(true);
+      } else {
+        handleOnChangeIsUseSampler();
+      }
+    }
+  }
+
+  function handleOnChangeIsUseSampler() {
     if (isUseSamplerApi.getIsUseSampler()) {
       isUseSamplerApi.setIsNotUseSampler();
     } else {
@@ -75,7 +96,18 @@ export default function SettingsMenu({
   }
 
   return (
-    <List component="nav" className={classes.root}>
+    <List
+      component="nav"
+      style={{
+        // not use mui for speed sorry
+        position: "absolute",
+        backgroundColor: "#1e1e1e",
+        zIndex: 100,
+        marginTop: `-${55 * 4}px`,
+        right: "38px",
+        opacity: 0.9,
+      }}
+    >
       <ListItem button>
         <ListItemText primary="Sound Effect" />
         <Switch
@@ -88,7 +120,7 @@ export default function SettingsMenu({
         <Switch
           // color="secondary"
           checked={isUseSamplerApi.getIsUseSampler()}
-          onChange={handleOnChangeHq}
+          onChange={handleOnChangeDialog}
           disabled={getIsPlaying()}
         />
       </ListItem>
@@ -108,6 +140,42 @@ export default function SettingsMenu({
           onChange={handleOnChangeLoop}
         />
       </ListItem>
+      <ConfirmationDialog
+        open={dialogOpen}
+        setOpen={setDialogOpen}
+        onClick={() => {
+          handleOnChangeIsUseSampler();
+          setDialogOpen(false);
+        }}
+      />
     </List>
+  );
+}
+
+interface IConfirmationDialog {
+  open: boolean;
+  setOpen: (bool: boolean) => void;
+  onClick: () => void;
+}
+
+function ConfirmationDialog({ open, setOpen, onClick }: IConfirmationDialog) {
+  return (
+    <Dialog open={open} onClose={() => setOpen(false)}>
+      <DialogTitle>Download Samples?</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Total file size is 10MB. Using samples may affect performance. Are you
+          sure you want to use samples?
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setOpen(false)} color="primary">
+          Cancel
+        </Button>
+        <Button onClick={onClick} color="primary" autoFocus variant="contained">
+          Download
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }

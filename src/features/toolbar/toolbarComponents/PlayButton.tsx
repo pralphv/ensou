@@ -1,10 +1,10 @@
 import React from "react";
 
+import { start } from "tone";
 import PauseIcon from "@material-ui/icons/Pause";
 import PlayArrowIcon from "@material-ui/icons/PlayArrow";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import { BUTTON_WIDTH, BUTTON_HEIGHT } from "../constants";
 import CustomButton from "./CustomButton";
 import * as types from "types";
 
@@ -30,7 +30,7 @@ export default function PlayButton({
       play();
     }
   }
-  useHotkeys("space", toggle);
+  // useHotkeys("space", toggle);
 
   return (
     <div>
@@ -50,6 +50,7 @@ export default function PlayButton({
         <CustomButton
           onClick={() => {
             play();
+            start();
             forceRerender();
           }}
           size="small"

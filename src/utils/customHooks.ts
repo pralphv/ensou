@@ -4,35 +4,33 @@ import { useSelector, useDispatch } from "react-redux";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import { VariantType, useSnackbar } from "notistack";
 
-import { RootState } from "app/rootReducer";
-import * as types from "./types";
 import {
   setFileName,
   setisLoading,
   setisNotLoading,
 } from "features/midiPlayerStatus/midiPlayerStatusSlice";
 
-export function useWindow(): types.Window {
-  const [width, setWidth] = useState<number>(window.innerHeight);
-  const [height, setHeight] = useState<number>(window.screen.width);
+// export function useWindow(): types.Window {
+//   const [width, setWidth] = useState<number>(window.innerHeight);
+//   const [height, setHeight] = useState<number>(window.screen.width);
 
-  useEffect(() => {
-    // Bind the event listener
-    window.addEventListener("resize", handleSetTable);
-    return () => {
-      // Unbind the event listener on clean up
-      window.removeEventListener("resize", handleSetTable);
-    };
-  }, []);
+//   useEffect(() => {
+//     // Bind the event listener
+//     window.addEventListener("resize", handleSetTable);
+//     return () => {
+//       // Unbind the event listener on clean up
+//       window.removeEventListener("resize", handleSetTable);
+//     };
+//   }, []);
 
-  function handleSetTable() {
-    const windowWidth = window.screen.width;
-    const windowHeight = window.innerHeight;
-    setWidth(windowWidth);
-    setHeight(windowHeight);
-  }
-  return { width, height };
-}
+//   function handleSetTable() {
+//     const windowWidth = window.screen.width;
+//     const windowHeight = window.innerHeight;
+//     setWidth(windowWidth);
+//     setHeight(windowHeight);
+//   }
+//   return { width, height };
+// }
 
 export function useIsMobile(): boolean {
   const isMobile: boolean = useMediaQuery("(max-width:600px)");

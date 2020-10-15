@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 
 import { useHotkeys } from "react-hotkeys-hook";
-import { makeStyles } from "@material-ui/core";
 import VolumeDownIcon from "@material-ui/icons/VolumeDown";
 import VolumeUpIcon from "@material-ui/icons/VolumeUp";
 import VolumeOffIcon from "@material-ui/icons/VolumeOff";
@@ -16,25 +15,14 @@ interface PlayButtonProps {
   forceRerender: () => void;
 }
 
-const useStyles = makeStyles({
-  slider: {
-    // width: 100,
-    // paddingTop: 15,
-    // paddingBottom: 15,
-    // marginLeft: 20,
-    // marginRight: 20,
-  },
-});
-
 export default function VolumeButton({
   changeVolume,
   getVolumeDb,
   forceRerender,
 }: PlayButtonProps): JSX.Element {
-  const classes = useStyles();
   const [muteVolume, setMuteVolume] = useState<number>(0); // for preserving pre mute value
 
-  useHotkeys("m", () => changeVolume(-16));
+  // useHotkeys("m", () => changeVolume(-16));
   let IconToShow;
 
   const volume = getVolumeDb() || 0;
@@ -78,7 +66,6 @@ export default function VolumeButton({
           }}
           max={0}
           min={-15}
-          className={classes.slider}
         />
       </CustomButton>
     </div>

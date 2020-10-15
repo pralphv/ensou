@@ -17,9 +17,6 @@ import LoadingSpinner from "features/loadingSpinner/LoadingSpinner";
 import BoldTitle from "features/boldTitle/BoldTitle";
 import { Pages } from "layouts/constants";
 
-// import { PADDING_SPACE, MAX_WIDTH } from "../styles";
-// import { clearLocalStorage } from "localStorage/api";
-
 const useStyles = makeStyles((theme) => ({
   progress: {
     margin: theme.spacing(2),
@@ -36,7 +33,6 @@ const useStyles = makeStyles((theme) => ({
   },
   paper: {
     padding: theme.spacing(2),
-    // maxWidth: MAX_WIDTH,
     marginTop: "20%"
   },
 }));

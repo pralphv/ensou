@@ -20,7 +20,8 @@ import { FullScreen, useFullScreenHandle } from "react-full-screen";
 async function downloadMidi(
   loadArrayBuffer: (blob: XMLHttpRequest["response"]) => void,
   fileName: string,
-  onLoad: () => void
+  onLoad: () => void,
+  onError: () => void
 ) {
   const midiRef = storageRef.child("midi").child(fileName);
   const url = await midiRef.getDownloadURL();
@@ -31,6 +32,10 @@ async function downloadMidi(
     loadArrayBuffer(blob);
     onLoad();
     console.log("File Loaded");
+  };
+  xhr.onerror = () => {
+    // probably cors
+    onError();
   };
   xhr.open("GET", url);
   xhr.send();
@@ -49,13 +54,25 @@ export default function Player(): JSX.Element {
   const [forceRender, setForceRender] = useState<number>(0); // for re-render on volume change
   const urlParams: any = useParams();
   const firestore = useFirestore();
-  const handle = useFullScreenHandle();
+  const fullScreen = useFullScreenHandle();
   useEffect(() => {
     const songId: string = urlParams.songId;
     async function download() {
       setIsLoading(true);
-      await downloadMidi(midiFunctions.loadArrayBuffer, `${songId}.mid`, () =>
-        setIsLoading(false)
+      await downloadMidi(
+        midiFunctions.loadArrayBuffer,
+        `${songId}.mid`,
+        () => {
+          // on success
+          // setIsLoading(false) is in initFallingNotes
+          forceRerender();
+          console.log("Finished downloading");
+        },
+        () => {
+          // on error
+          setIsLoading(false);
+          alert("Unknown error: unable to download MIDI");
+        }
       );
     }
     async function fetchSongDetails() {
@@ -107,10 +124,10 @@ export default function Player(): JSX.Element {
         metronomeApi={midiFunctions.metronomeApi}
         loopApi={midiFunctions.loopApi}
         tempoApi={midiFunctions.tempoApi}
-        isFullScreen={handle.active}
-        openFullScreen={handle.enter}
-        closeFullScreen={handle.exit}
-        isFullScreening={handle.active}
+        isFullScreen={fullScreen.active}
+        openFullScreen={fullScreen.enter}
+        closeFullScreen={fullScreen.exit}
+        isFullScreening={fullScreen.active}
         isUseSamplerApi={midiFunctions.isUseSamplerApi}
       />
     ),
@@ -118,7 +135,8 @@ export default function Player(): JSX.Element {
       isHovering,
       forceRender,
       midiFunctions.getIsPlaying(),
-      midiFunctions.soundEffect.getIsSoundEffect(),
+      // midiFunctions.soundEffect.getIsSoundEffect(),
+      fullScreen.active,
     ]
   );
 
@@ -134,10 +152,12 @@ export default function Player(): JSX.Element {
         playRangeApi={midiFunctions.playRangeApi}
         getForceRerender={() => forceRerenderRef.current}
         forceRender={forceRender}
-        isFullScreen={handle.active}
+        isFullScreen={fullScreen.active}
+        pause={midiFunctions.pause}
+        setIsLoading={setIsLoading}
       />
     ),
-    [isLoading, currentTick, forceRender, handle.active]
+    [isLoading, currentTick, forceRender, fullScreen.active]
   );
   const totalTicks = midiFunctions.getTotalTicks();
   const songProgress = totalTicks ? ((currentTick || 0) / totalTicks) * 100 : 0;
@@ -150,23 +170,23 @@ export default function Player(): JSX.Element {
           setIsHovering={setIsHovering}
           forceRerender={forceRerender}
           totalTicks={totalTicks || 0}
-          isFullScreen={handle.active}
+          isFullScreen={fullScreen.active}
         />
       ) : (
         <div style={{ height: 32.5 }}></div>
       ),
-    [currentTick, isHovering, forceRender, handle.active]
+    [currentTick, isHovering, forceRender, fullScreen.active]
   );
 
   const fullScreenMemo = useMemo(
     () => (
-      <FullScreen handle={handle}>
+      <FullScreen handle={fullScreen}>
         {canvasMemo}
         {progressBarMemo}
         {toolbarMemo}
       </FullScreen>
     ),
-    [currentTick, isHovering, forceRender, handle.active, isHovering]
+    [currentTick, isHovering, forceRender, fullScreen.active, isHovering]
   );
 
   const songNameMemo = useMemo(
