@@ -1,7 +1,10 @@
+import * as types from "types";
+
 enum LocalStorageKeys {
   isSoundEffect = "isSoundEffect",
   volume = "volume",
-  isUseSample = "isUseSample",
+  samplerSource = "samplerSource",
+  sampleName = "sampleName",
 }
 
 function getLocalStorage(key: string): any | null {
@@ -29,10 +32,18 @@ export function setVolume(volume: number) {
   setLocalStorage(LocalStorageKeys.volume, volume);
 }
 
-export function getIsUseSample(): boolean | null {
-  return getLocalStorage(LocalStorageKeys.isUseSample);
+export function getSamplerSource(): types.SamplerSource | null {
+  return getLocalStorage(LocalStorageKeys.samplerSource);
 }
 
-export function setIsUseSample(bool: boolean) {
-  setLocalStorage(LocalStorageKeys.isUseSample, bool);
+export function setSamplerSource(source: types.SamplerSource) {
+  setLocalStorage(LocalStorageKeys.samplerSource, source);
+}
+
+export function getSampleName(): string | null {
+  return getLocalStorage(LocalStorageKeys.sampleName);
+}
+
+export function setSampleName(name: string) {
+  setLocalStorage(LocalStorageKeys.sampleName, name);
 }

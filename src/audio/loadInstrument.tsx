@@ -1,10 +1,17 @@
+/**
+ * I wish this whole thing was a global variable
+ */
 import { useEffect, useRef, useState } from "react";
-import { Sampler, Reverb, Synth, MembraneSynth } from "tone";
+import { Sampler, Reverb, Synth, MembraneSynth, SamplerOptions } from "tone";
 import { storageRef } from "firebaseApi/firebase";
-import { set, get } from "idb-keyval";
 import { PIANO_TUNING } from "./constants";
 import * as types from "types";
 import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
+import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
+import {
+  getAudioContext,
+  convertArrayBufferToAudioContext,
+} from "utils/helper";
 
 let PLAYING_NOTES: any = {};
 let PLAYING_SYNTH: Set<number> = new Set();
@@ -20,17 +27,6 @@ interface ISampleCache {
 }
 
 let SAMPLE_CACH: ISampleCache = {};
-
-function getAudioContext(): AudioContext {
-  const isAudioContextSupported =
-    "AudioContext" in window || "webkitAudioContext" in window;
-  if (!isAudioContextSupported) {
-    alert("AudioContext not supported in your environment");
-    throw new Error("AudioContext not supported in your environment");
-  }
-  const audioContext = new AudioContext();
-  return audioContext;
-}
 
 interface IInstrumentApi {
   triggerAttack: (note: string, velocity: number) => void;
@@ -48,18 +44,19 @@ async function fetchInstruments(
   sample: string,
   setDownloadProgress: (progress: number) => void
 ) {
-  const cacheKey: string = `${instrument}_${sample}qweqweqwe`;
-  const cache: any = await get(cacheKey);
-  let sampleMap: any = {}; // {A1: AudioBuffer}
+  const cacheKey: string = `${instrument}_${sample}`;
+  const cache: types.ArrayBufferMap = await indexedDbUtils.getServerSampler(
+    cacheKey
+  );
+  let arrayBufferMap: types.ArrayBufferMap = {}; // {A1: AudioBuffer}
   if (cache) {
     console.log(`Getting ${cacheKey} from cache`);
-    sampleMap = cache;
+    arrayBufferMap = cache;
     setDownloadProgress(1);
   } else {
     console.log(`No cache. Fetching ${cacheKey}...`);
     const items = await storageRef
-      .child(`samples/misc/gura`)
-      // .child(`samples/${instrument}/124k/${sample}`)
+      .child(`samples/${instrument}/124k/${sample}`)
       // .child(`samples/piano-in-162/PedalOffMezzoForte1`)
       .listAll();
     const total: number = items.items.length;
@@ -70,57 +67,32 @@ async function fetchInstruments(
         const url: string = await item.getDownloadURL();
         const resp = await fetch(url);
         const file: ArrayBuffer = await resp.arrayBuffer();
-        sampleMap[note] = file;
+        arrayBufferMap[note] = file;
         progress++;
         setDownloadProgress(progress / total);
       })
     );
     console.log(`Finished downloading ${cacheKey}. Saving...`);
-    await set(cacheKey, sampleMap);
+    await indexedDbUtils.setServerSampler(cacheKey, arrayBufferMap);
     console.log(`Saved ${cacheKey}`);
   }
   console.log("Converting to AudioBuffer...");
-  const keys = Object.keys(sampleMap);
-  for (let i = 0; i <= keys.length - 1; i++) {
-    const note = keys[i];
-    const context = getAudioContext();
-    const audio = await context.decodeAudioData(sampleMap[note]);
-    sampleMap[note] = audio;
-  }
+  const sampleMap = convertArrayBufferToAudioContext(arrayBufferMap);
   console.log(`Converted ${cacheKey} to AudioBuffer!`);
   return sampleMap;
 }
 
-async function fetchMetronome(): Promise<Sampler> {
-  const cache: any = await get("metronome");
-  let metronome: ArrayBuffer;
-  if (cache) {
-    console.log("Getting metronome from cache");
-    metronome = cache;
-  } else {
-    console.log("No cache. Fetching metronome...");
-    const item = await storageRef.child("samples/metronome/metronome.mp3");
-    const url: string = await item.getDownloadURL();
-    const resp = await fetch(url);
-    metronome = await resp.arrayBuffer();
-
-    console.log("Finished downloading metronome. Saving...");
-    await set("metronome", metronome);
-    console.log("Saved");
-  }
-  console.log("Converting metronome to AudioBuffer...");
-  const context = getAudioContext();
-  // const audio = await context.decodeAudioData(metronome);
-  const audio = await context.decodeAudioData(metronome);
-  console.log("Converted metronome to AudioBuffer!");
-  const metronomeSampler = new Sampler(
-    { A1: audio },
-    {
-      attack: 0.01,
-    }
-  ).toDestination();
-
-  return metronomeSampler;
+function initSampler(
+  sampleMap: SamplerOptions["urls"],
+  effects: any
+): ICachedSounds {
+  // fix this
+  const main = new Sampler(sampleMap, {
+    attack: 0.01,
+  }).toDestination();
+  const effect = new Sampler(sampleMap).connect(effects.reverb);
+  const soundObj = { main, effect };
+  return soundObj;
 }
 
 async function getSamples(
@@ -134,16 +106,13 @@ async function getSamples(
     console.log(`Getting ${cacheKey} from this session`);
     return SAMPLE_CACH[cacheKey];
   }
+  console.log(`Downloading ${cacheKey}`);
   const sampleMap = await fetchInstruments(
     instrument,
     sample,
     setDownloadProgress
   );
-  const main = new Sampler(sampleMap, {
-    attack: 0.01,
-  }).toDestination();
-  const effect = new Sampler(sampleMap).connect(effects.reverb);
-  const soundObj = { main, effect };
+  const soundObj = initSampler(sampleMap, effects);
   SAMPLE_CACH[cacheKey] = soundObj;
   return soundObj;
 }
@@ -173,7 +142,8 @@ export function useInstrument(
   getIsSoundEffect: types.IMidiFunctions["soundEffect"]["getIsSoundEffect"],
   getInstrument: types.IMidiFunctions["instrumentApi"]["getInstrument"],
   getSample: types.IMidiFunctions["sampleApi"]["getSample"],
-  getIsUseSampler: types.IMidiFunctions["isUseSamplerApi"]["getIsUseSampler"]
+  getSamplerSource: types.IMidiFunctions["samplerSourceApi"]["getSamplerSource"],
+  getLocalSampler: types.IMidiFunctions["samplerSourceApi"]["getLocalSampler"]
 ): IInstrumentApi {
   const [instrumentLoading, setInstrmentLoading] = useState<boolean>(false);
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
@@ -191,13 +161,22 @@ export function useInstrument(
       setInstrmentLoading(true);
       setDownloadProgress(0); // reset
       const reverb = new Reverb({ wet: 1, decay: 4 }).toDestination();
-      if (getIsUseSampler()) {
+      const source = getSamplerSource();
+      if (source === types.SamplerSourceEnum.server) {
         const soundObj = await getSamples(
           getInstrument(),
           getSample(),
           setDownloadProgress,
           { reverb }
         );
+        sampler.current = soundObj.main;
+        samplerEffects.current = soundObj.effect;
+      } else if (
+        source === types.SamplerSourceEnum.local ||
+        source === types.SamplerSourceEnum.cachedLocal
+      ) {
+        const sampleMap = getLocalSampler() as SamplerOptions["urls"];
+        const soundObj = initSampler(sampleMap, { reverb });
         sampler.current = soundObj.main;
         samplerEffects.current = soundObj.effect;
       } else {
@@ -216,7 +195,9 @@ export function useInstrument(
       }
       setInstrmentLoading(false);
     }
+
     getSamples_();
+
     return function cleanup() {
       clearPlayingNotes();
       sampler.current = undefined;
@@ -226,10 +207,11 @@ export function useInstrument(
       metronome.current = undefined;
       console.log("Cleaned Intrument");
     };
-  }, [getIsUseSampler()]);
+  }, [getSamplerSource(), getSample()]);
 
   function triggerAttack(note: string, velocity: number) {
-    if (!getIsUseSampler() && synths.current && synthsEffects.current) {
+    const source = getSamplerSource();
+    if (source === "synth" && synths.current && synthsEffects.current) {
       for (let i = 0; i <= CONCURRENT_SYNTHS; i++) {
         const isFreeSynth = !PLAYING_SYNTH.has(i);
         const isAlreadyPlaying = PLAYING_NOTES[note] !== undefined;
@@ -248,7 +230,7 @@ export function useInstrument(
           break;
         }
       }
-    } else if (getIsUseSampler() && sampler.current && samplerEffects.current) {
+    } else if (sampler.current && samplerEffects.current) {
       sampler.current?.triggerAttack(note, undefined, velocity);
       if (getIsSoundEffect()) {
         samplerEffects.current?.triggerAttack(note, undefined, velocity);
@@ -258,8 +240,9 @@ export function useInstrument(
 
   function triggerRelease(note: string) {
     const i = PLAYING_NOTES[note];
+    const source = getSamplerSource();
     if (
-      !getIsUseSampler() &&
+      source === "synth" &&
       synths.current &&
       synthsEffects.current &&
       i !== undefined
@@ -269,7 +252,7 @@ export function useInstrument(
       synthsEffects.current[i].triggerRelease();
       PLAYING_SYNTH.delete(i);
       delete PLAYING_NOTES[note];
-    } else if (getIsUseSampler() && sampler.current && samplerEffects.current) {
+    } else if (sampler.current && samplerEffects.current) {
       sampler.current?.triggerRelease(note, undefined);
       if (getIsSoundEffect()) {
         // samplerEffects.current?.triggerRelease(note, undefined);
@@ -312,7 +295,11 @@ export function useInstrument(
   }
 
   function clearPlayingNotes() {
-    if (!getIsUseSampler() && synths.current && synthsEffects.current) {
+    if (
+      getSamplerSource() === "synth" &&
+      synths.current &&
+      synthsEffects.current
+    ) {
       for (let i = 0; i < CONCURRENT_SYNTHS; i++) {
         // python style baby
         try {
@@ -323,7 +310,7 @@ export function useInstrument(
       PLAYING_SYNTH = new Set();
       PLAYING_NOTES = {};
     }
-    if (getIsUseSampler() && sampler.current && samplerEffects.current) {
+    if (sampler.current && samplerEffects.current) {
       Object.keys(PIANO_TUNING).forEach((note) => {
         try {
           sampler.current?.triggerRelease(note);

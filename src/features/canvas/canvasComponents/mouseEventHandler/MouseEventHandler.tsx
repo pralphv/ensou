@@ -12,7 +12,7 @@ export function useMouseEvents(
   getCurrentTick: types.IMidiFunctions["getCurrentTick"],
   getIsPlaying: types.IMidiFunctions["getIsPlaying"],
   setPlayRange: types.IPlayRangeApi["setPlayRange"],
-  pause: types.IMidiFunctions["pause"],
+  pause: types.IMidiFunctions["pause"]
 ) {
   const lastClickedTick = useRef<number>(0);
   const isShift = useRef<boolean>(false);
@@ -50,12 +50,10 @@ export function useMouseEvents(
         let endTick = newIsLarger ? tick : lastClickedTick.current;
         // prevent small ranges due to slow clicks
         endTick = endTick - startTick > 10 ? endTick : startTick;
-        setPlayRange({startTick, endTick})
+        setPlayRange({ startTick, endTick });
       }
     });
-    interaction.on("pointertap", () => {
-      console.log("JER!!!!!!!!")
-    })
+    interaction.on("pointertap", () => {});
     interaction.on("pointerdown", (e: PIXI.InteractionEvent) => {
       if (getIsPlaying() === true) {
         pause();

@@ -11,20 +11,22 @@ import * as types from "types";
 interface ISettingsButton {
   soundEffect: types.IMidiFunctions["soundEffect"];
   forceRerender: types.forceRerender;
-  isUseSamplerApi: types.IMidiFunctions["isUseSamplerApi"];
+  samplerSourceApi: types.IMidiFunctions["samplerSourceApi"];
   getIsPlaying: types.IMidiFunctions["getIsPlaying"];
   metronomeApi: types.IMidiFunctions["metronomeApi"];
   loopApi: types.IMidiFunctions["loopApi"];
+  sampleApi: types.IMidiFunctions["sampleApi"];
 
 }
 
 export default function SettingsButton({
   soundEffect,
   forceRerender,
-  isUseSamplerApi,
+  samplerSourceApi,
   getIsPlaying,
   metronomeApi,
-  loopApi
+  loopApi,
+  sampleApi
 }: ISettingsButton): JSX.Element {
   const [open, setOpen] = useState<boolean>(false);
   function handleOnClick() {
@@ -38,19 +40,17 @@ export default function SettingsButton({
       }}
     >
       <div>
-        {open ? (
           <SettingsMenu
             soundEffect={soundEffect}
             forceRerender={forceRerender}
-            isUseSamplerApi={isUseSamplerApi}
+            samplerSourceApi={samplerSourceApi}
             getIsPlaying={getIsPlaying}
             metronomeApi={metronomeApi}
             loopApi={loopApi}
+            open={open}
+            sampleApi={sampleApi}
           />
-        ) : null}
-        <CustomButton onClick={handleOnClick}
-        size="small"
-        >
+        <CustomButton onClick={handleOnClick} size="small">
           <SettingsIcon />
         </CustomButton>
       </div>

@@ -128,7 +128,8 @@ export default function Player(): JSX.Element {
         openFullScreen={fullScreen.enter}
         closeFullScreen={fullScreen.exit}
         isFullScreening={fullScreen.active}
-        isUseSamplerApi={midiFunctions.isUseSamplerApi}
+        samplerSourceApi={midiFunctions.samplerSourceApi}
+        sampleApi={midiFunctions.sampleApi}
       />
     ),
     [

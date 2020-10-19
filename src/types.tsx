@@ -1,5 +1,6 @@
+import { SamplerOptions } from "tone";
+
 import * as types from "types";
-// export type getIsPlaying = () => boolean | undefined;
 export interface IMidiFunctions {
   play: () => void;
   pause: () => void;
@@ -23,7 +24,7 @@ export interface IMidiFunctions {
   tempoApi: TempoApi;
   instrumentApi: IInstrumentApi;
   sampleApi: ISampleApi;
-  isUseSamplerApi: IIsUseSamplerApi;
+  samplerSourceApi: ISamplerSource;
   downloadProgress: number;
 }
 
@@ -54,10 +55,12 @@ interface ISampleApi {
   getSample: () => string;
   setSample: (sample: string) => void;
 }
-interface IIsUseSamplerApi {
-  getIsUseSampler: () => boolean;
-  setIsUseSampler: () => void;
-  setIsNotUseSampler: () => void;
+interface ISamplerSource {
+  getSamplerSource: () => types.SamplerSource;
+  setSamplerSource: (source: types.SamplerSource) => void;
+  checkIfSampler: () => boolean;
+  getLocalSampler: () => SamplerOptions["urls"] | undefined;
+  setLocalSampler: (sampler: SamplerOptions["urls"]) => void;
 }
 
 export interface IPlayRangeApi {
@@ -88,3 +91,20 @@ export interface PlayRange {
 }
 
 export type Instrument = "piano" | "kalimba";
+
+export enum SamplerSourceEnum {
+  synth = "synth",
+  local = "local",
+  server = "server",
+  cachedLocal = "cachedLocal",
+}
+
+export type SamplerSource =
+  | SamplerSourceEnum.synth
+  | SamplerSourceEnum.local
+  | SamplerSourceEnum.server
+  | SamplerSourceEnum.cachedLocal;
+
+export interface ArrayBufferMap {
+  [key: string]: ArrayBuffer;
+}

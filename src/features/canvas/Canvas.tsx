@@ -39,16 +39,16 @@ const HEIGHT = window.innerHeight;
 
 let TIMER: NodeJS.Timeout;
 
-function hideToolBarOnMouseInactive(
-  setIsHovering: (hovering: boolean) => void
-) {
-  return throttle(() => {
-    clearTimeout(TIMER);
-    setIsHovering(true);
-    const timer = setTimeout(() => setIsHovering(false), 3000);
-    TIMER = timer;
-  }, 1000);
-}
+// function hideToolBarOnMouseInactive(
+//   setIsHovering: (hovering: boolean) => void
+// ) {
+//   return throttle(() => {
+//     clearTimeout(TIMER);
+//     setIsHovering(true);
+//     const timer = setTimeout(() => setIsHovering(false), 3000);
+//     TIMER = timer;
+//   }, 1000);
+// }
 
 export default function Canvas({
   getCurrentTick,
@@ -193,10 +193,10 @@ export default function Canvas({
     }
   );
 
-  const throttleMemo = useMemo(
-    () => hideToolBarOnMouseInactive(setIsHovering),
-    []
-  );
+  // const throttleMemo = useMemo(
+  //   () => hideToolBarOnMouseInactive(setIsHovering),
+  //   []
+  // );
 
   return (
     <div
@@ -206,7 +206,7 @@ export default function Canvas({
       style={{ background: "black" }}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
-      onMouseMove={throttleMemo}
+      // onMouseMove={throttleMemo}
     ></div>
   );
 }

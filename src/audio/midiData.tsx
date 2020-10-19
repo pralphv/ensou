@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 
 import MidiPlayer from "midi-player-js";
+import { SamplerOptions } from "tone";
 
 import { useInstrument } from "./loadInstrument";
 import * as processing from "./processing";
 
 import * as types from "types";
 import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
+import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
+import { convertArrayBufferToAudioContext } from "utils/helper";
 
 const BEAT_BUFFER = 0.02;
 let BLOCK_METRONOME: boolean; // serve as blocker when metronome played once already for 1 beat
@@ -35,10 +38,16 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
   const tempoPercentRef = useRef<number>(1); // tempo % and tempo is different
   // midi can change tempo, so need a % to keep the user's change
   const instrumentRef = useRef<types.Instrument>("piano");
-  const isUseSamplerRef = useRef<boolean>(
-    localStorageUtils.getIsUseSample() || false
+  const localSamplerRef = useRef<SamplerOptions["urls"]>();
+  const cachedSampler =
+    localStorageUtils.getSamplerSource() || types.SamplerSourceEnum.synth;
+  const samplerSourceRef = useRef<types.SamplerSource>(
+    cachedSampler === types.SamplerSourceEnum.cachedLocal
+      ? types.SamplerSourceEnum.local
+      : cachedSampler // force rerender in useInstrument and getLocalSampler
   );
-  const sampleRef = useRef<string>("PedalOffMezzoForte1");
+  // should be safe to say string because when useSample is chose it would save to local storage
+  const sampleRef = useRef<string>(localStorageUtils.getSampleName() as string);
 
   function getInstrument(): types.Instrument {
     return instrumentRef.current;
@@ -56,18 +65,29 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
     sampleRef.current = sample;
   }
 
-  function getIsUseSampler(): boolean {
-    return isUseSamplerRef.current;
+  function getSamplerSource(): types.SamplerSource {
+    return samplerSourceRef.current;
   }
 
-  function setIsUseSampler() {
-    isUseSamplerRef.current = true;
-    localStorageUtils.setIsUseSample(true);
+  function setSamplerSource(source: types.SamplerSource) {
+    samplerSourceRef.current = source;
+    localStorageUtils.setSamplerSource(source);
   }
 
-  function setIsNotUseSampler() {
-    isUseSamplerRef.current = false;
-    localStorageUtils.setIsUseSample(false);
+  function checkIfSampler(): boolean {
+    return [
+      types.SamplerSourceEnum.cachedLocal,
+      types.SamplerSourceEnum.local,
+      types.SamplerSourceEnum.server,
+    ].includes(samplerSourceRef.current);
+  }
+
+  function getLocalSampler(): SamplerOptions["urls"] | undefined {
+    return localSamplerRef.current;
+  }
+
+  async function setLocalSampler(sampler: SamplerOptions["urls"]) {
+    localSamplerRef.current = sampler;
   }
 
   function getTempo(): number {
@@ -221,8 +241,27 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
     getIsSoundEffect,
     getInstrument,
     getSample,
-    getIsUseSampler
+    getSamplerSource,
+    getLocalSampler
   );
+
+  useEffect(() => {
+    async function getLocalSampler() {
+      const localSampler: types.ArrayBufferMap = await indexedDbUtils.getLocalSamplerArrayBuffer();
+      const userLastSampler = localStorageUtils.getSamplerSource();
+      const wasUsingLocal =
+        userLastSampler === types.SamplerSourceEnum.local ||
+        userLastSampler === types.SamplerSourceEnum.cachedLocal;
+      if (wasUsingLocal && localSampler) {
+        localSamplerRef.current = await convertArrayBufferToAudioContext(
+          localSampler
+        );
+        setSamplerSource(types.SamplerSourceEnum.cachedLocal);
+      }
+    }
+    getLocalSampler();
+  }, []);
+
   useEffect(() => {
     midiPlayerRef.current = new MidiPlayer.Player() as MidiPlayer.Player &
       MidiPlayer.Event &
@@ -290,13 +329,13 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
         const customizedTempo =
           midiPlayerRef.current.tempo * tempoPercentRef.current;
         setTempo(customizedTempo);
-      } else if (midiEvent.velocity !== 0 &&midiEvent.name === "Note on") {
+      } else if (midiEvent.velocity !== 0 && midiEvent.name === "Note on") {
         // some stupid midi can have note on but 0 velocity to represent note off
         instrumentApi.triggerAttack(
           midiEvent.noteName,
           midiEvent.velocity / 100
         );
-      } else if (midiEvent.velocity === 0  || midiEvent.name === "Note off") {
+      } else if (midiEvent.velocity === 0 || midiEvent.name === "Note off") {
         instrumentApi.triggerRelease(midiEvent.noteName);
       }
     });
@@ -356,10 +395,12 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
       getSample,
       setSample,
     },
-    isUseSamplerApi: {
-      getIsUseSampler,
-      setIsUseSampler,
-      setIsNotUseSampler,
+    samplerSourceApi: {
+      getSamplerSource,
+      setSamplerSource,
+      checkIfSampler,
+      getLocalSampler,
+      setLocalSampler,
     },
   };
 
