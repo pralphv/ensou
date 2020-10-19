@@ -200,6 +200,19 @@ export function useInstrument(
 
     return function cleanup() {
       clearPlayingNotes();
+      Object.values(samplerEffects).forEach((effector) => {
+        sampler.current?.disconnect(effector);
+        samplerEffects.current?.disconnect(effector);
+        synths.current?.forEach((synth) => {
+          synth.disconnect(effector);
+        });
+      });
+      sampler.current?.dispose();
+      samplerEffects.current?.dispose();
+      metronome.current?.dispose();
+      synths.current?.forEach((synth) => {
+        synth.dispose();
+      });
       sampler.current = undefined;
       samplerEffects.current = undefined;
       synths.current = undefined;
