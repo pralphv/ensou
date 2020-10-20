@@ -130,6 +130,7 @@ export default function Player(): JSX.Element {
         isFullScreening={fullScreen.active}
         samplerSourceApi={midiFunctions.samplerSourceApi}
         sampleApi={midiFunctions.sampleApi}
+        audioSettingsApi={midiFunctions.audioSettingsApi}
       />
     ),
     [
@@ -138,6 +139,7 @@ export default function Player(): JSX.Element {
       midiFunctions.getIsPlaying(),
       // midiFunctions.soundEffect.getIsSoundEffect(),
       fullScreen.active,
+      midiFunctions.audioSettingsApi.getOscillator(),
     ]
   );
 

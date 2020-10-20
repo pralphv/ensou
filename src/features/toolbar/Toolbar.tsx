@@ -33,6 +33,7 @@ interface ToolBarProps {
   isFullScreening: boolean;
   samplerSourceApi: types.IMidiFunctions["samplerSourceApi"];
   sampleApi: types.IMidiFunctions["sampleApi"];
+  audioSettingsApi: types.IMidiFunctions["audioSettingsApi"];
 }
 
 export default function ToolBar({
@@ -55,7 +56,8 @@ export default function ToolBar({
   closeFullScreen,
   isFullScreening,
   samplerSourceApi,
-  sampleApi
+  sampleApi,
+  audioSettingsApi,
 }: ToolBarProps) {
   let opacity = getIsPlaying() === true ? 0 : 1;
   opacity = isHovering ? 1 : opacity;
@@ -107,6 +109,7 @@ export default function ToolBar({
           metronomeApi={metronomeApi}
           loopApi={loopApi}
           sampleApi={sampleApi}
+          audioSettingsApi={audioSettingsApi}
         />
         <FullScreenButton
           isFullScreening={isFullScreening}

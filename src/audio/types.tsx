@@ -1,3 +1,5 @@
+import { Sampler } from "tone";
+
 export interface MidiData {
   groupedNotes: GroupedNotes[];
   dataToDraw: DataToDraw[];
@@ -38,4 +40,13 @@ export interface MidiEvent {
   note: string;
   noteName: string;
   noteNumber: number;
+}
+
+export interface ICachedSounds {
+  main: Sampler;
+  effect: Sampler;
+}
+
+export interface ISampleCache {
+  [key: string]: ICachedSounds;
 }

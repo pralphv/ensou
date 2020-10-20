@@ -3,30 +3,16 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { Sampler, Reverb, Synth, MembraneSynth, SamplerOptions } from "tone";
-import { storageRef } from "firebaseApi/firebase";
 import { PIANO_TUNING } from "./constants";
 import * as types from "types";
 import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
-import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
-import {
-  getAudioContext,
-  convertArrayBufferToAudioContext,
-} from "utils/helper";
+
+import { initSynths } from "./synths/synths";
+import { initSampler, getSamples } from "./samplers/samplers";
 
 let PLAYING_NOTES: any = {};
 let PLAYING_SYNTH: Set<number> = new Set();
-const CONCURRENT_SYNTHS = 10; // 10 fingers
-
-interface ICachedSounds {
-  main: Sampler;
-  effect: Sampler;
-}
-
-interface ISampleCache {
-  [key: string]: ICachedSounds;
-}
-
-let SAMPLE_CACH: ISampleCache = {};
+const CONCURRENT_SYNTHS = 15; // 10 fingers + buffer
 
 interface IInstrumentApi {
   triggerAttack: (note: string, velocity: number) => void;
@@ -37,92 +23,7 @@ interface IInstrumentApi {
   instrumentLoading: boolean;
   downloadProgress: number;
   clearPlayingNotes: () => void;
-}
-
-async function fetchInstruments(
-  instrument: types.Instrument,
-  sample: string,
-  setDownloadProgress: (progress: number) => void
-) {
-  const cacheKey: string = `${instrument}_${sample}`;
-  const cache: types.ArrayBufferMap = await indexedDbUtils.getServerSampler(
-    cacheKey
-  );
-  let arrayBufferMap: types.ArrayBufferMap = {}; // {A1: AudioBuffer}
-  if (cache) {
-    console.log(`Getting ${cacheKey} from cache`);
-    arrayBufferMap = cache;
-    setDownloadProgress(1);
-  } else {
-    console.log(`No cache. Fetching ${cacheKey}...`);
-    const items = await storageRef
-      .child(`samples/${instrument}/124k/${sample}`)
-      // .child(`samples/piano-in-162/PedalOffMezzoForte1`)
-      .listAll();
-    const total: number = items.items.length;
-    let progress: number = 0;
-    await Promise.all(
-      items.items.map(async (item) => {
-        const note = item.name.slice(0, item.name.length - 4);
-        const url: string = await item.getDownloadURL();
-        const resp = await fetch(url);
-        const file: ArrayBuffer = await resp.arrayBuffer();
-        arrayBufferMap[note] = file;
-        progress++;
-        setDownloadProgress(progress / total);
-      })
-    );
-    console.log(`Finished downloading ${cacheKey}. Saving...`);
-    await indexedDbUtils.setServerSampler(cacheKey, arrayBufferMap);
-    console.log(`Saved ${cacheKey}`);
-  }
-  console.log("Converting to AudioBuffer...");
-  const sampleMap = convertArrayBufferToAudioContext(arrayBufferMap);
-  console.log(`Converted ${cacheKey} to AudioBuffer!`);
-  return sampleMap;
-}
-
-function initSampler(
-  sampleMap: SamplerOptions["urls"],
-  effects: any
-): ICachedSounds {
-  // fix this
-  const main = new Sampler(sampleMap, {
-    attack: 0.01,
-  }).toDestination();
-  const effect = new Sampler(sampleMap).connect(effects.reverb);
-  const soundObj = { main, effect };
-  return soundObj;
-}
-
-async function getSamples(
-  instrument: types.Instrument,
-  sample: string,
-  setDownloadProgress: (progress: number) => void,
-  effects: any // fix this to obj of effects
-): Promise<ICachedSounds> {
-  const cacheKey: string = `${instrument}_${sample}`;
-  if (SAMPLE_CACH[cacheKey]) {
-    console.log(`Getting ${cacheKey} from this session`);
-    return SAMPLE_CACH[cacheKey];
-  }
-  console.log(`Downloading ${cacheKey}`);
-  const sampleMap = await fetchInstruments(
-    instrument,
-    sample,
-    setDownloadProgress
-  );
-  const soundObj = initSampler(sampleMap, effects);
-  SAMPLE_CACH[cacheKey] = soundObj;
-  return soundObj;
-}
-
-function initSynths(n: number): Synth[] {
-  const oscilators = [];
-  for (let i = 0; i < n; i++) {
-    oscilators.push(new Synth().toDestination());
-  }
-  return oscilators;
+  audioSettingsApi: types.IAudioSettingsApi;
 }
 
 function initSynthsEffects(
@@ -148,6 +49,9 @@ export function useInstrument(
   const [instrumentLoading, setInstrmentLoading] = useState<boolean>(false);
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
   const metronome = useRef<MembraneSynth>();
+  const oscillatorRef = useRef<types.AvailableSynthsEnum>(
+    types.AvailableSynthsEnum.Synth
+  );
   const synths = useRef<Synth[]>();
   const sampler = useRef<Sampler>();
   const synthsEffects = useRef<Synth[]>();
@@ -180,7 +84,7 @@ export function useInstrument(
         sampler.current = soundObj.main;
         samplerEffects.current = soundObj.effect;
       } else {
-        synths.current = initSynths(CONCURRENT_SYNTHS);
+        synths.current = initSynths(CONCURRENT_SYNTHS, oscillatorRef.current);
         synthsEffects.current = initSynthsEffects(CONCURRENT_SYNTHS, {
           reverb,
         });
@@ -220,11 +124,15 @@ export function useInstrument(
       metronome.current = undefined;
       console.log("Cleaned Intrument");
     };
-  }, [getSamplerSource(), getSample()]);
+  }, [getSamplerSource(), getSample(), getOscillator()]);
 
   function triggerAttack(note: string, velocity: number) {
     const source = getSamplerSource();
-    if (source === "synth" && synths.current && synthsEffects.current) {
+    if (
+      source === types.SamplerSourceEnum.synth &&
+      synths.current &&
+      synthsEffects.current
+    ) {
       for (let i = 0; i <= CONCURRENT_SYNTHS; i++) {
         const isFreeSynth = !PLAYING_SYNTH.has(i);
         const isAlreadyPlaying = PLAYING_NOTES[note] !== undefined;
@@ -233,7 +141,6 @@ export function useInstrument(
           triggerRelease(note);
         }
         if (isFreeSynth) {
-          // console.log("REALLY PLAYING", note)
           PLAYING_SYNTH.add(i);
           PLAYING_NOTES[note] = i;
           synths.current[i].triggerAttack(note, undefined, velocity);
@@ -333,6 +240,14 @@ export function useInstrument(
     }
   }
 
+  function getOscillator() {
+    return oscillatorRef.current;
+  }
+
+  function setOscillator(oscillator: types.AvailableSynthsEnum) {
+    oscillatorRef.current = oscillator;
+  }
+
   const api = {
     triggerAttack,
     triggerRelease,
@@ -342,6 +257,10 @@ export function useInstrument(
     instrumentLoading,
     downloadProgress,
     clearPlayingNotes,
+    audioSettingsApi: {
+      getOscillator,
+      setOscillator,
+    },
   };
   return api;
 }

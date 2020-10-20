@@ -4,9 +4,11 @@ import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
 import Switch from "@material-ui/core/Switch";
+import GraphicEqIcon from "@material-ui/icons/GraphicEq";
 
 import * as types from "types";
 import SamplesDialog from "features/samplesDialog/SamplesDialog";
+import AudioSettingsDialog from "features/audioSettingsDialog/AudioSettingsDialog";
 
 interface ISettingsMenu {
   soundEffect: types.IMidiFunctions["soundEffect"];
@@ -17,6 +19,7 @@ interface ISettingsMenu {
   loopApi: types.IMidiFunctions["loopApi"];
   open: boolean;
   sampleApi: types.IMidiFunctions["sampleApi"];
+  audioSettingsApi: types.IMidiFunctions["audioSettingsApi"];
 }
 
 export default function SettingsMenu({
@@ -28,8 +31,12 @@ export default function SettingsMenu({
   loopApi,
   open,
   sampleApi,
+  audioSettingsApi
 }: ISettingsMenu): JSX.Element {
-  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+  const [samplerDialogOpen, setSamplerDialogOpen] = useState<boolean>(false);
+  const [audioSettingsDialogOpen, setAudioSettingsDialogOpen] = useState<
+    boolean
+  >(false);
   function handleOnChangeSoundEffect() {
     if (soundEffect.getIsSoundEffect()) {
       soundEffect.setIsNotSoundEffect();
@@ -44,7 +51,7 @@ export default function SettingsMenu({
       samplerSourceApi.setSamplerSource(types.SamplerSourceEnum.synth);
       forceRerender();
     } else {
-      setDialogOpen(true);
+      setSamplerDialogOpen(true);
     }
   }
 
@@ -69,18 +76,29 @@ export default function SettingsMenu({
   const sampleDialogMemo = useMemo(
     () => (
       <SamplesDialog
-        open={dialogOpen}
-        setOpen={setDialogOpen}
+        open={samplerDialogOpen}
+        setOpen={setSamplerDialogOpen}
         sampleApi={sampleApi}
         samplerSourceApi={samplerSourceApi}
         forceRerender={forceRerender}
-        onClick={() => {
-          // handleOnChangeIsUseSampler();
-          // setDialogOpen(false);
-        }}
       />
     ),
-    [dialogOpen]
+    [samplerDialogOpen]
+  );
+
+  const audioSettingsDialogMemo = useMemo(
+    () => (
+      <AudioSettingsDialog
+        open={audioSettingsDialogOpen}
+        setOpen={setAudioSettingsDialogOpen}
+        sampleApi={sampleApi}
+        samplerSourceApi={samplerSourceApi}
+        forceRerender={forceRerender}
+        isSampler={samplerSourceApi.checkIfSampler()}
+        audioSettingsApi={audioSettingsApi}
+      />
+    ),
+    [audioSettingsDialogOpen, audioSettingsApi.getOscillator()]
   );
 
   return (
@@ -93,7 +111,7 @@ export default function SettingsMenu({
           position: "absolute",
           backgroundColor: "#1e1e1e",
           zIndex: 100,
-          marginTop: `-${55 * 4}px`,
+          marginTop: `-${55 * 5}px`,
           right: "38px",
           opacity: 0.9,
         }}
@@ -130,8 +148,13 @@ export default function SettingsMenu({
             onChange={handleOnChangeLoop}
           />
         </ListItem>
+        <ListItem button onClick={() => setAudioSettingsDialogOpen(true)}>
+          <ListItemText primary="Audio Settings" />
+          <GraphicEqIcon />
+        </ListItem>
       </List>
       {sampleDialogMemo}
+      {audioSettingsDialogMemo}
     </div>
   );
 }

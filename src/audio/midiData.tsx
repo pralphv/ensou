@@ -363,6 +363,7 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
     getVolumeDb: instrumentApi.getVolumeDb,
     instrumentLoading: instrumentApi.instrumentLoading,
     downloadProgress: instrumentApi.downloadProgress,
+    audioSettingsApi: instrumentApi.audioSettingsApi,
     soundEffect: {
       getIsSoundEffect,
       setIsSoundEffect,

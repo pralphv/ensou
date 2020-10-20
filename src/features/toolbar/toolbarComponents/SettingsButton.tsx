@@ -16,7 +16,7 @@ interface ISettingsButton {
   metronomeApi: types.IMidiFunctions["metronomeApi"];
   loopApi: types.IMidiFunctions["loopApi"];
   sampleApi: types.IMidiFunctions["sampleApi"];
-
+  audioSettingsApi: types.IMidiFunctions["audioSettingsApi"];
 }
 
 export default function SettingsButton({
@@ -26,7 +26,8 @@ export default function SettingsButton({
   getIsPlaying,
   metronomeApi,
   loopApi,
-  sampleApi
+  sampleApi,
+  audioSettingsApi
 }: ISettingsButton): JSX.Element {
   const [open, setOpen] = useState<boolean>(false);
   function handleOnClick() {
@@ -49,6 +50,7 @@ export default function SettingsButton({
             loopApi={loopApi}
             open={open}
             sampleApi={sampleApi}
+            audioSettingsApi={audioSettingsApi}
           />
         <CustomButton onClick={handleOnClick} size="small">
           <SettingsIcon />

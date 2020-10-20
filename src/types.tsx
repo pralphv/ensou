@@ -26,6 +26,7 @@ export interface IMidiFunctions {
   sampleApi: ISampleApi;
   samplerSourceApi: ISamplerSource;
   downloadProgress: number;
+  audioSettingsApi: IAudioSettingsApi;
 }
 
 interface SoundEffectApi {
@@ -107,4 +108,17 @@ export type SamplerSource =
 
 export interface ArrayBufferMap {
   [key: string]: ArrayBuffer;
+}
+
+export interface IAudioSettingsApi {
+  getOscillator: () => types.AvailableSynthsEnum;
+  setOscillator: (oscillator: types.AvailableSynthsEnum) => void;
+}
+
+
+export type AvailableSynths = "Synth" | "AMSynth" | "FMSynth";
+export enum AvailableSynthsEnum {
+  Synth = "Synth",
+  AMSynth = "AMSynth",
+  FMSynth = "FMSynth",
 }
