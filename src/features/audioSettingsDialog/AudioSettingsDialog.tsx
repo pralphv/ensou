@@ -30,6 +30,7 @@ interface ISamplesDialog {
   samplerSourceApi: types.IMidiFunctions["samplerSourceApi"];
   isSampler: boolean;
   audioSettingsApi: types.IMidiFunctions["audioSettingsApi"];
+  forceLocalRender: () => void
 }
 
 export default function AudioSettingsDialog({
@@ -39,9 +40,9 @@ export default function AudioSettingsDialog({
   forceRerender,
   samplerSourceApi,
   isSampler,
-  audioSettingsApi
+  audioSettingsApi,
+  forceLocalRender
 }: ISamplesDialog) {
-  console.log("RERENDERED SAMPLE DIALOG");
   const [value, setValue] = React.useState(0);
 
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
@@ -66,6 +67,7 @@ export default function AudioSettingsDialog({
             forceRerender={forceRerender}
             samplerSourceApi={samplerSourceApi}
             audioSettingsApi={audioSettingsApi}
+            forceLocalRender={forceLocalRender}
           />
         )}
         {value === 1 && (

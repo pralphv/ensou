@@ -15,4 +15,5 @@ export interface ISynthTab {
   forceRerender: types.forceRerender;
   samplerSourceApi: types.IMidiFunctions["samplerSourceApi"];
   audioSettingsApi: types.IMidiFunctions["audioSettingsApi"];
+  forceLocalRender: () => void;
 }

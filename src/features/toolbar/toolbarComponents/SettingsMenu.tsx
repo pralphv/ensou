@@ -33,10 +33,21 @@ export default function SettingsMenu({
   sampleApi,
   audioSettingsApi
 }: ISettingsMenu): JSX.Element {
+  const [forceLocalRenderDummy, setForceLocalRenderDummy] = useState<number>(0);
   const [samplerDialogOpen, setSamplerDialogOpen] = useState<boolean>(false);
   const [audioSettingsDialogOpen, setAudioSettingsDialogOpen] = useState<
     boolean
   >(false);
+
+  /**
+   * for rerendering settings because checking objects
+   * turned into JSON in useEffect is expensive
+   * hacky i know
+   */
+  function forceLocalRender() {
+    setForceLocalRenderDummy(forceLocalRenderDummy + 1);
+  }
+
   function handleOnChangeSoundEffect() {
     if (soundEffect.getIsSoundEffect()) {
       soundEffect.setIsNotSoundEffect();
@@ -96,9 +107,10 @@ export default function SettingsMenu({
         forceRerender={forceRerender}
         isSampler={samplerSourceApi.checkIfSampler()}
         audioSettingsApi={audioSettingsApi}
+        forceLocalRender={forceLocalRender}
       />
     ),
-    [audioSettingsDialogOpen, audioSettingsApi.getOscillator()]
+    [audioSettingsDialogOpen, audioSettingsApi.getSynthName(), forceLocalRenderDummy]
   );
 
   return (

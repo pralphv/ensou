@@ -5,6 +5,9 @@ enum LocalStorageKeys {
   volume = "volume",
   samplerSource = "samplerSource",
   sampleName = "sampleName",
+  isLoop = "isLoop",
+  synthName = "synthName",
+  audioSettings = "audioSettings",
 }
 
 function getLocalStorage(key: string): any | null {
@@ -46,4 +49,32 @@ export function getSampleName(): string | null {
 
 export function setSampleName(name: string) {
   setLocalStorage(LocalStorageKeys.sampleName, name);
+}
+
+export function getIsLoop(): boolean | null {
+  return getLocalStorage(LocalStorageKeys.isLoop);
+}
+
+export function setIsLoop(bool: boolean) {
+  setLocalStorage(LocalStorageKeys.isLoop, bool);
+}
+
+export function setIsNotLoop(bool: boolean) {
+  setLocalStorage(LocalStorageKeys.isLoop, bool);
+}
+
+export function getAudioSettings(): types.IAudioSettings | null {
+  return getLocalStorage(LocalStorageKeys.audioSettings);
+}
+
+export function setAudioSettings(audioSettings: types.IAudioSettings) {
+  setLocalStorage(LocalStorageKeys.audioSettings, audioSettings);
+}
+
+export function getSynthName(): types.AvailableSynthsEnum | null {
+  return getLocalStorage(LocalStorageKeys.synthName);
+}
+
+export function setSynthName(synthName: types.AvailableSynthsEnum) {
+  setLocalStorage(LocalStorageKeys.synthName, synthName);
 }

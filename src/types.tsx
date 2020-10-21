@@ -1,4 +1,5 @@
 import { SamplerOptions } from "tone";
+import { EnvelopeOptions } from "tone";
 
 import * as types from "types";
 export interface IMidiFunctions {
@@ -111,14 +112,32 @@ export interface ArrayBufferMap {
 }
 
 export interface IAudioSettingsApi {
-  getOscillator: () => types.AvailableSynthsEnum;
-  setOscillator: (oscillator: types.AvailableSynthsEnum) => void;
+  getSynthName: () => types.AvailableSynthsEnum;
+  setSynthName: (synthName: types.AvailableSynthsEnum) => void;
+  getAudioSettings: () => types.IAudioSettings | null;
+  setAudioSettings: (settings: types.IAudioSettings) => void;
 }
-
 
 export type AvailableSynths = "Synth" | "AMSynth" | "FMSynth";
 export enum AvailableSynthsEnum {
   Synth = "Synth",
   AMSynth = "AMSynth",
   FMSynth = "FMSynth",
+}
+
+export interface IAudioSettings {
+  oscillator: IOscillatorType;
+  envelope: Partial<EnvelopeOptions>;
+}
+
+interface IOscillatorType {
+  type: OscillatorType;
+}
+
+export enum OscillatorType {
+  custom = "custom",
+  sawtooth = "sawtooth",
+  sine = "sine",
+  square = "square",
+  triangle = "triangle",
 }

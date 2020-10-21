@@ -24,6 +24,7 @@
     "midi-player-js": "^2.0.13",
     "notistack": "^0.9.17",
     "pixi.js": "^5.3.3",
+    "pretty-ms": "^7.0.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-dropzone": "^11.0.2",

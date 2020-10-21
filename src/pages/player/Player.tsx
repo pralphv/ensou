@@ -139,7 +139,7 @@ export default function Player(): JSX.Element {
       midiFunctions.getIsPlaying(),
       // midiFunctions.soundEffect.getIsSoundEffect(),
       fullScreen.active,
-      midiFunctions.audioSettingsApi.getOscillator(),
+      midiFunctions.audioSettingsApi.getSynthName(),
     ]
   );
 

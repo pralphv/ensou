@@ -15,7 +15,6 @@ export default function SamplesDialog({
   forceRerender,
   samplerSourceApi,
 }: ISamplesDialog) {
-  console.log("RERENDERED SAMPLE DIALOG");
   const [value, setValue] = React.useState(0);
 
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {

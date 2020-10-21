@@ -49,8 +49,8 @@ export function useInstrument(
   const [instrumentLoading, setInstrmentLoading] = useState<boolean>(false);
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
   const metronome = useRef<MembraneSynth>();
-  const oscillatorRef = useRef<types.AvailableSynthsEnum>(
-    types.AvailableSynthsEnum.Synth
+  const synthNameRef = useRef<types.AvailableSynthsEnum>(
+    localStorageUtils.getSynthName() || types.AvailableSynthsEnum.Synth
   );
   const synths = useRef<Synth[]>();
   const sampler = useRef<Sampler>();
@@ -84,7 +84,12 @@ export function useInstrument(
         sampler.current = soundObj.main;
         samplerEffects.current = soundObj.effect;
       } else {
-        synths.current = initSynths(CONCURRENT_SYNTHS, oscillatorRef.current);
+        const audioSettings = localStorageUtils.getAudioSettings();
+        synths.current = initSynths(
+          CONCURRENT_SYNTHS,
+          synthNameRef.current,
+          audioSettings
+        );
         synthsEffects.current = initSynthsEffects(CONCURRENT_SYNTHS, {
           reverb,
         });
@@ -124,7 +129,7 @@ export function useInstrument(
       metronome.current = undefined;
       console.log("Cleaned Intrument");
     };
-  }, [getSamplerSource(), getSample(), getOscillator()]);
+  }, [getSamplerSource(), getSample(), getSynthName()]);
 
   function triggerAttack(note: string, velocity: number) {
     const source = getSamplerSource();
@@ -240,12 +245,45 @@ export function useInstrument(
     }
   }
 
-  function getOscillator() {
-    return oscillatorRef.current;
+  function getSynthName() {
+    return synthNameRef.current;
   }
 
-  function setOscillator(oscillator: types.AvailableSynthsEnum) {
-    oscillatorRef.current = oscillator;
+  function setSynthName(synthName: types.AvailableSynthsEnum) {
+    synthNameRef.current = synthName;
+    localStorageUtils.setSynthName(synthName);
+  }
+
+  function getAudioSettings(): types.IAudioSettings | null {
+    if (synths.current) {
+      const envelope = synths.current[0].envelope;
+      return {
+        oscillator: {
+          type: synths.current[0].oscillator.type as types.OscillatorType,
+        },
+        envelope: {
+          attack: envelope.attack,
+          decay: envelope.decay,
+          sustain: envelope.sustain,
+          release: envelope.release,
+        },
+      };
+    }
+    return null;
+  }
+
+  function setAudioSettings(settings: types.IAudioSettings) {
+    if (synths.current) {
+      for (let i = 0; i < synths.current.length; i++) {
+        const synth = synths.current[i];
+        synth.oscillator.type = settings.oscillator.type;
+        synth.envelope.attack = settings.envelope.attack as number;
+        synth.envelope.decay = settings.envelope.decay as number;
+        synth.envelope.sustain = settings.envelope.sustain as number;
+        synth.envelope.release = settings.envelope.release as number;
+      }
+      localStorageUtils.setAudioSettings(settings);
+    }
   }
 
   const api = {
@@ -258,8 +296,10 @@ export function useInstrument(
     downloadProgress,
     clearPlayingNotes,
     audioSettingsApi: {
-      getOscillator,
-      setOscillator,
+      getSynthName,
+      setSynthName,
+      getAudioSettings,
+      setAudioSettings,
     },
   };
   return api;
