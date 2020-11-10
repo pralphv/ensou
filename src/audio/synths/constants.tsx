@@ -7,7 +7,7 @@ export const SYNTH_MAP = {
   FMSynth: FMSynth,
 };
 
-export const DEFAULT_AUDIO_SETTINGS: types.IAudioSettings = {
+export const DEFAULT_AUDIO_SETTINGS: types.ISynthSettings = {
   oscillator: {
     type: types.OscillatorType.triangle,
   },

@@ -2,7 +2,7 @@ import React from "react";
 
 import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
 import { useHotkeys } from "react-hotkeys-hook";
-import CustomButton from "./CustomButton";
+import CustomButton from "./cutomButton/CustomButton";
 interface RestartButton {
   restart: () => void;
 }

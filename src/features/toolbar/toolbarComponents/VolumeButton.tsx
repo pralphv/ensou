@@ -7,7 +7,7 @@ import VolumeOffIcon from "@material-ui/icons/VolumeOff";
 import Slider from "@material-ui/core/Slider";
 
 import { BUTTON_WIDTH, BUTTON_HEIGHT } from "../constants";
-import CustomButton from "./CustomButton";
+import CustomButton from "./cutomButton/CustomButton";
 
 interface PlayButtonProps {
   changeVolume: (volume: number) => void;

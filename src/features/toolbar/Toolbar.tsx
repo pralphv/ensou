@@ -23,7 +23,6 @@ interface ToolBarProps {
   forceRerender: types.forceRerender;
   loadArrayBuffer: types.IMidiFunctions["loadArrayBuffer"];
   getIsPlaying: types.IMidiFunctions["getIsPlaying"];
-  soundEffect: types.IMidiFunctions["soundEffect"];
   metronomeApi: types.IMidiFunctions["metronomeApi"];
   loopApi: types.IMidiFunctions["loopApi"];
   tempoApi: types.IMidiFunctions["tempoApi"];
@@ -33,7 +32,8 @@ interface ToolBarProps {
   isFullScreening: boolean;
   samplerSourceApi: types.IMidiFunctions["samplerSourceApi"];
   sampleApi: types.IMidiFunctions["sampleApi"];
-  audioSettingsApi: types.IMidiFunctions["audioSettingsApi"];
+  synthSettingsApi: types.IMidiFunctions["synthSettingsApi"];
+  trackFxApi: types.IMidiFunctions["trackFxApi"];
 }
 
 export default function ToolBar({
@@ -47,7 +47,6 @@ export default function ToolBar({
   forceRerender,
   loadArrayBuffer,
   getIsPlaying,
-  soundEffect,
   metronomeApi,
   loopApi,
   tempoApi,
@@ -57,7 +56,8 @@ export default function ToolBar({
   isFullScreening,
   samplerSourceApi,
   sampleApi,
-  audioSettingsApi,
+  synthSettingsApi,
+  trackFxApi
 }: ToolBarProps) {
   let opacity = getIsPlaying() === true ? 0 : 1;
   opacity = isHovering ? 1 : opacity;
@@ -102,14 +102,14 @@ export default function ToolBar({
         />
 
         <SettingsButton
-          soundEffect={soundEffect}
           forceRerender={forceRerender}
           samplerSourceApi={samplerSourceApi}
           getIsPlaying={getIsPlaying}
           metronomeApi={metronomeApi}
           loopApi={loopApi}
           sampleApi={sampleApi}
-          audioSettingsApi={audioSettingsApi}
+          synthSettingsApi={synthSettingsApi}
+          trackFxApi={trackFxApi}
         />
         <FullScreenButton
           isFullScreening={isFullScreening}

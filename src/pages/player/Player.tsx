@@ -120,7 +120,6 @@ export default function Player(): JSX.Element {
         forceRerender={forceRerender}
         loadArrayBuffer={midiFunctions.loadArrayBuffer}
         getIsPlaying={midiFunctions.getIsPlaying}
-        soundEffect={midiFunctions.soundEffect}
         metronomeApi={midiFunctions.metronomeApi}
         loopApi={midiFunctions.loopApi}
         tempoApi={midiFunctions.tempoApi}
@@ -130,16 +129,16 @@ export default function Player(): JSX.Element {
         isFullScreening={fullScreen.active}
         samplerSourceApi={midiFunctions.samplerSourceApi}
         sampleApi={midiFunctions.sampleApi}
-        audioSettingsApi={midiFunctions.audioSettingsApi}
+        synthSettingsApi={midiFunctions.synthSettingsApi}
+        trackFxApi={midiFunctions.trackFxApi}
       />
     ),
     [
       isHovering,
       forceRender,
       midiFunctions.getIsPlaying(),
-      // midiFunctions.soundEffect.getIsSoundEffect(),
       fullScreen.active,
-      midiFunctions.audioSettingsApi.getSynthName(),
+      midiFunctions.synthSettingsApi.getSynthName(),
     ]
   );
 
@@ -165,19 +164,18 @@ export default function Player(): JSX.Element {
   const totalTicks = midiFunctions.getTotalTicks();
   const songProgress = totalTicks ? ((currentTick || 0) / totalTicks) * 100 : 0;
   const progressBarMemo = useMemo(
-    () =>
-      !midiFunctions.getIsPlaying() || isHovering ? (
-        <ProgressBar
-          songProgress={songProgress}
-          skipToTick={midiFunctions.skipToTick}
-          setIsHovering={setIsHovering}
-          forceRerender={forceRerender}
-          totalTicks={totalTicks || 0}
-          isFullScreen={fullScreen.active}
-        />
-      ) : (
-        <div style={{ height: 32.5 }}></div>
-      ),
+    () => (
+      <ProgressBar
+        songProgress={songProgress}
+        skipToTick={midiFunctions.skipToTick}
+        setIsHovering={setIsHovering}
+        forceRerender={forceRerender}
+        totalTicks={totalTicks || 0}
+        isFullScreen={fullScreen.active}
+        isHovering={isHovering}
+        getIsPlaying={midiFunctions.getIsPlaying}
+      />
+    ),
     [currentTick, isHovering, forceRender, fullScreen.active]
   );
 
@@ -218,6 +216,7 @@ export default function Player(): JSX.Element {
 
   useEventListener("wheel", (e) => {
     // scroll up and down
+    // e.preventDefault();
     const currentTick: number | undefined = midiFunctions.getCurrentTick();
     const totalTicks = midiFunctions.getTotalTicks();
     if (currentTick && totalTicks) {

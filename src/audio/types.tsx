@@ -1,4 +1,4 @@
-import { Sampler } from "tone";
+import { Sampler, SamplerOptions } from "tone";
 
 export interface MidiData {
   groupedNotes: GroupedNotes[];
@@ -48,5 +48,5 @@ export interface ICachedSounds {
 }
 
 export interface ISampleCache {
-  [key: string]: ICachedSounds;
+  [key: string]: SamplerOptions["urls"];
 }

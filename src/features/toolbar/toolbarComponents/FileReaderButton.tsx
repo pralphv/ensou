@@ -4,7 +4,7 @@ import { useDropzone } from "react-dropzone";
 import FolderIcon from "@material-ui/icons/Folder";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import CustomButton from "./CustomButton";
+import CustomButton from "./cutomButton/CustomButton";
 import { useLoadLocal } from "utils/customHooks";
 import UploadBackdrop from "features/uploadBackdrop/UploadBackdrop";
 import * as types from "types";

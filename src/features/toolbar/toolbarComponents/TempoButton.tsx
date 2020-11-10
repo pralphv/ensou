@@ -4,7 +4,7 @@ import { Typography } from "@material-ui/core/";
 import Popover from "@material-ui/core/Popover";
 
 import TempoChange from "features/tempoChange/TempoChange";
-import CustomButton from "./CustomButton";
+import CustomButton from "./cutomButton/CustomButton";
 import * as types from "types";
 interface ITempoButtonProps {
   getIsPlaying: types.IMidiFunctions["getIsPlaying"];

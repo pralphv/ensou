@@ -5,7 +5,7 @@ import PauseIcon from "@material-ui/icons/Pause";
 import PlayArrowIcon from "@material-ui/icons/PlayArrow";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import CustomButton from "./CustomButton";
+import CustomButton from "./cutomButton/CustomButton";
 import * as types from "types";
 
 interface PlayButtonProps {

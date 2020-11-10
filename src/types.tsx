@@ -1,7 +1,9 @@
-import { SamplerOptions } from "tone";
+import { Sampler, Synth, SynthOptions, SamplerOptions, Gain } from "tone";
 import { EnvelopeOptions } from "tone";
+import { Time, NormalRange } from "tone/Tone/core/type/Units";
+import { Reverb, FeedbackDelay, Chorus, Phaser, Filter } from "tone";
 
-import * as types from "types";
+// import * as types from "types";
 export interface IMidiFunctions {
   play: () => void;
   pause: () => void;
@@ -17,7 +19,6 @@ export interface IMidiFunctions {
   loadArrayBuffer: (blob: XMLHttpRequest["response"]) => void;
   changeVolume: (volume: number) => void;
   getVolumeDb: () => number | undefined;
-  soundEffect: SoundEffectApi;
   instrumentLoading: boolean;
   playRangeApi: IPlayRangeApi;
   metronomeApi: MetronomeApi;
@@ -27,13 +28,8 @@ export interface IMidiFunctions {
   sampleApi: ISampleApi;
   samplerSourceApi: ISamplerSource;
   downloadProgress: number;
-  audioSettingsApi: IAudioSettingsApi;
-}
-
-interface SoundEffectApi {
-  getIsSoundEffect: () => boolean;
-  setIsSoundEffect: () => void;
-  setIsNotSoundEffect: () => void;
+  synthSettingsApi: ISynthSettingsApi;
+  trackFxApi: ITrackFxApi;
 }
 
 interface MetronomeApi {
@@ -49,8 +45,8 @@ interface LoopApi {
 }
 
 interface IInstrumentApi {
-  getInstrument: () => types.Instrument;
-  setInstrument: (instrument: types.Instrument) => void;
+  getInstrument: () => Instrument;
+  setInstrument: (instrument: Instrument) => void;
 }
 
 interface ISampleApi {
@@ -58,8 +54,8 @@ interface ISampleApi {
   setSample: (sample: string) => void;
 }
 interface ISamplerSource {
-  getSamplerSource: () => types.SamplerSource;
-  setSamplerSource: (source: types.SamplerSource) => void;
+  getSamplerSource: () => SamplerSource;
+  setSamplerSource: (source: SamplerSource) => void;
   checkIfSampler: () => boolean;
   getLocalSampler: () => SamplerOptions["urls"] | undefined;
   setLocalSampler: (sampler: SamplerOptions["urls"]) => void;
@@ -111,11 +107,37 @@ export interface ArrayBufferMap {
   [key: string]: ArrayBuffer;
 }
 
-export interface IAudioSettingsApi {
-  getSynthName: () => types.AvailableSynthsEnum;
-  setSynthName: (synthName: types.AvailableSynthsEnum) => void;
-  getAudioSettings: () => types.IAudioSettings | null;
-  setAudioSettings: (settings: types.IAudioSettings) => void;
+export interface ISynthSettingsApi {
+  getSynthName: () => AvailableSynthsEnum;
+  setSynthName: (synthName: AvailableSynthsEnum) => void;
+  getSynthSettings: () => ISynthSettings | null;
+  setSynthSettings: (settings: ISynthSettings) => void;
+}
+
+export interface ITrackFxApi {
+  addInstrument: () => void;
+  removeInstrument: (i: number) => void;
+  getEffectsChain: () => AvailableEffects[][];
+  addFx: (trackIndex: number) => void;
+  removeFx: (trackIndex: number, fxIndex: number) => void;
+  changeFxSettings: (
+    trackIndex: number,
+    fxIndex: number,
+    param: string,
+    value: any
+  ) => void;
+  changeFx: (
+    trackIndex: number,
+    fxIndex: number,
+    type: AvailableEffectsNames
+  ) => void;
+  getExtraConnection: (trackIndex: number, fxIndex: number) => IExtraConnection;
+  changeExtraConnection: (
+    trackIndex: number,
+    fxIndex: number,
+    key: keyof IExtraConnection,
+    value: number | boolean
+  ) => void;
 }
 
 export type AvailableSynths = "Synth" | "AMSynth" | "FMSynth";
@@ -125,7 +147,7 @@ export enum AvailableSynthsEnum {
   FMSynth = "FMSynth",
 }
 
-export interface IAudioSettings {
+export interface ISynthSettings {
   oscillator: IOscillatorType;
   envelope: Partial<EnvelopeOptions>;
 }
@@ -140,4 +162,44 @@ export enum OscillatorType {
   sine = "sine",
   square = "square",
   triangle = "triangle",
+}
+
+// export enum AvailableEffects {
+// reverb = "reverb",
+// delay = "delay",
+// }
+
+export interface IReverbSettings {
+  wet: NormalRange;
+  decay: number;
+  preDelay: number;
+}
+
+export interface IDelaySettings {
+  feedback: NormalRange;
+  delayTime: Time;
+}
+
+export type AvailableEffects = Reverb | FeedbackDelay | Chorus | Phaser | Gain | Filter;
+export enum AvailableEffectsNames {
+  reverb = "Reverb",
+  delay = "FeedbackDelay",
+  chorus = "Chorus",
+  phaser = "Phaser",
+  gain = "Gain",
+  filter = "Filter"
+}
+
+export type Track = Sampler | Synth<SynthOptions>[];
+
+export interface ITrackComponents {
+  effectChain: AvailableEffects[];
+  track: Track;
+}
+
+export type forceLocalRender = (skipWait?: boolean) => void;
+
+export interface IExtraConnection {
+  toMaster: boolean;
+  effectorIndex: number | null;
 }

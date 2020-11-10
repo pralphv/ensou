@@ -1,30 +1,27 @@
 import * as types from "types";
 
 enum LocalStorageKeys {
-  isSoundEffect = "isSoundEffect",
   volume = "volume",
   samplerSource = "samplerSource",
   sampleName = "sampleName",
   isLoop = "isLoop",
   synthName = "synthName",
   audioSettings = "audioSettings",
+  effectChainsNames = "effectChainsNames",
+  extraConnections = "extraConnections",
+  fxSettings = "fxSettings",
 }
 
 function getLocalStorage(key: string): any | null {
+  console.log(`Getting ${key} from localStorage`);
   let value: string | null = localStorage.getItem(key);
   value = value ? JSON.parse(value) : null;
   return value;
 }
 function setLocalStorage(key: string, value: any) {
-  localStorage.setItem(key, JSON.stringify(value));
-}
-
-export function getIsSoundEffect(): boolean | null {
-  return getLocalStorage(LocalStorageKeys.isSoundEffect);
-}
-
-export function setIsSoundEffect(bool: boolean) {
-  setLocalStorage(LocalStorageKeys.isSoundEffect, bool);
+  value = JSON.stringify(value);
+  console.log(`Setting ${key}: ${value} to localStorage`);
+  localStorage.setItem(key, value);
 }
 
 export function getVolume(): number | null {
@@ -63,11 +60,11 @@ export function setIsNotLoop(bool: boolean) {
   setLocalStorage(LocalStorageKeys.isLoop, bool);
 }
 
-export function getAudioSettings(): types.IAudioSettings | null {
+export function getAudioSettings(): types.ISynthSettings | null {
   return getLocalStorage(LocalStorageKeys.audioSettings);
 }
 
-export function setAudioSettings(audioSettings: types.IAudioSettings) {
+export function setAudioSettings(audioSettings: types.ISynthSettings) {
   setLocalStorage(LocalStorageKeys.audioSettings, audioSettings);
 }
 
@@ -77,4 +74,51 @@ export function getSynthName(): types.AvailableSynthsEnum | null {
 
 export function setSynthName(synthName: types.AvailableSynthsEnum) {
   setLocalStorage(LocalStorageKeys.synthName, synthName);
+}
+
+export function getEffectChainNames(): types.AvailableEffectsNames[][] | null {
+  return getLocalStorage(LocalStorageKeys.effectChainsNames);
+}
+
+export function setEffectChainNames(
+  effectChainNames: types.AvailableEffectsNames[][]
+) {
+  setLocalStorage(LocalStorageKeys.effectChainsNames, effectChainNames);
+}
+export function getExtraConnections(): types.IExtraConnection[][] | null {
+  return getLocalStorage(LocalStorageKeys.extraConnections);
+}
+
+export function setExtraConnections(
+  extraConnections: types.IExtraConnection[][]
+) {
+  setLocalStorage(LocalStorageKeys.extraConnections, extraConnections);
+}
+
+interface IParamSetting {
+  param: string;
+  value: string | number;
+}
+
+interface IFxSettings {
+  [key: string]: IParamSetting;
+}
+
+export function createFxSettingsKey(trackIndex: number, fxIndex: number): string {
+  return `${trackIndex}_${fxIndex}`
+}
+
+export function getFxSettings(): IFxSettings | null {
+  return getLocalStorage(LocalStorageKeys.fxSettings);
+}
+
+export function setFxSettings(
+  trackIndex: number,
+  fxIndex: number,
+  param: string,
+  value: any
+) {
+  const fxSetting = getFxSettings() || {};
+  fxSetting[createFxSettingsKey(trackIndex, fxIndex)] = { param, value };
+  setLocalStorage(LocalStorageKeys.fxSettings, fxSetting);
 }

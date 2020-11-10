@@ -50,25 +50,11 @@ async function fetchInstruments(
   return sampleMap;
 }
 
-export function initSampler(
-  sampleMap: SamplerOptions["urls"],
-  effects: any
-): ICachedSounds {
-  // fix this
-  const main = new Sampler(sampleMap, {
-    attack: 0.01,
-  }).toDestination();
-  const effect = new Sampler(sampleMap).connect(effects.reverb);
-  const soundObj = { main, effect };
-  return soundObj;
-}
-
 export async function getSamples(
   instrument: types.Instrument,
   sample: string,
   setDownloadProgress: (progress: number) => void,
-  effects: any // fix this to obj of effects
-): Promise<ICachedSounds> {
+): Promise<SamplerOptions["urls"]> {
   const cacheKey: string = `${instrument}_${sample}`;
   if (SAMPLE_CACH[cacheKey]) {
     console.log(`Getting ${cacheKey} from this session`);
@@ -80,7 +66,9 @@ export async function getSamples(
     sample,
     setDownloadProgress
   );
-  const soundObj = initSampler(sampleMap, effects);
-  SAMPLE_CACH[cacheKey] = soundObj;
-  return soundObj;
+  // const sampler = new Sampler(sampleMap, {
+  //   attack: 0.01,
+  // }).toDestination();
+  SAMPLE_CACH[cacheKey] = sampleMap;
+  return sampleMap;
 }

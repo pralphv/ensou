@@ -1,7 +1,6 @@
 import React from "react";
 import clsx from "clsx";
 
-import { withStyles } from "@material-ui/core/styles";
 import Slider from "@material-ui/core/Slider";
 import { useHotkeys } from "react-hotkeys-hook";
 import * as types from "types";
@@ -10,49 +9,17 @@ import "./styles.css";
 interface ProgressBarProps {
   songProgress: number;
   skipToTick: types.IMidiFunctions["skipToTick"];
+  getIsPlaying: types.IMidiFunctions["getIsPlaying"];
   setIsHovering: (hovering: boolean) => void;
   forceRerender: types.forceRerender;
   totalTicks: number;
   isFullScreen: boolean;
+  isHovering: boolean;
 }
 
-const PrettoSlider = withStyles({
-  root: {
-    color: "#90EEFE",
-    "&:hover": {
-      "& $track": {
-        height: 5,
-      },
-      "& $rail": {
-        height: 5,
-      },
-      "& $thumb": {
-        display: "inline",
-      },
-    },
-  },
-  thumb: {
-    display: "none",
-    height: 15,
-    width: 15,
-    marginTop: -5,
-    marginLeft: -10,
-    "&:focus, &:hover": {
-      boxShadow: "inherit",
-    },
-  },
-  valueLabel: {
-    display: "none",
-  },
-  track: {
-    height: 3,
-    borderRadius: 2,
-  },
-  rail: {
-    height: 3,
-    borderRadius: 2,
-  },
-})(Slider);
+const SLIDER_COLOR = "144,238,254";
+const SLIDER_LEFT_COLOR = `rgba(${SLIDER_COLOR}, 1)`;
+const SLIDER_RIGHT_COLOR = `rgba(${SLIDER_COLOR}, 0.6)`;
 
 export default function ProgressBar({
   songProgress,
@@ -61,10 +28,11 @@ export default function ProgressBar({
   forceRerender,
   totalTicks,
   isFullScreen,
+  isHovering,
+  getIsPlaying,
 }: ProgressBarProps): JSX.Element {
-  // console.log("Progressbar Rerender");
-  function handleChange(e: any, newValue: number | number[]) {
-    const value = newValue as number;
+  function handleChange(e: any) {
+    const value = e.target.value as number;
     skipToTick((value / 100) * totalTicks);
     forceRerender();
   }
@@ -80,18 +48,38 @@ export default function ProgressBar({
   // useHotkeys("7", () => skipToPercent(70));
   // useHotkeys("8", () => skipToPercent(80));
   // useHotkeys("9", () => skipToPercent(90));
-
   return (
-
-    <PrettoSlider
-      className={clsx({ fullScreenSlider: isFullScreen })}
-      valueLabelDisplay="auto"
-      defaultValue={0}
-      value={songProgress}
+    <input
+      type="range"
+      min={0}
       max={100}
-      onChange={handleChange}
+      step={0.01}
+      value={songProgress}
+      onInput={handleChange}
+      style={{
+        background: `linear-gradient(to right, ${SLIDER_LEFT_COLOR} 0%, ${SLIDER_LEFT_COLOR} ${songProgress}%, ${SLIDER_RIGHT_COLOR} ${songProgress}%, ${SLIDER_RIGHT_COLOR} 100%)`,
+      }}
+      className={clsx({
+        fullScreenSlider: isFullScreen,
+        "custom-slider": true,
+        hide: getIsPlaying() && !isHovering,
+      })}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
-      />
+    />
+    // <Slider
+    //   className={clsx({
+    //     fullScreenSlider: isFullScreen,
+    //     "custom-slider": true,
+    //     hide: getIsPlaying() && !isHovering,
+    //   })}
+    //   valueLabelDisplay="off"
+    //   defaultValue={0}
+    //   value={songProgress}
+    //   max={100}
+    //   onChange={handleChange}
+    //   onMouseEnter={() => setIsHovering(true)}
+    //   onMouseLeave={() => setIsHovering(false)}
+    // />
   );
 }

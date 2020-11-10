@@ -1,48 +1,40 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 
 import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
-import Paper from "@material-ui/core/Paper";
 import { Typography } from "@material-ui/core";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
-import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
 import Slider from "@material-ui/core/Slider";
 import * as types from "types";
-import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
-import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
-import { SamplerOptions } from "tone";
 import * as localTypes from "./types";
 import { AvailableSynthsEnum } from "types";
 import prettyMilliseconds from "pretty-ms";
 
 export default function SynthTab({
-  setOpen,
-  samplerSourceApi,
   forceRerender,
-  audioSettingsApi,
+  synthSettingsApi,
   forceLocalRender,
 }: localTypes.ISynthTab) {
   function handleOnChangeSynthName(e: any) {
-    audioSettingsApi.setSynthName(e.target.value);
-    forceRerender();
+    synthSettingsApi.setSynthName(e.target.value);
+    // forceRerender();
   }
 
-  function handleOnChangeAudioSettings(value: any, field: string) {
-    if (audioSettings) {
+  function handleOnChangeSynthSettings(value: any, field: string) {
+    if (synthSettings) {
       // this is wrong
-      let newAudioSettings: types.IAudioSettings = {
-        ...audioSettings,
+      let newSynthSettings: types.ISynthSettings = {
+        ...synthSettings,
       };
       if (field === "oscillator") {
-        newAudioSettings.oscillator = { type: value };
+        newSynthSettings.oscillator = { type: value };
       } else {
         // else treat as envelope
         // @ts-ignore
-        newAudioSettings.envelope[field] = value;
+        newSynthSettings.envelope[field] = value;
       }
-      audioSettingsApi.setAudioSettings(newAudioSettings);
+      synthSettingsApi.setSynthSettings(newSynthSettings);
       forceLocalRender();
       // forceRerender();
     }
@@ -50,14 +42,14 @@ export default function SynthTab({
 
   const availableValues = Object.keys(AvailableSynthsEnum);
   const availableOscillators = Object.keys(types.OscillatorType);
-  const audioSettings = audioSettingsApi.getAudioSettings();
+  const synthSettings = synthSettingsApi.getSynthSettings();
 
   return (
     <div>
       <DialogContent>
         <InputLabel>Instrument</InputLabel>
         <Select
-          value={audioSettingsApi.getSynthName()}
+          value={synthSettingsApi.getSynthName()}
           onChange={handleOnChangeSynthName}
         >
           {availableValues.map((value) => (
@@ -68,9 +60,9 @@ export default function SynthTab({
         </Select>
         <InputLabel>Oscillator</InputLabel>
         <Select
-          value={audioSettingsApi?.getAudioSettings()?.oscillator.type}
+          value={synthSettingsApi?.getSynthSettings()?.oscillator.type}
           onChange={(e: any) =>
-            handleOnChangeAudioSettings(e.target.value, "oscillator")
+            handleOnChangeSynthSettings(e.target.value, "oscillator")
           }
         >
           {availableOscillators.map((value) => (
@@ -79,8 +71,8 @@ export default function SynthTab({
             </MenuItem>
           ))}
         </Select>
-        {audioSettings &&
-          Object.entries(audioSettings.envelope).map(([key, value]) => (
+        {synthSettings &&
+          Object.entries(synthSettings.envelope).map(([key, value]) => (
             <div key={key}>
               <Typography gutterBottom>{key}</Typography>
               <Slider
@@ -94,7 +86,7 @@ export default function SynthTab({
                   });
                 }}
                 onChange={(e, newValue) =>
-                  handleOnChangeAudioSettings(newValue, key)
+                  handleOnChangeSynthSettings(newValue, key)
                 }
                 valueLabelDisplay="auto"
               />

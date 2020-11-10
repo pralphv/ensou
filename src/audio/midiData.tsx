@@ -30,25 +30,25 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
   const totalTicksRef = useRef<number>(0);
   const originalTempoRef = useRef<number>();
   const isPlayingRef = useRef<boolean>();
-  const isSoundEffectRef = useRef<boolean>(
-    localStorageUtils.getIsSoundEffect() || false
-  );
+  const isSoundEffectRef = useRef<boolean>();
   const isLoopRef = useRef<boolean>(true);
   const isMetronomeRef = useRef<boolean>(false);
   const tempoPercentRef = useRef<number>(1); // tempo % and tempo is different
   // midi can change tempo, so need a % to keep the user's change
   const instrumentRef = useRef<types.Instrument>("piano");
   const localSamplerRef = useRef<SamplerOptions["urls"]>();
-  const cachedSampler =
-    localStorageUtils.getSamplerSource() || types.SamplerSourceEnum.synth;
-  const samplerSourceRef = useRef<types.SamplerSource>(
-    cachedSampler === types.SamplerSourceEnum.cachedLocal
-      ? types.SamplerSourceEnum.local
-      : cachedSampler // force rerender in useInstrument and getLocalSampler
-  );
-  // should be safe to say string because when useSample is chose it would save to local storage
-  const sampleRef = useRef<string>(localStorageUtils.getSampleName() as string);
-
+  const samplerSourceRef = useRef<types.SamplerSource>();
+  const sampleRef = useRef<string>();
+  useEffect(() => {
+    // should be safe to say string because when useSample is chose it would save to local storage
+    sampleRef.current = localStorageUtils.getSampleName() as string;
+    const cachedSampler =
+      localStorageUtils.getSamplerSource() || types.SamplerSourceEnum.synth;
+    samplerSourceRef.current =
+      cachedSampler === types.SamplerSourceEnum.cachedLocal
+        ? types.SamplerSourceEnum.local
+        : cachedSampler; // force rerender in useInstrument and getLocalSampler
+  }, []);
   function getInstrument(): types.Instrument {
     return instrumentRef.current;
   }
@@ -58,7 +58,7 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
   }
 
   function getSample(): string {
-    return sampleRef.current;
+    return sampleRef.current as string; // seriously can only be string
   }
 
   function setSample(sample: string) {
@@ -66,7 +66,7 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
   }
 
   function getSamplerSource(): types.SamplerSource {
-    return samplerSourceRef.current;
+    return samplerSourceRef.current as types.SamplerSource; // seriously can only be types.SamplerSource
   }
 
   function setSamplerSource(source: types.SamplerSource) {
@@ -75,11 +75,15 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
   }
 
   function checkIfSampler(): boolean {
-    return [
-      types.SamplerSourceEnum.cachedLocal,
-      types.SamplerSourceEnum.local,
-      types.SamplerSourceEnum.server,
-    ].includes(samplerSourceRef.current);
+    if (samplerSourceRef.current) {
+      return [
+        types.SamplerSourceEnum.cachedLocal,
+        types.SamplerSourceEnum.local,
+        types.SamplerSourceEnum.server,
+      ].includes(samplerSourceRef.current);
+    } else {
+      return false;
+    }
   }
 
   function getLocalSampler(): SamplerOptions["urls"] | undefined {
@@ -157,20 +161,6 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
     isPlayingRef.current = false;
   }
 
-  function getIsSoundEffect(): boolean {
-    return isSoundEffectRef.current;
-  }
-
-  function setIsSoundEffect() {
-    localStorageUtils.setIsSoundEffect(true);
-    isSoundEffectRef.current = true;
-  }
-
-  function setIsNotSoundEffect() {
-    localStorageUtils.setIsSoundEffect(false);
-    isSoundEffectRef.current = false;
-  }
-
   function getCurrentTick(): number | undefined {
     return midiPlayerRef.current?.getCurrentTick();
   }
@@ -238,7 +228,6 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
   }
 
   const instrumentApi = useInstrument(
-    getIsSoundEffect,
     getInstrument,
     getSample,
     getSamplerSource,
@@ -363,12 +352,8 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
     getVolumeDb: instrumentApi.getVolumeDb,
     instrumentLoading: instrumentApi.instrumentLoading,
     downloadProgress: instrumentApi.downloadProgress,
-    audioSettingsApi: instrumentApi.audioSettingsApi,
-    soundEffect: {
-      getIsSoundEffect,
-      setIsSoundEffect,
-      setIsNotSoundEffect,
-    },
+    synthSettingsApi: instrumentApi.synthSettingsApi,
+    trackFxApi: instrumentApi.trackFxApi,
     playRangeApi: {
       getPlayRange,
       setPlayRange,

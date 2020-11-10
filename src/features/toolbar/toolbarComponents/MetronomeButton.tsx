@@ -3,7 +3,7 @@ import React from "react";
 import { Typography } from "@material-ui/core/";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import CustomButton from "./CustomButton";
+import CustomButton from "./cutomButton/CustomButton";
 import * as types from "types";
 
 interface IMetronomeButtonProps {

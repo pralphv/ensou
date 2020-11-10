@@ -3,7 +3,7 @@ import React from "react";
 import LoopIcon from "@material-ui/icons/Loop";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import CustomButton from "./CustomButton";
+import CustomButton from "./cutomButton/CustomButton";
 import * as types from "types";
 
 interface ILoopButtonProps {

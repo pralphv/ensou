@@ -10,10 +10,8 @@ export interface IAudioSettingsDialog {
 }
 
 export interface ISynthTab {
-  setOpen: (bool: boolean) => void;
   sampleApi: types.IMidiFunctions["sampleApi"];
   forceRerender: types.forceRerender;
-  samplerSourceApi: types.IMidiFunctions["samplerSourceApi"];
-  audioSettingsApi: types.IMidiFunctions["audioSettingsApi"];
-  forceLocalRender: () => void;
+  synthSettingsApi: types.IMidiFunctions["synthSettingsApi"];
+  forceLocalRender: types.forceLocalRender;
 }

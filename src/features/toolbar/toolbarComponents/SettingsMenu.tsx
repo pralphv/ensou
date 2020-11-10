@@ -11,7 +11,6 @@ import SamplesDialog from "features/samplesDialog/SamplesDialog";
 import AudioSettingsDialog from "features/audioSettingsDialog/AudioSettingsDialog";
 
 interface ISettingsMenu {
-  soundEffect: types.IMidiFunctions["soundEffect"];
   forceRerender: types.forceRerender;
   samplerSourceApi: types.IMidiFunctions["samplerSourceApi"];
   getIsPlaying: types.IMidiFunctions["getIsPlaying"];
@@ -19,11 +18,11 @@ interface ISettingsMenu {
   loopApi: types.IMidiFunctions["loopApi"];
   open: boolean;
   sampleApi: types.IMidiFunctions["sampleApi"];
-  audioSettingsApi: types.IMidiFunctions["audioSettingsApi"];
+  synthSettingsApi: types.IMidiFunctions["synthSettingsApi"];
+  trackFxApi: types.IMidiFunctions["trackFxApi"];
 }
 
 export default function SettingsMenu({
-  soundEffect,
   forceRerender,
   samplerSourceApi,
   getIsPlaying,
@@ -31,7 +30,8 @@ export default function SettingsMenu({
   loopApi,
   open,
   sampleApi,
-  audioSettingsApi
+  synthSettingsApi,
+  trackFxApi,
 }: ISettingsMenu): JSX.Element {
   const [forceLocalRenderDummy, setForceLocalRenderDummy] = useState<number>(0);
   const [samplerDialogOpen, setSamplerDialogOpen] = useState<boolean>(false);
@@ -44,17 +44,15 @@ export default function SettingsMenu({
    * turned into JSON in useEffect is expensive
    * hacky i know
    */
-  function forceLocalRender() {
-    setForceLocalRenderDummy(forceLocalRenderDummy + 1);
-  }
-
-  function handleOnChangeSoundEffect() {
-    if (soundEffect.getIsSoundEffect()) {
-      soundEffect.setIsNotSoundEffect();
+  function forceLocalRender(skipWait?: boolean) {
+    if (skipWait) {
+      setForceLocalRenderDummy(forceLocalRenderDummy + 1);
     } else {
-      soundEffect.setIsSoundEffect();
+      // super hacky way to wait for effectchain to finish building
+      setTimeout(() => {
+        setForceLocalRenderDummy(forceLocalRenderDummy + 1);
+      }, 500);
     }
-    forceRerender();
   }
 
   async function handleOnChangeDialog() {
@@ -106,11 +104,16 @@ export default function SettingsMenu({
         samplerSourceApi={samplerSourceApi}
         forceRerender={forceRerender}
         isSampler={samplerSourceApi.checkIfSampler()}
-        audioSettingsApi={audioSettingsApi}
+        synthSettingsApi={synthSettingsApi}
         forceLocalRender={forceLocalRender}
+        trackFxApi={trackFxApi}
       />
     ),
-    [audioSettingsDialogOpen, audioSettingsApi.getSynthName(), forceLocalRenderDummy]
+    [
+      audioSettingsDialogOpen,
+      synthSettingsApi.getSynthName(),
+      forceLocalRenderDummy,
+    ]
   );
 
   return (
@@ -123,18 +126,11 @@ export default function SettingsMenu({
           position: "absolute",
           backgroundColor: "#1e1e1e",
           zIndex: 100,
-          marginTop: `-${55 * 5}px`,
+          marginTop: `-${55 * 4}px`,
           right: "38px",
           opacity: 0.9,
         }}
       >
-        <ListItem button>
-          <ListItemText primary="Sound Effect" />
-          <Switch
-            checked={soundEffect.getIsSoundEffect()}
-            onChange={handleOnChangeSoundEffect}
-          />
-        </ListItem>
         <ListItem button>
           <ListItemText primary="Use Samples" />
           <Switch

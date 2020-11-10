@@ -1,0 +1,8 @@
+/* important bad practice but we're fighting for performance */
+.custom-button {
+  background: rgba(0, 0, 0, 0) !important;
+  border: 0 !important;
+  color: #e5e5e5 !important;
+  font-size: 5 !important;
+}
+

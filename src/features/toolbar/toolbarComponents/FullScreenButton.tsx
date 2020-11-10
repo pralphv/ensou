@@ -1,6 +1,6 @@
 import React from "react";
 
-import CustomButton from "./CustomButton";
+import CustomButton from "./cutomButton/CustomButton";
 import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
 import FullscreenIcon from "@material-ui/icons/Fullscreen";
 
