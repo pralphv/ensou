@@ -36,7 +36,9 @@ export function initGuideLine(app: PIXI.Application) {
   console.log("Constructing new Guide Line");
   try {
     CONTAINER.destroy({ children: true, texture: true, baseTexture: true });
-  } catch {}
+  } catch (error) {
+    console.log({ error });
+  }
   let container = new PIXI.Container();
   app.stage.addChild(container);
   app.stage.setChildIndex(container, 0);
@@ -62,8 +64,8 @@ export function initGuideLine(app: PIXI.Application) {
         sprite.position.x = x;
         container.addChild(sprite);
       }
-
     }
   });
+  CONTAINER = container;
   horizontalLine.destroy({ children: true, baseTexture: true, texture: true });
 }

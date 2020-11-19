@@ -8,10 +8,3 @@ export interface IAudioSettingsDialog {
   samplerSourceApi: types.IMidiFunctions["samplerSourceApi"];
   isSampler: boolean;
 }
-
-export interface ISynthTab {
-  sampleApi: types.IMidiFunctions["sampleApi"];
-  forceRerender: types.forceRerender;
-  synthSettingsApi: types.IMidiFunctions["synthSettingsApi"];
-  forceLocalRender: types.forceLocalRender;
-}

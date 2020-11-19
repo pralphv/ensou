@@ -22,14 +22,16 @@ export default function ExtraOutput({
   return (
     <div>
       <Typography gutterBottom>Extra Output</Typography>
-      <Select value={value} onChange={onChange}>
+      <Select value={value || ""} onChange={onChange}>
         {noOfTracks - fxIndex > 2 &&
-          range(fxIndex + 2, noOfTracks).map((value) => (
+          range(fxIndex + 2, noOfTracks).map((option_) => {
             // fxIndex + 2 because the next effect is already connected
-            <MenuItem key={`effect_${value}`} value={value}>
-              Effect {value + 1}
-            </MenuItem>
-          ))}
+            return (
+              <MenuItem key={`effect_${option_}`} value={option_}>
+                Effect {option_ + 1}
+              </MenuItem>
+            );
+          })}
         <MenuItem key={`effect_blank`} value={""}>
           N/A
         </MenuItem>

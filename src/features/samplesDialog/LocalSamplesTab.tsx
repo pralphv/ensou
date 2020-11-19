@@ -12,7 +12,14 @@ import * as types from "types";
 import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
 import { SamplerOptions } from "tone";
 import { convertArrayBufferToAudioContext } from "utils/helper";
-import { ISamplesDialog } from "./types";
+import MyMidiPlayer from "audio/midiPlayer";
+
+interface ILocalSamplesTabProps {
+  open: boolean;
+  setOpen: (bool: boolean) => void;
+  forceRerender: types.forceRerender;
+  midiPlayer: MyMidiPlayer;
+}
 
 function checkValidMusicNote(note: string) {
   if (note.length >= 4) {
@@ -32,9 +39,9 @@ function checkValidMusicNote(note: string) {
 
 export default function LocalSamplesTab({
   setOpen,
-  samplerSourceApi,
+  midiPlayer,
   forceRerender,
-}: ISamplesDialog) {
+}: ILocalSamplesTabProps) {
   const [sampleMap, setSampleMap] = useState<SamplerOptions["urls"]>();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -69,9 +76,8 @@ export default function LocalSamplesTab({
 
   function handleOnSubmit() {
     if (sampleMap) {
-      console.log({ sampleMap });
-      samplerSourceApi.setLocalSampler(sampleMap);
-      samplerSourceApi.setSamplerSource(types.SamplerSourceEnum.local);
+      midiPlayer.setLocalSampler(sampleMap);
+      midiPlayer.setSamplerSource(types.SamplerSourceEnum.local);
       setOpen(false);
       forceRerender();
     }

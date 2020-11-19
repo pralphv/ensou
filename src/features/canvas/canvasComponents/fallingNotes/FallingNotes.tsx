@@ -118,7 +118,7 @@ export function draw(
   canvasHeight: number,
   ticksPerBeat: number
 ) {
-  const upperLimit = ticksPerBeat * 4 * 4; // assume 4 beats per bar, show 3 bars
+  const upperLimit = ticksPerBeat * 4 * 8; // assume 4 beats per bar, show 3 bars
   FALLING_NOTES.forEach((note: FallingNotes) => {
     const sprite = note.rectSprite;
     if (

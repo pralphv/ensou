@@ -7,17 +7,24 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import Slider from "@material-ui/core/Slider";
 import * as types from "types";
-import * as localTypes from "./types";
 import { AvailableSynthsEnum } from "types";
 import prettyMilliseconds from "pretty-ms";
+import DelaySlider from "./DelaySlider";
+import MyMidiPlayer from "audio/midiPlayer";
+
+export interface ISynthTab {
+  midiPlayer: MyMidiPlayer;
+  forceRerender: types.forceRerender;
+  forceLocalRender: types.forceLocalRender;
+}
 
 export default function SynthTab({
+  midiPlayer,
   forceRerender,
-  synthSettingsApi,
   forceLocalRender,
-}: localTypes.ISynthTab) {
+}: ISynthTab) {
   function handleOnChangeSynthName(e: any) {
-    synthSettingsApi.setSynthName(e.target.value);
+    midiPlayer.myTonejs?.setSynthName(e.target.value);
     // forceRerender();
   }
 
@@ -34,22 +41,22 @@ export default function SynthTab({
         // @ts-ignore
         newSynthSettings.envelope[field] = value;
       }
-      synthSettingsApi.setSynthSettings(newSynthSettings);
-      forceLocalRender();
+      midiPlayer.myTonejs?.setSynthSettings(newSynthSettings);
+      forceLocalRender(true);
       // forceRerender();
     }
   }
 
   const availableValues = Object.keys(AvailableSynthsEnum);
   const availableOscillators = Object.keys(types.OscillatorType);
-  const synthSettings = synthSettingsApi.getSynthSettings();
+  const synthSettings = midiPlayer.myTonejs?.getSynthSettings();
 
   return (
     <div>
       <DialogContent>
         <InputLabel>Instrument</InputLabel>
         <Select
-          value={synthSettingsApi.getSynthName()}
+          value={midiPlayer.myTonejs?.getSynthName()}
           onChange={handleOnChangeSynthName}
         >
           {availableValues.map((value) => (
@@ -60,7 +67,7 @@ export default function SynthTab({
         </Select>
         <InputLabel>Oscillator</InputLabel>
         <Select
-          value={synthSettingsApi?.getSynthSettings()?.oscillator.type}
+          value={midiPlayer.myTonejs?.getSynthSettings()?.oscillator.type}
           onChange={(e: any) =>
             handleOnChangeSynthSettings(e.target.value, "oscillator")
           }
@@ -92,6 +99,7 @@ export default function SynthTab({
               />
             </div>
           ))}
+        <DelaySlider midiPlayer={midiPlayer} forceLocalRender={forceLocalRender} />
       </DialogContent>
     </div>
   );

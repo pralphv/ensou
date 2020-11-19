@@ -8,13 +8,13 @@ import CustomButton from "./cutomButton/CustomButton";
 import * as types from "types";
 interface ITempoButtonProps {
   getIsPlaying: types.IMidiFunctions["getIsPlaying"];
-  tempoApi: types.IMidiFunctions["tempoApi"];
+  setTempoPercent: types.IMidiFunctions["tempoApi"]["setTempoPercent"];
   forceRerender: types.forceRerender;
 }
 
 export default function TempoButton({
   getIsPlaying,
-  tempoApi,
+  setTempoPercent,
   forceRerender,
 }: ITempoButtonProps): JSX.Element {
   const [value, setValue] = useState<number>(100);
@@ -58,8 +58,7 @@ export default function TempoButton({
           forceRerender={forceRerender}
           value={value}
           setValue={(tempo) => {
-            tempoApi.setTempoPercent(tempo);
-            // tempoApi.setTempo(tempo);
+            setTempoPercent(tempo);
             setValue(tempo);
           }}
         />

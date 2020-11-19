@@ -32,6 +32,7 @@ interface IInstrumentApi {
   clearPlayingNotes: () => void;
   synthSettingsApi: types.ISynthSettingsApi;
   trackFxApi: types.ITrackFxApi;
+  delayApi: types.IDelayApi;
 }
 
 interface ISynthOptions {
@@ -44,7 +45,7 @@ interface ISamplerOptions {
   sampleMap?: SamplerOptions["urls"];
 }
 
-class Instruments {
+export class Instruments {
   samplers: Sampler[];
   synths: (Synth | AMSynth | FMSynth)[][];
   synthName: types.AvailableSynthsEnum;
@@ -59,6 +60,8 @@ class Instruments {
   _effectChainsNames: types.AvailableEffectsNames[][];
   _extraConnections: types.IExtraConnection[][];
   setDownloadProgress: (progress: number) => void;
+  _effectsActivated: boolean;
+  _delay: number;
 
   constructor(
     useSample: boolean,
@@ -77,7 +80,9 @@ class Instruments {
     this._useSampler = useSample;
     this._synthOptions = synthOptions;
     this._samplerOptions = samplerOptions;
+    this._effectsActivated = true;
     this.samplers = [];
+    this._delay = localStorageUtils.getDelay() || 0.0;
 
     this.synths = [];
     this._playingSynths = new Set();
@@ -144,6 +149,38 @@ class Instruments {
     }
   }
 
+  getEffectsActivated() {
+    return this._effectsActivated;
+  }
+
+  toggleEffectsActivated() {
+    if (this._effectChains.length === 0) {
+      return;
+    }
+    if (this._useSampler) {
+      this.samplers.forEach((sampler) => {
+        sampler.disconnect();
+        if (this._effectsActivated) {
+          sampler.toDestination();
+        } else {
+          sampler.connect(this._effectChains[0][0]);
+        }
+      });
+    } else {
+      this.synths.forEach((synth) => {
+        synth.forEach((synth_) => {
+          synth_.disconnect();
+          if (this._effectsActivated) {
+            synth_.toDestination();
+          } else {
+            synth_.connect(this._effectChains[0][0]);
+          }
+        });
+      });
+    }
+    this._effectsActivated = !this._effectsActivated;
+  }
+
   async _buildTrack(
     effectsChainName: types.AvailableEffectsNames[]
   ): Promise<types.ITrackComponents> {
@@ -204,7 +241,7 @@ class Instruments {
         try {
           this.synths[instrumentIndex][i].triggerAttack(
             note,
-            undefined,
+            `+${this._delay}`,
             velocity
           );
         } catch (error) {
@@ -230,7 +267,7 @@ class Instruments {
   triggerAttack(note: string, velocity: number) {
     if (this._useSampler) {
       this.samplers.forEach((instrument) => {
-        instrument.triggerAttack(note, undefined, velocity);
+        instrument.triggerAttack(note, `+${this._delay}`, velocity);
       });
     } else {
       for (let i = 0; i < this.synths.length; i++) {
@@ -292,9 +329,15 @@ class Instruments {
 
   async removeFx(trackIndex: number, fxIndex: number) {
     console.log(`Removing FX ${fxIndex} from track ${trackIndex}`);
+    for (let i = 0; i < this._extraConnections[trackIndex].length; i++) {
+      this.changeExtraConnection(trackIndex, i, "effectorIndex", null, false);
+    }
+
+    this._extraConnections[trackIndex].splice(fxIndex, 1);
     this._effectChains[trackIndex].splice(fxIndex, 1);
     this._effectChainsNames[trackIndex].splice(fxIndex, 1);
     this._publishFxChange(trackIndex);
+    localStorageUtils.deleteFxSettings(trackIndex, fxIndex);
   }
 
   async changeFx(
@@ -308,40 +351,49 @@ class Instruments {
 
   async _publishFxChange(trackIndex: number) {
     console.log("Publishing change");
-    const track = await this._buildTrack(this._effectChainsNames[trackIndex]);
-    this._extraConnections[trackIndex].forEach((extraConnection, fxIndex) => {
-      if (extraConnection.effectorIndex) {
-        track.effectChain[fxIndex].connect(
-          track.effectChain[extraConnection.effectorIndex]
+    if (!this._effectsActivated) {
+      // dont add any effects if not activated
+      const track = await this._buildTrack([]);
+      this._setTrack(track.track, trackIndex);
+    } else {
+      const track = await this._buildTrack(this._effectChainsNames[trackIndex]);
+      this._extraConnections[trackIndex].forEach((extraConnection, fxIndex) => {
+        if (extraConnection.effectorIndex) {
+          track.effectChain[fxIndex].connect(
+            track.effectChain[extraConnection.effectorIndex]
+          );
+          if (extraConnection.toMaster) {
+            track.effectChain[fxIndex].toDestination();
+          }
+        }
+      });
+      this._setTrack(track.track, trackIndex);
+      this._effectChains[trackIndex] = track.effectChain;
+    }
+    this.saveSettingsToLocalStorage();
+
+    const fxSettings = localStorageUtils.getFxSettings();
+    if (fxSettings) {
+      for (let i = 0; i < this._effectChainsNames[trackIndex].length; i++) {
+        const fxSettingKey = localStorageUtils.createFxSettingsKey(
+          trackIndex,
+          i
         );
-        if (extraConnection.toMaster) {
-          track.effectChain[fxIndex].toDestination();
+        const paramSetting = fxSettings[fxSettingKey];
+        if (paramSetting) {
+          this.changeFxSettings(
+            trackIndex,
+            i,
+            paramSetting.param,
+            paramSetting.value
+          );
         }
       }
-    });
-    this._setTrack(track.track, trackIndex);
-    this._effectChains[trackIndex] = track.effectChain;
-    const fxSettings = localStorageUtils.getFxSettings();
-    if (!fxSettings) {
-      return;
     }
-    for (let i = 0; i < this._effectChainsNames[trackIndex].length; i++) {
-      const fxSettingKey = localStorageUtils.createFxSettingsKey(trackIndex, i);
-      const paramSetting = fxSettings[fxSettingKey];
-      if (paramSetting) {
-        this.changeFxSettings(
-          trackIndex,
-          i,
-          paramSetting.param,
-          paramSetting.value
-        );
-      }
-    }
-
-    this.saveSettingsToLocalStorage();
   }
 
   saveSettingsToLocalStorage() {
+    console.log("SAVING");
     localStorageUtils.setEffectChainNames(this._effectChainsNames);
     localStorageUtils.setExtraConnections(this._extraConnections);
   }
@@ -358,18 +410,14 @@ class Instruments {
       let gainNode = this._effectChains[trackIndex][fxIndex] as Gain;
       // gainNode.gain
       gainNode.gain.rampTo(value);
-      return;
-    }
-    console.log("HERE");
-    console.log({ trackIndex, fxIndex, param, value });
-    console.log(this._effectChains);
-    console.log(this._effectChains[trackIndex]);
-    try {
-      //@ts-ignore
-      this._effectChains[trackIndex][fxIndex][param].value = value;
-    } catch (error) {
-      //@ts-ignore
-      this._effectChains[trackIndex][fxIndex][param] = value;
+    } else {
+      try {
+        //@ts-ignore
+        this._effectChains[trackIndex][fxIndex][param].value = value;
+      } catch (error) {
+        //@ts-ignore
+        this._effectChains[trackIndex][fxIndex][param] = value;
+      }
     }
     localStorageUtils.setFxSettings(trackIndex, fxIndex, param, value);
   }
@@ -422,7 +470,7 @@ class Instruments {
   }
 
   playMetronome() {
-    this.metronome.triggerAttackRelease("A1", 0.2);
+    this.metronome.triggerAttackRelease("A1", 0.2, `+${this._delay}`);
   }
 
   getVolume() {
@@ -498,22 +546,35 @@ class Instruments {
 
   setSynthName(synthName: types.AvailableSynthsEnum) {
     this.synthName = synthName;
+    localStorageUtils.setSynthName(synthName);
+
   }
 
   getEffectsChain() {
     return this._effectChains;
   }
 
+  /**
+   *
+   * @param trackIndex
+   * @param fxIndex
+   * @param key
+   * @param value
+   * @param publish exists solely for removeFx extraConnections
+   */
   changeExtraConnection(
     trackIndex: number,
     fxIndex: number,
     key: keyof types.IExtraConnection,
-    value: boolean | number | string | null
+    value: number | string | null | boolean,
+    publish: boolean = true
   ) {
     value = value === "" ? null : value;
     //@ts-ignore
     this._extraConnections[trackIndex][fxIndex][key] = value;
-    this._publishFxChange(trackIndex);
+    if (publish) {
+      this._publishFxChange(trackIndex);
+    }
   }
 
   getExtraConnection(
@@ -521,6 +582,16 @@ class Instruments {
     fxIndex: number
   ): types.IExtraConnection {
     return this._extraConnections[trackIndex][fxIndex];
+  }
+
+  getDelay(): number {
+    return this._delay;
+  }
+
+  setDelay(delay: number) {
+    this._delay = delay;
+    localStorageUtils.setDelay(delay);
+
   }
 }
 
@@ -585,7 +656,6 @@ export function useInstrument(
 
   function setSynthName(synthName: types.AvailableSynthsEnum) {
     instrumentsRef.current?.setSynthName(synthName);
-    localStorageUtils.setSynthName(synthName);
   }
 
   function triggerAttack(note: string, velocity: number) {
@@ -636,6 +706,14 @@ export function useInstrument(
     instrumentsRef.current?.removeFx(trackIndex, fxIndex);
   }
 
+  function getDelay(): number {
+    return instrumentsRef.current?.getDelay() || 0;
+  }
+
+  function setDelay(delay: number) {
+    instrumentsRef.current?.setDelay(delay);
+  }
+
   function changeFxSettings(
     trackIndex: number,
     fxIndex: number,
@@ -657,7 +735,7 @@ export function useInstrument(
     trackIndex: number,
     fxIndex: number,
     key: keyof types.IExtraConnection,
-    value: number | boolean
+    value: number | boolean | null | string
   ) {
     instrumentsRef.current?.changeExtraConnection(
       trackIndex,
@@ -677,6 +755,18 @@ export function useInstrument(
         effectorIndex: null,
       }
     );
+  }
+
+  function getEffectsActivated(): boolean {
+    if (instrumentsRef.current) {
+      return instrumentsRef.current.getEffectsActivated();
+    } else {
+      return true;
+    }
+  }
+
+  function toggleEffectsActivated() {
+    instrumentsRef.current?.toggleEffectsActivated();
   }
 
   const api = {
@@ -704,6 +794,12 @@ export function useInstrument(
       changeFx,
       changeExtraConnection,
       getExtraConnection,
+      getEffectsActivated,
+      toggleEffectsActivated,
+    },
+    delayApi: {
+      getDelay,
+      setDelay,
     },
   };
   return api;

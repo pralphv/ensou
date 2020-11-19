@@ -10,6 +10,7 @@ enum LocalStorageKeys {
   effectChainsNames = "effectChainsNames",
   extraConnections = "extraConnections",
   fxSettings = "fxSettings",
+  delay = "delay",
 }
 
 function getLocalStorage(key: string): any | null {
@@ -18,10 +19,16 @@ function getLocalStorage(key: string): any | null {
   value = value ? JSON.parse(value) : null;
   return value;
 }
+
 function setLocalStorage(key: string, value: any) {
   value = JSON.stringify(value);
   console.log(`Setting ${key}: ${value} to localStorage`);
   localStorage.setItem(key, value);
+}
+
+function deleteLocalStorage(key: string) {
+  console.log(`Deleting ${key} from localStorage`);
+  localStorage.removeItem(key);
 }
 
 export function getVolume(): number | null {
@@ -104,8 +111,11 @@ interface IFxSettings {
   [key: string]: IParamSetting;
 }
 
-export function createFxSettingsKey(trackIndex: number, fxIndex: number): string {
-  return `${trackIndex}_${fxIndex}`
+export function createFxSettingsKey(
+  trackIndex: number,
+  fxIndex: number
+): string {
+  return `${trackIndex}_${fxIndex}`;
 }
 
 export function getFxSettings(): IFxSettings | null {
@@ -121,4 +131,21 @@ export function setFxSettings(
   const fxSetting = getFxSettings() || {};
   fxSetting[createFxSettingsKey(trackIndex, fxIndex)] = { param, value };
   setLocalStorage(LocalStorageKeys.fxSettings, fxSetting);
+}
+
+export function deleteFxSettings(trackIndex: number, fxIndex: number) {
+  const fxSetting = getFxSettings();
+  if (fxSetting) {
+    const key = createFxSettingsKey(trackIndex, fxIndex);
+    delete fxSetting[key];
+    setLocalStorage(LocalStorageKeys.fxSettings, fxSetting);
+  }
+}
+
+export function getDelay(): number | null {
+  return getLocalStorage(LocalStorageKeys.delay);
+}
+
+export function setDelay(delay: number) {
+  setLocalStorage(LocalStorageKeys.delay, delay);
 }

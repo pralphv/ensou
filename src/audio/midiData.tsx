@@ -40,7 +40,7 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
   const samplerSourceRef = useRef<types.SamplerSource>();
   const sampleRef = useRef<string>();
   useEffect(() => {
-    // should be safe to say string because when useSample is chose it would save to local storage
+    // should be safe to say string because when useSample is chosen it would save to local storage
     sampleRef.current = localStorageUtils.getSampleName() as string;
     const cachedSampler =
       localStorageUtils.getSamplerSource() || types.SamplerSourceEnum.synth;
@@ -226,7 +226,9 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
       play(true, true);
     }
   }
-
+  console.log("HERER");
+  console.log(getSamplerSource());
+  console.log(getSample());
   const instrumentApi = useInstrument(
     getInstrument,
     getSample,
@@ -348,6 +350,7 @@ function useMidiData(): [types.IMidiFunctions, types.IGroupedNotes[]] {
     getTicksPerBeat,
     getTotalTicks,
     skipToTick,
+    delayApi: instrumentApi.delayApi,
     changeVolume: instrumentApi.changeVolume,
     getVolumeDb: instrumentApi.getVolumeDb,
     instrumentLoading: instrumentApi.instrumentLoading,

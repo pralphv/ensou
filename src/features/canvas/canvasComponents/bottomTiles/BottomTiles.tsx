@@ -44,7 +44,9 @@ export function initBottomTiles(
   console.log("Constructing new bottom tiles");
   try {
     CONTAINER.destroy({ children: true, texture: true, baseTexture: true });
-  } catch {}
+  } catch (error){
+    console.log({error})
+  }
 
   let container = new PIXI.Container();
   app.stage.addChild(container);

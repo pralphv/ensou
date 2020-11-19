@@ -3,31 +3,22 @@ import React, { useState } from "react";
 import SettingsIcon from "@material-ui/icons/Settings";
 import { useHotkeys } from "react-hotkeys-hook";
 import ClickAwayListener from "@material-ui/core/ClickAwayListener";
+import MyMidiPlayer from "audio/midiPlayer";
 
 import CustomButton from "./cutomButton/CustomButton";
 import SettingsMenu from "./SettingsMenu";
 import * as types from "types";
 
 interface ISettingsButton {
+  midiPlayer: MyMidiPlayer;
   forceRerender: types.forceRerender;
-  samplerSourceApi: types.IMidiFunctions["samplerSourceApi"];
-  getIsPlaying: types.IMidiFunctions["getIsPlaying"];
-  metronomeApi: types.IMidiFunctions["metronomeApi"];
-  loopApi: types.IMidiFunctions["loopApi"];
-  sampleApi: types.IMidiFunctions["sampleApi"];
-  synthSettingsApi: types.IMidiFunctions["synthSettingsApi"];
-  trackFxApi: types.IMidiFunctions["trackFxApi"];
+  horizontalApi: types.IHorizontalApi;
 }
 
 export default function SettingsButton({
   forceRerender,
-  samplerSourceApi,
-  getIsPlaying,
-  metronomeApi,
-  loopApi,
-  sampleApi,
-  synthSettingsApi,
-  trackFxApi
+  midiPlayer,
+  horizontalApi,
 }: ISettingsButton): JSX.Element {
   const [open, setOpen] = useState<boolean>(false);
   function handleOnClick() {
@@ -43,14 +34,9 @@ export default function SettingsButton({
       <div>
           <SettingsMenu
             forceRerender={forceRerender}
-            samplerSourceApi={samplerSourceApi}
-            getIsPlaying={getIsPlaying}
-            metronomeApi={metronomeApi}
-            loopApi={loopApi}
+            midiPlayer={midiPlayer}
             open={open}
-            sampleApi={sampleApi}
-            synthSettingsApi={synthSettingsApi}
-            trackFxApi={trackFxApi}
+            horizontalApi={horizontalApi}
           />
         <CustomButton onClick={handleOnClick} size="small">
           <SettingsIcon />

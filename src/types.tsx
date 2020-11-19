@@ -30,6 +30,7 @@ export interface IMidiFunctions {
   downloadProgress: number;
   synthSettingsApi: ISynthSettingsApi;
   trackFxApi: ITrackFxApi;
+  delayApi: IDelayApi
 }
 
 interface MetronomeApi {
@@ -136,8 +137,15 @@ export interface ITrackFxApi {
     trackIndex: number,
     fxIndex: number,
     key: keyof IExtraConnection,
-    value: number | boolean
+    value: number | string | null | boolean
   ) => void;
+  getEffectsActivated: () => boolean;
+  toggleEffectsActivated: () => void;
+}
+
+export interface IDelayApi {
+  getDelay: () => number;
+  setDelay: (delay: number) => void;
 }
 
 export type AvailableSynths = "Synth" | "AMSynth" | "FMSynth";
@@ -180,14 +188,20 @@ export interface IDelaySettings {
   delayTime: Time;
 }
 
-export type AvailableEffects = Reverb | FeedbackDelay | Chorus | Phaser | Gain | Filter;
+export type AvailableEffects =
+  | Reverb
+  | FeedbackDelay
+  | Chorus
+  | Phaser
+  | Gain
+  | Filter;
 export enum AvailableEffectsNames {
   reverb = "Reverb",
   delay = "FeedbackDelay",
   chorus = "Chorus",
   phaser = "Phaser",
   gain = "Gain",
-  filter = "Filter"
+  filter = "Filter",
 }
 
 export type Track = Sampler | Synth<SynthOptions>[];
@@ -202,4 +216,9 @@ export type forceLocalRender = (skipWait?: boolean) => void;
 export interface IExtraConnection {
   toMaster: boolean;
   effectorIndex: number | null;
+}
+
+export interface IHorizontalApi {
+  isHorizontal: boolean;
+  setIsHorizontal: (isHorizontal: boolean) => void;
 }

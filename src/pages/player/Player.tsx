@@ -8,7 +8,7 @@ import Canvas from "features/canvas/Canvas";
 import Toolbar from "features/toolbar/Toolbar";
 import ProgressBar from "features/canvas/canvasComponents/progressBar/ProgressBar";
 
-import useMidiData from "audio/midiData";
+import MyMidiPlayer from "audio/midiPlayer";
 import * as types from "types";
 import { useParams } from "react-router";
 
@@ -17,63 +17,49 @@ import { useEventListener } from "utils/customHooks";
 import { Helmet } from "react-helmet";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
 
-async function downloadMidi(
-  loadArrayBuffer: (blob: XMLHttpRequest["response"]) => void,
-  fileName: string,
-  onLoad: () => void,
-  onError: () => void
-) {
-  const midiRef = storageRef.child("midi").child(fileName);
-  const url = await midiRef.getDownloadURL();
-  const xhr = new XMLHttpRequest();
-  xhr.responseType = "arraybuffer";
-  xhr.onload = () => {
-    const blob = xhr.response;
-    loadArrayBuffer(blob);
-    onLoad();
-    console.log("File Loaded");
-  };
-  xhr.onerror = () => {
-    // probably cors
-    onError();
-  };
-  xhr.open("GET", url);
-  xhr.send();
-  return true;
-}
-
 export default function Player(): JSX.Element {
-  const [midiFunctions, groupedNotes]: [
-    types.IMidiFunctions,
-    types.IGroupedNotes[]
-  ] = useMidiData();
+  const [instrumentLoading, setInstrumentLoading] = useState<boolean>(false);
+  const [downloadProgress, setDownloadProgress] = useState<number>(0);
+  // const [midiFunctions, groupedNotes]: [
+  //   types.IMidiFunctions,
+  //   types.IGroupedNotes[]
+  // ] = useMidiData();
+  const midiPlayerRef = useRef<MyMidiPlayer>();
+  // const groupedNotes = midiPlayer.groupedNotes;
   const [songName, setSongName] = useState<string>("");
   const [artist, setArtist] = useState<string>("");
   const [isHovering, setIsHovering] = useState<boolean>(false);
+  const [isHorizontal, setIsHorizontal] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [forceRender, setForceRender] = useState<number>(0); // for re-render on volume change
+  const [forceCanvasRender, setForceCanvasRender] = useState<number>(0);
   const urlParams: any = useParams();
   const firestore = useFirestore();
   const fullScreen = useFullScreenHandle();
+
+  function forceRerender() {
+    setForceRender(forceRender + 1);
+  }
+  function forceCanvasRerender() {
+    setForceCanvasRender(forceCanvasRender + 1);
+  }
+
+  const forceRerenderRef = useRef<any>();
+  const forceCanvasRerenderRef = useRef<any>();
+  forceRerenderRef.current = forceRerender; // reassigning may be slow?
+  forceCanvasRerenderRef.current = forceCanvasRerender; // reassigning may be slow?
+
   useEffect(() => {
     const songId: string = urlParams.songId;
-    async function download() {
-      setIsLoading(true);
-      await downloadMidi(
-        midiFunctions.loadArrayBuffer,
-        `${songId}.mid`,
-        () => {
-          // on success
-          // setIsLoading(false) is in initFallingNotes
-          forceRerender();
-          console.log("Finished downloading");
-        },
-        () => {
-          // on error
-          setIsLoading(false);
-          alert("Unknown error: unable to download MIDI");
-        }
+    async function initMidiPlayer() {
+      const midiPlayer_ = new MyMidiPlayer(
+        setDownloadProgress,
+        setInstrumentLoading,
+        () => forceCanvasRerenderRef.current()
       );
+      await midiPlayer_.init();
+      await midiPlayer_.downloadMidiFromFirebase(songId, forceRerender);
+      midiPlayerRef.current = midiPlayer_;
     }
     async function fetchSongDetails() {
       const ref = await firestore.collection("midi").doc(songId);
@@ -82,102 +68,87 @@ export default function Player(): JSX.Element {
       setSongName(snapshot.data()?.filename);
       setArtist(snapshot.data()?.artist);
     }
-    download();
+    initMidiPlayer();
     fetchSongDetails();
   }, []);
 
   const loadingScreenMemo = useMemo(() => {
-    const progress = `${Math.floor(midiFunctions.downloadProgress * 100)}%`;
+    const progress = `${Math.floor(downloadProgress * 100)}%`;
     return (
-      (midiFunctions.instrumentLoading || isLoading) && (
-        <LoadingScreen text={progress} />
-      )
+      (instrumentLoading || isLoading) && <LoadingScreen text={progress} />
     );
-  }, [
-    midiFunctions.instrumentLoading,
-    isLoading,
-    midiFunctions.downloadProgress,
-  ]);
+  }, [instrumentLoading, isLoading, downloadProgress]);
 
-  const currentTick = midiFunctions.getCurrentTick();
-
-  function forceRerender() {
-    setForceRender(forceRender + 1);
-  }
-  const forceRerenderRef = useRef<any>();
-  forceRerenderRef.current = forceRerender; // reassigning may be slow?
+  const currentTick = midiPlayerRef.current?.midiPlayer.getCurrentTick();
 
   const toolbarMemo = useMemo(
-    () => (
-      <Toolbar
-        play={midiFunctions.play}
-        pause={midiFunctions.pause}
-        restart={midiFunctions.restart}
-        isHovering={isHovering}
-        setIsHovering={setIsHovering}
-        changeVolume={midiFunctions.changeVolume}
-        getVolumeDb={midiFunctions.getVolumeDb}
-        forceRerender={forceRerender}
-        loadArrayBuffer={midiFunctions.loadArrayBuffer}
-        getIsPlaying={midiFunctions.getIsPlaying}
-        metronomeApi={midiFunctions.metronomeApi}
-        loopApi={midiFunctions.loopApi}
-        tempoApi={midiFunctions.tempoApi}
-        isFullScreen={fullScreen.active}
-        openFullScreen={fullScreen.enter}
-        closeFullScreen={fullScreen.exit}
-        isFullScreening={fullScreen.active}
-        samplerSourceApi={midiFunctions.samplerSourceApi}
-        sampleApi={midiFunctions.sampleApi}
-        synthSettingsApi={midiFunctions.synthSettingsApi}
-        trackFxApi={midiFunctions.trackFxApi}
-      />
-    ),
+    () =>
+      midiPlayerRef.current && (
+        <Toolbar
+          midiPlayer={midiPlayerRef.current}
+          isHovering={isHovering}
+          setIsHovering={setIsHovering}
+          forceRerender={forceRerender}
+          isFullScreen={fullScreen.active}
+          openFullScreen={fullScreen.enter}
+          closeFullScreen={fullScreen.exit}
+          isFullScreening={fullScreen.active}
+          horizontalApi={{ isHorizontal, setIsHorizontal }}
+        />
+      ),
     [
       isHovering,
       forceRender,
-      midiFunctions.getIsPlaying(),
+      midiPlayerRef.current?.getIsPlaying(),
       fullScreen.active,
-      midiFunctions.synthSettingsApi.getSynthName(),
+      midiPlayerRef.current?.myTonejs?.getSynthName(),
     ]
   );
 
   const canvasMemo = useMemo(
-    () => (
-      <Canvas
-        getCurrentTick={midiFunctions.getCurrentTick}
-        getTicksPerBeat={midiFunctions.getTicksPerBeat}
-        groupedNotes={groupedNotes}
-        ticksPerBeat={midiFunctions.getTicksPerBeat() || 0}
-        setIsHovering={setIsHovering}
-        getIsPlaying={midiFunctions.getIsPlaying}
-        playRangeApi={midiFunctions.playRangeApi}
-        getForceRerender={() => forceRerenderRef.current}
-        forceRender={forceRender}
-        isFullScreen={fullScreen.active}
-        pause={midiFunctions.pause}
-        setIsLoading={setIsLoading}
-      />
-    ),
-    [isLoading, currentTick, forceRender, fullScreen.active]
+    () =>
+      midiPlayerRef.current && (
+        <Canvas
+          midiPlayer={midiPlayerRef.current}
+          setIsHovering={setIsHovering}
+          getForceRerender={() => forceRerenderRef.current}
+          forceRender={forceRender}
+          isFullScreen={fullScreen.active}
+          setIsLoading={setIsLoading}
+          isHorizontal={isHorizontal}
+        />
+      ),
+    [
+      isLoading,
+      midiPlayerRef.current?.midiPlayer.getCurrentTick(),
+      forceRender,
+      fullScreen.active,
+      isHorizontal,
+    ]
   );
-  const totalTicks = midiFunctions.getTotalTicks();
-  const songProgress = totalTicks ? ((currentTick || 0) / totalTicks) * 100 : 0;
-  const progressBarMemo = useMemo(
-    () => (
-      <ProgressBar
-        songProgress={songProgress}
-        skipToTick={midiFunctions.skipToTick}
-        setIsHovering={setIsHovering}
-        forceRerender={forceRerender}
-        totalTicks={totalTicks || 0}
-        isFullScreen={fullScreen.active}
-        isHovering={isHovering}
-        getIsPlaying={midiFunctions.getIsPlaying}
-      />
-    ),
-    [currentTick, isHovering, forceRender, fullScreen.active]
-  );
+  const progressBarMemo = useMemo(() => {
+    const totalTicks = midiPlayerRef.current?.getTotalTicks();
+    const songProgress = totalTicks
+      ? ((currentTick || 0) / totalTicks) * 100
+      : 0;
+
+    return (
+      <div>
+        {midiPlayerRef.current && (
+          <ProgressBar
+            songProgress={songProgress}
+            skipToTick={midiPlayerRef.current.skipToTick}
+            setIsHovering={setIsHovering}
+            forceRerender={forceRerender}
+            totalTicks={totalTicks || 0}
+            isFullScreen={fullScreen.active}
+            isHovering={isHovering}
+            getIsPlaying={midiPlayerRef.current.getIsPlaying}
+          />
+        )}
+      </div>
+    );
+  }, [currentTick, isHovering, forceRender, fullScreen.active]);
 
   const fullScreenMemo = useMemo(
     () => (
@@ -217,15 +188,17 @@ export default function Player(): JSX.Element {
   useEventListener("wheel", (e) => {
     // scroll up and down
     // e.preventDefault();
-    const currentTick: number | undefined = midiFunctions.getCurrentTick();
-    const totalTicks = midiFunctions.getTotalTicks();
+    const currentTick:
+      | number
+      | undefined = midiPlayerRef.current?.midiPlayer.getCurrentTick();
+    const totalTicks = midiPlayerRef.current?.getTotalTicks();
     if (currentTick && totalTicks) {
       let newTick: number = currentTick + e.deltaY / 2;
       const SCROLL_BUFFER: number = 300;
       const withinUpperLimit = newTick + SCROLL_BUFFER < totalTicks;
       const withinLowerLimit = newTick > 0;
       if (withinUpperLimit && withinLowerLimit) {
-        midiFunctions.skipToTick(newTick);
+        midiPlayerRef.current?.skipToTick(newTick);
         forceRerenderRef.current && forceRerenderRef.current();
       }
     }

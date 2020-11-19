@@ -13,14 +13,20 @@ import { storageRef } from "firebaseApi/firebase";
 import * as types from "types";
 import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
 import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
-import { ISamplesDialog } from "./types";
+import MyMidiPlayer from "audio/midiPlayer";
+
+interface IDownloadTabProps {
+  open: boolean;
+  setOpen: (bool: boolean) => void;
+  forceRerender: types.forceRerender;
+  midiPlayer: MyMidiPlayer;
+}
 
 export default function DownloadTab({
   setOpen,
-  sampleApi,
+  midiPlayer,
   forceRerender,
-  samplerSourceApi,
-}: ISamplesDialog) {
+}: IDownloadTabProps) {
   console.log("RERENDERED DOWNLOAD TAB");
   const [samples, setSamples] = useState<string[]>([]);
   const [downloadedSamples, setDownloadedSamples] = useState<Set<string>>(
@@ -54,8 +60,8 @@ export default function DownloadTab({
   }
 
   function handleOnSubmit() {
-    sampleApi.setSample(chosenSample);
-    samplerSourceApi.setSamplerSource(types.SamplerSourceEnum.server);
+    midiPlayer.setSampleName(chosenSample);
+    midiPlayer.setSamplerSource(types.SamplerSourceEnum.server);
     localStorageUtils.setSampleName(chosenSample);
     setOpen(false);
     forceRerender(); // to start downloading

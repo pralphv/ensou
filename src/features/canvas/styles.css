@@ -1,4 +1,30 @@
-.fullscreen-enabled canvas {
-  height: 90vh;
+.fullscreen-enabled  canvas {
+  height: 95vh;
   width: 100vw;
+}
+.fullscreen-enabled .horizontal canvas {
+  height: 160vh;
+  width: 60vw;
+}
+
+.vertical canvas {
+  display: block;
+  width: 80vw;
+  max-width: 142.22vh;
+  /* 80 * 16/9 = 142.22 */
+  height: 45vw;
+  /* height:width ratio = 9/16 = .5625  */
+  max-height: 100vh;
+  background-color: black;
+}
+
+.player-canvas {
+  background: black;
+}
+
+.horizontal {
+  -ms-transform: rotate(90deg) translateY(-100%) translateX(-20%);
+  -webkit-transform: rotate(90deg) translateY(-100%) translateX(-20%);
+  transform: rotate(90deg) translateY(-100%) translateX(-20%);
+  transform-origin: top left;
 }

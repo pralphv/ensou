@@ -4,17 +4,24 @@ import Dialog from "@material-ui/core/Dialog";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import Paper from "@material-ui/core/Paper";
-import { ISamplesDialog } from "./types";
 import DownloadTab from "./DownloadTab";
 import LocalSamplesTab from "./LocalSamplesTab";
+import * as types from "types";
+import MyMidiPlayer from "audio/midiPlayer";
+
+interface ISamplesDialogProps {
+  open: boolean;
+  setOpen: (bool: boolean) => void;
+  forceRerender: types.forceRerender;
+  midiPlayer: MyMidiPlayer;
+}
 
 export default function SamplesDialog({
   open,
   setOpen,
-  sampleApi,
+  midiPlayer,
   forceRerender,
-  samplerSourceApi,
-}: ISamplesDialog) {
+}: ISamplesDialogProps) {
   const [value, setValue] = React.useState(0);
 
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
@@ -36,18 +43,16 @@ export default function SamplesDialog({
           <LocalSamplesTab
             setOpen={setOpen}
             open={open}
-            sampleApi={sampleApi}
+            midiPlayer={midiPlayer}
             forceRerender={forceRerender}
-            samplerSourceApi={samplerSourceApi}
           />
         )}
         {value === 1 && (
           <DownloadTab
             open={open}
             setOpen={setOpen}
-            sampleApi={sampleApi}
+            midiPlayer={midiPlayer}
             forceRerender={forceRerender}
-            samplerSourceApi={samplerSourceApi}
           />
         )}
       </Paper>

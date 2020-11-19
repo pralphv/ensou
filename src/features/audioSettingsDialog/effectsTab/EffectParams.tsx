@@ -99,7 +99,7 @@ export default function EffectParams({
 }: IEffectParams): JSX.Element {
   return (
     <div>
-      {EFFECT_PARAMS_MAP[effectName].map((param, i) => {
+      {effectName && EFFECT_PARAMS_MAP[effectName].map((param, i) => {
         let step = FIELD_MIN_MAX[param]?.step;
         let min = FIELD_MIN_MAX[param]?.min;
         let max = FIELD_MIN_MAX[param]?.max;

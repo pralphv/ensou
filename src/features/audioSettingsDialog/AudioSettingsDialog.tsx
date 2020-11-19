@@ -6,30 +6,26 @@ import Tab from "@material-ui/core/Tab";
 
 import * as types from "types";
 import SynthTab from "./SynthTab";
+import SamplerTab from "./SamplerTab";
 import EffectsTab from "./effectsTab/EffectsTab";
+import MyMidiPlayer from "audio/midiPlayer";
 
 interface ISamplesDialog {
+  midiPlayer: MyMidiPlayer;
   open: boolean;
   setOpen: (bool: boolean) => void;
-  sampleApi: types.IMidiFunctions["sampleApi"];
   forceRerender: types.forceRerender;
-  samplerSourceApi: types.IMidiFunctions["samplerSourceApi"];
   isSampler: boolean;
-  synthSettingsApi: types.IMidiFunctions["synthSettingsApi"];
   forceLocalRender: () => void;
-  trackFxApi: types.IMidiFunctions["trackFxApi"];
 }
 
 export default function AudioSettingsDialog({
+  midiPlayer,
   open,
   setOpen,
-  sampleApi,
   forceRerender,
-  samplerSourceApi,
   isSampler,
-  synthSettingsApi,
   forceLocalRender,
-  trackFxApi,
 }: ISamplesDialog) {
   const [value, setValue] = React.useState(0);
 
@@ -47,18 +43,23 @@ export default function AudioSettingsDialog({
         <Tab label={isSampler ? "Sampler" : "Synth"} />
         <Tab label="Effects" />
       </Tabs>
-      {value === 0 && ( !isSampler &&
-        <SynthTab
-          sampleApi={sampleApi}
-          forceRerender={forceRerender}
-          synthSettingsApi={synthSettingsApi}
-          forceLocalRender={forceLocalRender}
-        />
-      )}
+      {value === 0 &&
+        (isSampler ? (
+          <SamplerTab
+            midiPlayer={midiPlayer}
+            forceLocalRender={forceLocalRender}
+          />
+        ) : (
+          <SynthTab
+            midiPlayer={midiPlayer}
+            forceRerender={forceRerender}
+            forceLocalRender={forceLocalRender}
+          />
+        ))}
       {value === 1 && (
         <EffectsTab
           forceRerender={forceRerender}
-          trackFxApi={trackFxApi}
+          midiPlayer={midiPlayer}
           forceLocalRender={forceLocalRender}
         />
       )}

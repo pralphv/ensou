@@ -1,4 +1,6 @@
-import React, { useRef, useEffect, useMemo } from "react";
+import React, { useRef, useEffect, useState } from "react";
+
+import clsx from "clsx";
 
 import * as canvasBackround from "./canvasComponents/canvasBackground/CanvasBackground";
 import * as flashingColumns from "./canvasComponents/flashingColumns/FlashingColumns";
@@ -11,6 +13,7 @@ import * as highlighter from "./canvasComponents/highlighter/Highlighter";
 import * as mouseEvents from "./canvasComponents/mouseEventHandler/MouseEventHandler";
 import { PIANO_TUNING } from "audio/constants";
 import { convertMidiTickToCanvasHeight } from "./utils";
+import MyMidiPlayer from "audio/midiPlayer";
 
 import * as PIXI from "pixi.js";
 import * as types from "types";
@@ -18,17 +21,12 @@ import { throttle } from "lodash";
 import "./styles.css";
 
 interface CanvasProps {
-  getCurrentTick: types.IMidiFunctions["getCurrentTick"];
-  getTicksPerBeat: types.IMidiFunctions["getTicksPerBeat"];
-  ticksPerBeat: number;
-  groupedNotes: types.IGroupedNotes[];
+  midiPlayer: MyMidiPlayer;
   setIsHovering: (hovering: boolean) => void;
-  getIsPlaying: types.IMidiFunctions["getIsPlaying"];
-  playRangeApi: types.IMidiFunctions["playRangeApi"];
-  pause: types.IMidiFunctions["pause"];
   getForceRerender: () => types.forceRerender;
   forceRender: number;
   isFullScreen: boolean;
+  isHorizontal: boolean;
   setIsLoading: (loading: boolean) => void;
 }
 
@@ -51,31 +49,56 @@ let TIMER: NodeJS.Timeout;
 // }
 
 export default function Canvas({
-  getCurrentTick,
-  getTicksPerBeat,
-  groupedNotes,
-  ticksPerBeat,
+  midiPlayer,
   setIsHovering,
-  getIsPlaying,
-  playRangeApi,
   getForceRerender,
   forceRender,
   isFullScreen,
-  pause,
+  isHorizontal,
   setIsLoading,
 }: CanvasProps): JSX.Element {
-  let canvasWidth: number = WIDTH >= 800 ? window.innerWidth * 0.75 : WIDTH;
-  let canvasHeight: number = (canvasWidth / 16) * 9;
+  const [lastHorizontal, setLastHorizontal] = useState(false);
+  let canvasWidth: number = WIDTH;
+  let canvasHeight: number = HEIGHT;
   const noOfNotes: number = Math.max(...Object.values(PIANO_TUNING));
   const noteWidth: number = canvasWidth / noOfNotes;
 
   let playingNotes: Set<number> = new Set();
-  const currentTick = getCurrentTick() || 0;
-  groupedNotes.forEach((note: types.IGroupedNotes) => {
+  const currentTick = midiPlayer.midiPlayer.getCurrentTick() || 0;
+  midiPlayer.groupedNotes.forEach((note: types.IGroupedNotes) => {
     if (currentTick >= note.on && currentTick <= note.off) {
       playingNotes.add(note.x);
     }
   });
+
+  function initCanvasComponents() {
+    if (app.current) {
+      canvasBackround.initGuideLine(app.current);
+      beatLines.initBeatLine(app.current);
+      beatLines.draw(app.current, currentTick, midiPlayer.ticksPerBeat * 4); // to init container, + 1 zIndex
+      flashingColumns.initFlashingColumns(noOfNotes, noteWidth, app.current);
+      fallingNotes.initFallingNotes(
+        // to init container, + 1 zIndex
+        midiPlayer.groupedNotes,
+        noteWidth,
+        app.current as PIXI.Application,
+        setIsLoading
+      );
+      bottomTiles.initBottomTiles(noteWidth, 33, noOfNotes, app.current);
+
+      flashingBottomTiles.initFlashingBottomTiles(
+        noOfNotes,
+        noteWidth,
+        app.current
+      );
+
+      flashingLightsBottomTiles.initFlashingLightsBottomTiles(
+        noOfNotes,
+        noteWidth,
+        app.current
+      );
+    }
+  }
 
   const app = useRef<PIXI.Application>();
   useEffect(() => {
@@ -88,33 +111,10 @@ export default function Canvas({
       clearBeforeRender: true,
       // resolution: 1
     });
-
     PIXI_CANVAS.appendChild(app.current.view);
-    canvasBackround.initGuideLine(app.current);
-    beatLines.initBeatLine(app.current);
-    beatLines.draw(app.current, currentTick, ticksPerBeat * 4); // to init container, + 1 zIndex
-    flashingColumns.initFlashingColumns(noOfNotes, noteWidth, app.current);
-    fallingNotes.initFallingNotes(
-      // to init container, + 1 zIndex
-      groupedNotes,
-      noteWidth,
-      app.current as PIXI.Application,
-      setIsLoading
-    );
-    bottomTiles.initBottomTiles(noteWidth, 33, noOfNotes, app.current);
 
-    flashingBottomTiles.initFlashingBottomTiles(
-      noOfNotes,
-      noteWidth,
-      app.current
-    );
-
-    flashingLightsBottomTiles.initFlashingLightsBottomTiles(
-      noOfNotes,
-      noteWidth,
-      app.current
-    );
     app.current.start();
+    initCanvasComponents();
     return function cleanup() {
       console.log("Destroying app");
       if (app.current?.view) {
@@ -125,21 +125,39 @@ export default function Canvas({
   }, []);
 
   useEffect(() => {
+    if (isHorizontal && app.current) {
+      setLastHorizontal(true);
+      if (isFullScreen) {
+        app.current?.renderer.resize(window.outerHeight, window.outerWidth);
+      } else {
+        app.current?.renderer.resize(WIDTH, HEIGHT);
+      }
+      initCanvasComponents();
+    } else {
+      if (isHorizontal && !lastHorizontal) {
+        // cancel full screen and not horizontal anymore
+        initCanvasComponents();
+      }
+      setLastHorizontal(false);
+    }
+  }, [isHorizontal, isFullScreen]);
+
+  useEffect(() => {
     fallingNotes.initFallingNotes(
-      groupedNotes,
+      midiPlayer.groupedNotes,
       noteWidth,
       app.current as PIXI.Application,
       setIsLoading
     );
-  }, [groupedNotes]);
+  }, [midiPlayer.groupedNotes]);
 
   useEffect(() => {
     //highlighter
-    const playRange_ = playRangeApi.getPlayRange();
+    const playRange_ = midiPlayer.playRange;
     if (!app.current || !currentTick) {
       return;
     }
-    const ticksPerBeat = getTicksPerBeat() as number;
+    const ticksPerBeat = midiPlayer.ticksPerBeat;
     const upperLimit = ticksPerBeat * 4 * 3; // 4 beats, 3 bars
     if (
       !(
@@ -153,12 +171,12 @@ export default function Canvas({
       return;
     }
     const endY = convertMidiTickToCanvasHeight(
-      playRangeApi.getPlayRange().endTick || 0,
+      midiPlayer.playRange.endTick || 0,
       currentTick,
       app.current.screen.height
     );
     const startY = convertMidiTickToCanvasHeight(
-      playRangeApi.getPlayRange().startTick || 0,
+      midiPlayer.playRange.startTick || 0,
       currentTick,
       app.current.screen.height
     );
@@ -170,25 +188,25 @@ export default function Canvas({
       fallingNotes.draw(
         currentTick,
         app.current.screen.height,
-        getTicksPerBeat() as number
+        midiPlayer.ticksPerBeat
       );
       flashingColumns.draw(playingNotes);
       flashingBottomTiles.draw(playingNotes);
       flashingLightsBottomTiles.draw(playingNotes);
-      beatLines.draw(app.current, currentTick, ticksPerBeat * 4);
+      beatLines.draw(app.current, currentTick, midiPlayer.ticksPerBeat * 4);
     }
   }, [currentTick]);
 
   mouseEvents.useMouseEvents(
     app.current,
-    getCurrentTick,
-    getIsPlaying,
+    midiPlayer.midiPlayer.getCurrentTick,
+    midiPlayer.getIsPlaying,
     (playRange: types.PlayRange) => {
-      playRangeApi.setPlayRange(playRange);
+      midiPlayer.setPlayRange(playRange.startTick, playRange.endTick);
       getForceRerender()();
     },
     () => {
-      pause();
+      midiPlayer.pause();
       getForceRerender()();
     }
   );
@@ -197,16 +215,24 @@ export default function Canvas({
   //   () => hideToolBarOnMouseInactive(setIsHovering),
   //   []
   // );
-
   return (
     <div
-      ref={(thisDiv: HTMLDivElement) => {
-        PIXI_CANVAS = thisDiv;
-      }}
-      style={{ background: "black" }}
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
-      // onMouseMove={throttleMemo}
-    ></div>
+      className={clsx({
+        "player-canvas": true,
+      })}
+    >
+      <div
+        ref={(thisDiv: HTMLDivElement) => {
+          PIXI_CANVAS = thisDiv;
+        }}
+        className={clsx({
+          horizontal: isHorizontal && isFullScreen,
+          vertical: !isFullScreen,
+        })}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+        // onMouseMove={throttleMemo}
+      ></div>
+    </div>
   );
 }

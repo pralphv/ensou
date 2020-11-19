@@ -9,29 +9,20 @@ import GraphicEqIcon from "@material-ui/icons/GraphicEq";
 import * as types from "types";
 import SamplesDialog from "features/samplesDialog/SamplesDialog";
 import AudioSettingsDialog from "features/audioSettingsDialog/AudioSettingsDialog";
+import MyMidiPlayer from "audio/midiPlayer";
 
 interface ISettingsMenu {
+  midiPlayer: MyMidiPlayer;
   forceRerender: types.forceRerender;
-  samplerSourceApi: types.IMidiFunctions["samplerSourceApi"];
-  getIsPlaying: types.IMidiFunctions["getIsPlaying"];
-  metronomeApi: types.IMidiFunctions["metronomeApi"];
-  loopApi: types.IMidiFunctions["loopApi"];
   open: boolean;
-  sampleApi: types.IMidiFunctions["sampleApi"];
-  synthSettingsApi: types.IMidiFunctions["synthSettingsApi"];
-  trackFxApi: types.IMidiFunctions["trackFxApi"];
+  horizontalApi: types.IHorizontalApi;
 }
 
 export default function SettingsMenu({
   forceRerender,
-  samplerSourceApi,
-  getIsPlaying,
-  metronomeApi,
-  loopApi,
+  midiPlayer,
   open,
-  sampleApi,
-  synthSettingsApi,
-  trackFxApi,
+  horizontalApi,
 }: ISettingsMenu): JSX.Element {
   const [forceLocalRenderDummy, setForceLocalRenderDummy] = useState<number>(0);
   const [samplerDialogOpen, setSamplerDialogOpen] = useState<boolean>(false);
@@ -56,8 +47,8 @@ export default function SettingsMenu({
   }
 
   async function handleOnChangeDialog() {
-    if (samplerSourceApi.checkIfSampler()) {
-      samplerSourceApi.setSamplerSource(types.SamplerSourceEnum.synth);
+    if (midiPlayer.checkIfSampler()) {
+      midiPlayer.setSamplerSource(types.SamplerSourceEnum.synth);
       forceRerender();
     } else {
       setSamplerDialogOpen(true);
@@ -65,19 +56,19 @@ export default function SettingsMenu({
   }
 
   function handleOnChangeMetronome() {
-    if (metronomeApi.getIsMetronome()) {
-      metronomeApi.setIsNotMetronome();
+    if (midiPlayer.getIsMetronome()) {
+      midiPlayer.setIsMetronome(false);
     } else {
-      metronomeApi.setIsMetronome();
+      midiPlayer.setIsMetronome(true);
     }
     forceRerender();
   }
 
   function handleOnChangeLoop() {
-    if (loopApi.getIsLoop()) {
-      loopApi.setIsNotLoop();
+    if (midiPlayer.getIsLoop()) {
+      midiPlayer.setIsLoop(false);
     } else {
-      loopApi.setIsLoop();
+      midiPlayer.setIsLoop(true);
     }
     forceRerender();
   }
@@ -87,8 +78,7 @@ export default function SettingsMenu({
       <SamplesDialog
         open={samplerDialogOpen}
         setOpen={setSamplerDialogOpen}
-        sampleApi={sampleApi}
-        samplerSourceApi={samplerSourceApi}
+        midiPlayer={midiPlayer}
         forceRerender={forceRerender}
       />
     ),
@@ -98,20 +88,17 @@ export default function SettingsMenu({
   const audioSettingsDialogMemo = useMemo(
     () => (
       <AudioSettingsDialog
+        midiPlayer={midiPlayer}
         open={audioSettingsDialogOpen}
         setOpen={setAudioSettingsDialogOpen}
-        sampleApi={sampleApi}
-        samplerSourceApi={samplerSourceApi}
         forceRerender={forceRerender}
-        isSampler={samplerSourceApi.checkIfSampler()}
-        synthSettingsApi={synthSettingsApi}
+        isSampler={midiPlayer.checkIfSampler()}
         forceLocalRender={forceLocalRender}
-        trackFxApi={trackFxApi}
       />
     ),
     [
       audioSettingsDialogOpen,
-      synthSettingsApi.getSynthName(),
+      midiPlayer.myTonejs?.getSynthName(),
       forceLocalRenderDummy,
     ]
   );
@@ -121,30 +108,39 @@ export default function SettingsMenu({
       <List
         component="nav"
         style={{
-          // not use mui for speed sorry
           display: open ? "block" : "none",
           position: "absolute",
           backgroundColor: "#1e1e1e",
           zIndex: 100,
-          marginTop: `-${55 * 4}px`,
+          marginTop: `-${55 * 5}px`,
           right: "38px",
           opacity: 0.9,
         }}
       >
         <ListItem button>
+          <ListItemText primary="Horizontal" />
+          <Switch
+            checked={horizontalApi.isHorizontal}
+            onChange={() => {
+              const isHorizontal = horizontalApi.isHorizontal ? false : true;
+              horizontalApi.setIsHorizontal(isHorizontal);
+            }}
+          />
+        </ListItem>
+        <ListItem button>
           <ListItemText primary="Use Samples" />
           <Switch
             // color="secondary"
-            checked={samplerSourceApi.checkIfSampler()}
+            checked={midiPlayer.checkIfSampler()}
             onChange={handleOnChangeDialog}
-            disabled={getIsPlaying()}
+            disabled={midiPlayer.getIsPlaying()}
           />
         </ListItem>
         <ListItem button>
           <ListItemText primary="Metronome" />
           <Switch
             // color="secondary"
-            checked={metronomeApi.getIsMetronome()}
+            checked={midiPlayer.getIsMetronome()}
             onChange={handleOnChangeMetronome}
           />
         </ListItem>
@@ -152,7 +148,7 @@ export default function SettingsMenu({
           <ListItemText primary="Loop" />
           <Switch
             // color="secondary"
-            checked={loopApi.getIsLoop()}
+            checked={midiPlayer.getIsLoop()}
             onChange={handleOnChangeLoop}
           />
         </ListItem>
