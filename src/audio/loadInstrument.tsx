@@ -411,13 +411,15 @@ export class Instruments {
       // gainNode.gain
       gainNode.gain.rampTo(value);
     } else {
-      try {
-        //@ts-ignore
-        this._effectChains[trackIndex][fxIndex][param].value = value;
-      } catch (error) {
-        //@ts-ignore
-        this._effectChains[trackIndex][fxIndex][param] = value;
-      }
+      this._effectChains[trackIndex][fxIndex].set({ [param]: value });
+      // return
+      // try {
+      //   //@ts-ignore
+      //   // this._effectChains[trackIndex][fxIndex][param].value = value;
+      // } catch (error) {
+      //   //@ts-ignore
+      //   this._effectChains[trackIndex][fxIndex][param] = value;
+      // }
     }
     localStorageUtils.setFxSettings(trackIndex, fxIndex, param, value);
   }
@@ -547,7 +549,6 @@ export class Instruments {
   setSynthName(synthName: types.AvailableSynthsEnum) {
     this.synthName = synthName;
     localStorageUtils.setSynthName(synthName);
-
   }
 
   getEffectsChain() {
