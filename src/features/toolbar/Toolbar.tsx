@@ -18,11 +18,9 @@ interface ToolBarProps {
   isHovering: boolean;
   setIsHovering: (hovering: boolean) => void;
   forceRerender: types.forceRerender;
-  isFullScreen: boolean;
-  openFullScreen: () => void;
-  closeFullScreen: () => void;
-  isFullScreening: boolean;
   horizontalApi: types.IHorizontalApi;
+  isFullscreen: boolean;
+  setIsFullscreen: (isFullscreen: boolean) => void
 }
 
 export default function ToolBar({
@@ -30,11 +28,9 @@ export default function ToolBar({
   isHovering,
   setIsHovering,
   forceRerender,
-  isFullScreen,
-  openFullScreen,
-  closeFullScreen,
-  isFullScreening,
   horizontalApi,
+  isFullscreen,
+  setIsFullscreen
 }: ToolBarProps) {
   let opacity = midiPlayer.getIsPlaying() === true ? 0 : 1;
   opacity = isHovering ? 1 : opacity;
@@ -47,12 +43,12 @@ export default function ToolBar({
         opacity,
         marginTop: -15,
       }}
-      className={clsx({ toolbarFullScreen: isFullScreen })}
+      className={clsx({ toolbarFullScreen: isFullscreen })}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
       <ToggleButtonGroup>
-        <RestartButton restart={midiPlayer.restart} />
+        <RestartButton restart={() => {midiPlayer.restart(); forceRerender()}} />
         <PlayButton
           play={midiPlayer.play}
           pause={midiPlayer.pause}
@@ -74,7 +70,7 @@ export default function ToolBar({
           forceRerender={forceRerender}
         />
         <FileReaderButton
-          loadArrayBuffer={midiPlayer.midiPlayer.loadArrayBuffer}
+          loadArrayBuffer={midiPlayer.loadArrayBuffer}
           getIsPlaying={midiPlayer.getIsPlaying}
         />
 
@@ -84,9 +80,8 @@ export default function ToolBar({
           horizontalApi={horizontalApi}
         />
         <FullScreenButton
-          isFullScreening={isFullScreening}
-          openFullScreen={openFullScreen}
-          closeFullScreen={closeFullScreen}
+          isFullscreen={isFullscreen}
+          setIsFullscreen={setIsFullscreen}
         />
       </ToggleButtonGroup>
     </div>

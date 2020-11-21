@@ -47,6 +47,10 @@ let TIMER: NodeJS.Timeout;
 //     TIMER = timer;
 //   }, 1000);
 // }
+let canvasWidth: number = WIDTH;
+let canvasHeight: number = HEIGHT;
+const NO_OF_NOTES: number = Math.max(...Object.values(PIANO_TUNING));
+const NOTE_WIDTH: number = WIDTH / NO_OF_NOTES;
 
 export default function Canvas({
   midiPlayer,
@@ -58,10 +62,6 @@ export default function Canvas({
   setIsLoading,
 }: CanvasProps): JSX.Element {
   const [lastHorizontal, setLastHorizontal] = useState(false);
-  let canvasWidth: number = WIDTH;
-  let canvasHeight: number = HEIGHT;
-  const noOfNotes: number = Math.max(...Object.values(PIANO_TUNING));
-  const noteWidth: number = canvasWidth / noOfNotes;
 
   let playingNotes: Set<number> = new Set();
   const currentTick = midiPlayer.midiPlayer.getCurrentTick() || 0;
@@ -76,25 +76,25 @@ export default function Canvas({
       canvasBackround.initGuideLine(app.current);
       beatLines.initBeatLine(app.current);
       beatLines.draw(app.current, currentTick, midiPlayer.ticksPerBeat * 4); // to init container, + 1 zIndex
-      flashingColumns.initFlashingColumns(noOfNotes, noteWidth, app.current);
+      flashingColumns.initFlashingColumns(NO_OF_NOTES, NOTE_WIDTH, app.current);
       fallingNotes.initFallingNotes(
         // to init container, + 1 zIndex
         midiPlayer.groupedNotes,
-        noteWidth,
+        NOTE_WIDTH,
         app.current as PIXI.Application,
         setIsLoading
       );
-      bottomTiles.initBottomTiles(noteWidth, 33, noOfNotes, app.current);
+      bottomTiles.initBottomTiles(NOTE_WIDTH, 33, NO_OF_NOTES, app.current);
 
       flashingBottomTiles.initFlashingBottomTiles(
-        noOfNotes,
-        noteWidth,
+        NO_OF_NOTES,
+        NOTE_WIDTH,
         app.current
       );
 
       flashingLightsBottomTiles.initFlashingLightsBottomTiles(
-        noOfNotes,
-        noteWidth,
+        NO_OF_NOTES,
+        NOTE_WIDTH,
         app.current
       );
     }
@@ -145,7 +145,7 @@ export default function Canvas({
   useEffect(() => {
     fallingNotes.initFallingNotes(
       midiPlayer.groupedNotes,
-      noteWidth,
+      NOTE_WIDTH,
       app.current as PIXI.Application,
       setIsLoading
     );
@@ -199,7 +199,7 @@ export default function Canvas({
 
   mouseEvents.useMouseEvents(
     app.current,
-    midiPlayer.midiPlayer.getCurrentTick,
+    midiPlayer.getCurrentTick,
     midiPlayer.getIsPlaying,
     (playRange: types.PlayRange) => {
       midiPlayer.setPlayRange(playRange.startTick, playRange.endTick);
@@ -219,6 +219,7 @@ export default function Canvas({
     <div
       className={clsx({
         "player-canvas": true,
+        "fullscreen-enabled": isFullScreen
       })}
     >
       <div

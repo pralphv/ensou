@@ -5,21 +5,19 @@ import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
 import FullscreenIcon from "@material-ui/icons/Fullscreen";
 
 interface IFullScreenButton {
-  isFullScreening: boolean;
-  openFullScreen: () => void;
-  closeFullScreen: () => void;
+  isFullscreen: boolean;
+  setIsFullscreen: (isFullScreen: boolean) => void;
 }
 
 export default function FullScreenButton({
-  isFullScreening,
-  openFullScreen,
-  closeFullScreen,
+  isFullscreen,
+  setIsFullscreen,
 }: IFullScreenButton): JSX.Element {
   return (
     <div>
-      {isFullScreening ? (
+      {isFullscreen ? (
         <CustomButton
-          onClick={closeFullScreen}
+          onClick={() => setIsFullscreen(false)}
           // style={{ width: BUTTON_WIDTH, height: BUTTON_HEIGHT }}
           size="small"
         >
@@ -27,7 +25,7 @@ export default function FullScreenButton({
         </CustomButton>
       ) : (
         <CustomButton
-          onClick={openFullScreen}
+          onClick={() => setIsFullscreen(true)}
           //  style={{ width: BUTTON_WIDTH }}
           size="small"
         >

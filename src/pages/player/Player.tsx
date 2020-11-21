@@ -9,23 +9,18 @@ import Toolbar from "features/toolbar/Toolbar";
 import ProgressBar from "features/canvas/canvasComponents/progressBar/ProgressBar";
 
 import MyMidiPlayer from "audio/midiPlayer";
-import * as types from "types";
 import { useParams } from "react-router";
 
-import { storageRef } from "firebaseApi/firebase";
 import { useEventListener } from "utils/customHooks";
 import { Helmet } from "react-helmet";
-import { FullScreen, useFullScreenHandle } from "react-full-screen";
+// import { FullScreen, useFullScreenHandle } from "react-full-screen";
+import useFullscreenStatus from "./fullscreener";
+import "./styles.css";
 
 export default function Player(): JSX.Element {
   const [instrumentLoading, setInstrumentLoading] = useState<boolean>(false);
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
-  // const [midiFunctions, groupedNotes]: [
-  //   types.IMidiFunctions,
-  //   types.IGroupedNotes[]
-  // ] = useMidiData();
   const midiPlayerRef = useRef<MyMidiPlayer>();
-  // const groupedNotes = midiPlayer.groupedNotes;
   const [songName, setSongName] = useState<string>("");
   const [artist, setArtist] = useState<string>("");
   const [isHovering, setIsHovering] = useState<boolean>(false);
@@ -33,9 +28,12 @@ export default function Player(): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [forceRender, setForceRender] = useState<number>(0); // for re-render on volume change
   const [forceCanvasRender, setForceCanvasRender] = useState<number>(0);
+  const maximizableElement = React.useRef(null);
+  const [isFullscreen, setIsFullscreen, isError] = useFullscreenStatus(
+    maximizableElement
+  );
   const urlParams: any = useParams();
   const firestore = useFirestore();
-  const fullScreen = useFullScreenHandle();
 
   function forceRerender() {
     setForceRender(forceRender + 1);
@@ -47,7 +45,7 @@ export default function Player(): JSX.Element {
   const forceRerenderRef = useRef<any>();
   const forceCanvasRerenderRef = useRef<any>();
   forceRerenderRef.current = forceRerender; // reassigning may be slow?
-  forceCanvasRerenderRef.current = forceCanvasRerender; // reassigning may be slow?
+  forceCanvasRerenderRef.current = forceCanvasRerender;
 
   useEffect(() => {
     const songId: string = urlParams.songId;
@@ -70,6 +68,9 @@ export default function Player(): JSX.Element {
     }
     initMidiPlayer();
     fetchSongDetails();
+    return function cleanup() {
+      midiPlayerRef.current?.cleanup();
+    };
   }, []);
 
   const loadingScreenMemo = useMemo(() => {
@@ -89,18 +90,16 @@ export default function Player(): JSX.Element {
           isHovering={isHovering}
           setIsHovering={setIsHovering}
           forceRerender={forceRerender}
-          isFullScreen={fullScreen.active}
-          openFullScreen={fullScreen.enter}
-          closeFullScreen={fullScreen.exit}
-          isFullScreening={fullScreen.active}
           horizontalApi={{ isHorizontal, setIsHorizontal }}
+          isFullscreen={isFullscreen}
+          setIsFullscreen={setIsFullscreen}
         />
       ),
     [
       isHovering,
       forceRender,
       midiPlayerRef.current?.getIsPlaying(),
-      fullScreen.active,
+      isFullscreen,
       midiPlayerRef.current?.myTonejs?.getSynthName(),
     ]
   );
@@ -113,7 +112,7 @@ export default function Player(): JSX.Element {
           setIsHovering={setIsHovering}
           getForceRerender={() => forceRerenderRef.current}
           forceRender={forceRender}
-          isFullScreen={fullScreen.active}
+          isFullScreen={isFullscreen}
           setIsLoading={setIsLoading}
           isHorizontal={isHorizontal}
         />
@@ -122,7 +121,7 @@ export default function Player(): JSX.Element {
       isLoading,
       midiPlayerRef.current?.midiPlayer.getCurrentTick(),
       forceRender,
-      fullScreen.active,
+      isFullscreen,
       isHorizontal,
     ]
   );
@@ -141,25 +140,14 @@ export default function Player(): JSX.Element {
             setIsHovering={setIsHovering}
             forceRerender={forceRerender}
             totalTicks={totalTicks || 0}
-            isFullScreen={fullScreen.active}
+            isFullScreen={isFullscreen}
             isHovering={isHovering}
             getIsPlaying={midiPlayerRef.current.getIsPlaying}
           />
         )}
       </div>
     );
-  }, [currentTick, isHovering, forceRender, fullScreen.active]);
-
-  const fullScreenMemo = useMemo(
-    () => (
-      <FullScreen handle={fullScreen}>
-        {canvasMemo}
-        {progressBarMemo}
-        {toolbarMemo}
-      </FullScreen>
-    ),
-    [currentTick, isHovering, forceRender, fullScreen.active, isHovering]
-  );
+  }, [currentTick, isHovering, forceRender, isFullscreen]);
 
   const songNameMemo = useMemo(
     () => (
@@ -205,11 +193,13 @@ export default function Player(): JSX.Element {
   });
 
   return (
-    <div
-      style={{ width: "100vw", left: 0, position: "absolute", padding: "0.5%" }}
-    >
+    <div className="player">
       {helmentMemo}
-      {fullScreenMemo}
+      <div ref={maximizableElement}>
+        {canvasMemo}
+        {progressBarMemo}
+        {toolbarMemo}
+      </div>
       {songNameMemo}
       {loadingScreenMemo}
     </div>

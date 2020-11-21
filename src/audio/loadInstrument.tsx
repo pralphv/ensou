@@ -591,7 +591,12 @@ export class Instruments {
   setDelay(delay: number) {
     this._delay = delay;
     localStorageUtils.setDelay(delay);
+  }
 
+  cleanUp() {
+    this.clearPlayingNotes();
+    this.destroy();
+    console.log("Cleaned Intrument");
   }
 }
 
@@ -644,7 +649,7 @@ export function useInstrument(
       instrumentsRef.current = undefined;
       console.log("Cleaned Intrument");
     };
-  }, [getSamplerSource(), getSample(), getSynthName()]);
+  }, [getInstrument, getLocalSampler, getSample, getSamplerSource]);
 
   function triggerMetronome() {
     instrumentsRef.current?.playMetronome();

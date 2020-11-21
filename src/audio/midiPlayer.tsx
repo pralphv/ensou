@@ -62,8 +62,7 @@ export default class MyMidiPlayer {
     this.instrument = "piano";
     this.isMetronome = false;
     this.isPlaying = false;
-    this.isLoop = false;
-    this.isLoop = false;
+    this.isLoop = localStorageUtils.getIsLoop() || false;
     this.totalTicks = 0;
     this._isBlockMetronome = false;
     this.groupedNotes = [];
@@ -94,7 +93,13 @@ export default class MyMidiPlayer {
     this.setTempo = this.setTempo.bind(this);
     this.getIsPlaying = this.getIsPlaying.bind(this);
     this.downloadMidiFromFirebase = this.downloadMidiFromFirebase.bind(this);
-    
+    this.loadArrayBuffer = this.loadArrayBuffer.bind(this);
+    this.skipToTick = this.skipToTick.bind(this);
+    this.setTempoPercent = this.setTempoPercent.bind(this);
+    this.checkIfSampler = this.checkIfSampler.bind(this);
+    this.setSamplerSource = this.setSamplerSource.bind(this);
+    this._initToneJs = this._initToneJs.bind(this);
+    this.getCurrentTick = this.getCurrentTick.bind(this);
     const midiPlayer = new MidiPlayer.Player() as MidiPlayer.Player &
       MidiPlayer.Event &
       MidiPlayer.Track;
@@ -233,9 +238,10 @@ export default class MyMidiPlayer {
     this.midiPlayer.setTempo(tempo);
   }
 
-  setSamplerSource(source: types.SamplerSource) {
+  async setSamplerSource(source: types.SamplerSource) {
     this.samplerSource = source;
     localStorageUtils.setSamplerSource(source);
+    await this._initToneJs();
   }
 
   getTotalTicks(): number {
@@ -263,6 +269,7 @@ export default class MyMidiPlayer {
 
   setIsLoop(isLoop: boolean) {
     this.isLoop = isLoop;
+    localStorageUtils.setIsLoop(isLoop);
   }
 
   getIsMetronome() {
@@ -301,6 +308,10 @@ export default class MyMidiPlayer {
     this.sampleName = sampleName;
   }
 
+  getCurrentTick(): number {
+    return this.midiPlayer.getCurrentTick();
+  }
+
   async downloadMidiFromFirebase(songId: string, onLoad: () => void) {
     const midiRef = storageRef.child("midi").child(`${songId}.mid`);
     const url = await midiRef.getDownloadURL();
@@ -317,14 +328,9 @@ export default class MyMidiPlayer {
     };
     xhr.open("GET", url);
     xhr.send();
-
   }
 
-  async init() {
-    await this.fetchLocalSampler();
-    console.log("Constructing My MidiPlayer");
-    this._setInstrumentLoading(true);
-    this._setDownloadProgress(0); // reset
+  async _initToneJs() {
     if (this.samplerSource === types.SamplerSourceEnum.server) {
       // if its useSample, then it must have this.sampleName
       this.myTonejs = new Instruments(
@@ -352,6 +358,15 @@ export default class MyMidiPlayer {
       this.myTonejs = new Instruments(false, this._setDownloadProgress);
     }
     await this.myTonejs.init(); // must be here because construct cannot be async
+
+  }
+
+  async init() {
+    await this.fetchLocalSampler();
+    console.log("Constructing My MidiPlayer");
+    this._setInstrumentLoading(true);
+    this._setDownloadProgress(0); // tewreset
+    this._initToneJs();
     this._setInstrumentLoading(false);
   }
 
@@ -367,9 +382,13 @@ export default class MyMidiPlayer {
     }
   }
 
+  async loadArrayBuffer(arrayBuffer: ArrayBuffer) {
+    await this.midiPlayer.loadArrayBuffer(arrayBuffer);
+  }
+
   cleanup() {
     this.stop();
-    // this.midiPlayer = undefined;
+    this.myTonejs?.cleanUp();
     console.log("Cleaned Midi Player");
   }
 }
