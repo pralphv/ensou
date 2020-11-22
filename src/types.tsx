@@ -1,4 +1,4 @@
-import { Sampler, Synth, SynthOptions, SamplerOptions, Gain } from "tone";
+import { Sampler, SamplerOptions, Gain, PolySynth } from "tone";
 import { EnvelopeOptions } from "tone";
 import { Time, NormalRange } from "tone/Tone/core/type/Units";
 import { Reverb, FeedbackDelay, Chorus, Phaser, Filter } from "tone";
@@ -158,6 +158,7 @@ export enum AvailableSynthsEnum {
 export interface ISynthSettings {
   oscillator: IOscillatorType;
   envelope: Partial<EnvelopeOptions>;
+  detune: number
 }
 
 interface IOscillatorType {
@@ -204,7 +205,7 @@ export enum AvailableEffectsNames {
   filter = "Filter",
 }
 
-export type Track = Sampler | Synth<SynthOptions>[];
+export type Track = Sampler | PolySynth;
 
 export interface ITrackComponents {
   effectChain: AvailableEffects[];

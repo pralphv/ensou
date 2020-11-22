@@ -17,4 +17,5 @@ export const DEFAULT_AUDIO_SETTINGS: types.ISynthSettings = {
     sustain: 0.3,
     release: 1,
   },
+  detune: 0
 };

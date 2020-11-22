@@ -157,22 +157,6 @@ export function useInstrument(
     localStorageUtils.setSynthName(synthName);
   }
 
-  function getSynthSettings(): types.ISynthSettings | null {
-    if (synths.current) {
-      return synthsApi.getSynthSettings(synths.current[0]);
-    } else {
-      return null;
-    }
-  }
-
-  function setSynthSettings(settings: types.ISynthSettings) {
-    if (synths.current) {
-      synthsApi.setSynthSettings(synths.current, settings);
-    }
-    if (synthsEffects.current) {
-      synthsApi.setSynthSettings(synthsEffects.current, settings);
-    }
-  }
 
   const api = {
     triggerAttack,
@@ -186,7 +170,9 @@ export function useInstrument(
     synthSettingsApi: {
       getSynthName,
       setSynthName,
+      //@ts-ignore
       getSynthSettings,
+      //@ts-ignore
       setSynthSettings,
     },
   };

@@ -29,6 +29,7 @@ export default function SynthTab({
   }
 
   function handleOnChangeSynthSettings(value: any, field: string) {
+    const synthSettings = midiPlayer.myTonejs?.getSynthSettings();
     if (synthSettings) {
       // this is wrong
       let newSynthSettings: types.ISynthSettings = {
@@ -36,6 +37,8 @@ export default function SynthTab({
       };
       if (field === "oscillator") {
         newSynthSettings.oscillator = { type: value };
+      } else if (field === "detune") {
+        newSynthSettings.detune = value;
       } else {
         // else treat as envelope
         // @ts-ignore
@@ -67,7 +70,7 @@ export default function SynthTab({
         </Select>
         <InputLabel>Oscillator</InputLabel>
         <Select
-          value={midiPlayer.myTonejs?.getSynthSettings()?.oscillator.type}
+          value={synthSettings?.oscillator.type}
           onChange={(e: any) =>
             handleOnChangeSynthSettings(e.target.value, "oscillator")
           }
@@ -99,7 +102,21 @@ export default function SynthTab({
               />
             </div>
           ))}
-        <DelaySlider midiPlayer={midiPlayer} forceLocalRender={forceLocalRender} />
+        <DelaySlider
+          midiPlayer={midiPlayer}
+          forceLocalRender={forceLocalRender}
+        />
+        <InputLabel>Detune</InputLabel>
+        <Slider
+          value={synthSettings?.detune}
+          min={-1500}
+          step={1}
+          max={1500}
+          onChange={(e, newValue) =>
+            handleOnChangeSynthSettings(newValue, "detune")
+          }
+          valueLabelDisplay="auto"
+        />
       </DialogContent>
     </div>
   );

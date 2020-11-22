@@ -6,6 +6,7 @@ import {
   SamplerOptions,
   SynthOptions,
   Gain,
+  PolySynth,
 } from "tone";
 import { AMSynth, FMSynth } from "tone";
 
@@ -20,6 +21,8 @@ import { DEFAULT_AUDIO_SETTINGS } from "./synths/constants";
 import { buildTrack } from "./utils";
 
 const CONCURRENT_SYNTHS = 15; // 10 fingers + buffer for long release
+
+type Instrument = Sampler | PolySynth;
 
 interface IInstrumentApi {
   triggerAttack: (note: string, velocity: number) => void;
@@ -47,7 +50,7 @@ interface ISamplerOptions {
 
 export class Instruments {
   samplers: Sampler[];
-  synths: (Synth | AMSynth | FMSynth)[][];
+  polySynths: PolySynth[];
   synthName: types.AvailableSynthsEnum;
   metronome: MembraneSynth;
   _playingSynths: Set<number>;
@@ -84,7 +87,7 @@ export class Instruments {
     this.samplers = [];
     this._delay = localStorageUtils.getDelay() || 0.0;
 
-    this.synths = [];
+    this.polySynths = [];
     this._playingSynths = new Set();
     this._playingNotes = {};
     this._effectChains = [];
@@ -94,7 +97,7 @@ export class Instruments {
     this.addInstrument = this.addInstrument.bind(this);
     this.removeInstrument = this.removeInstrument.bind(this);
     this.downloadSamplers = this.downloadSamplers.bind(this);
-    this._triggerAttackSynths = this._triggerAttackSynths.bind(this);
+    // this._triggerAttackSynths = this._triggerAttackSynths.bind(this);
     this.triggerAttack = this.triggerAttack.bind(this);
     this.triggerRelease = this.triggerRelease.bind(this);
     this.changeFxSettings = this.changeFxSettings.bind(this);
@@ -126,8 +129,7 @@ export class Instruments {
       this.samplers.push(trackComponents.track as Sampler);
       console.log(this.samplers);
     } else {
-      this.synths.push(trackComponents.track as Synth<SynthOptions>[]);
-      console.log(this.synths);
+      this.polySynths.push(trackComponents.track as PolySynth);
     }
     this._effectChains.push([]);
     this._effectChainsNames.push([]);
@@ -140,7 +142,7 @@ export class Instruments {
 
   removeInstrument(trackIndex: number) {
     console.log(`Removing instrument ${trackIndex}`);
-    const instrument = this._useSampler ? this.samplers : this.synths;
+    const instrument = this._useSampler ? this.samplers : this.polySynths;
     if (instrument.length > 1) {
       this._disposeTrack(trackIndex);
       instrument.splice(trackIndex, 1);
@@ -157,27 +159,15 @@ export class Instruments {
     if (this._effectChains.length === 0) {
       return;
     }
-    if (this._useSampler) {
-      this.samplers.forEach((sampler) => {
-        sampler.disconnect();
-        if (this._effectsActivated) {
-          sampler.toDestination();
-        } else {
-          sampler.connect(this._effectChains[0][0]);
-        }
-      });
-    } else {
-      this.synths.forEach((synth) => {
-        synth.forEach((synth_) => {
-          synth_.disconnect();
-          if (this._effectsActivated) {
-            synth_.toDestination();
-          } else {
-            synth_.connect(this._effectChains[0][0]);
-          }
-        });
-      });
-    }
+    const instruments = this._useSampler ? this.samplers : this.polySynths;
+    instruments.forEach((instrument: Instrument) => {
+      instrument.disconnect();
+      if (this._effectsActivated) {
+        instrument.toDestination();
+      } else {
+        instrument.connect(this._effectChains[0][0]);
+      }
+    });
     this._effectsActivated = !this._effectsActivated;
   }
 
@@ -200,9 +190,9 @@ export class Instruments {
         throw new Error("CRITICAL: no sample map provided.");
       }
     } else {
-      const synths = synthsApi.initSynths(CONCURRENT_SYNTHS, this.synthName);
-      savedVolume && this.changeVolume(savedVolume, undefined, [synths]);
-      return buildTrack(synths, effectsChainName);
+      const polySynth = synthsApi.initSynths(CONCURRENT_SYNTHS, this.synthName);
+      // savedVolume && this.changeVolume(savedVolume, undefined, [synths]);
+      return buildTrack(polySynth, effectsChainName);
     }
   }
 
@@ -224,77 +214,59 @@ export class Instruments {
     }
   }
 
-  _triggerAttackSynths(
-    note: string,
-    velocity: number,
-    instrumentIndex: number,
-    isLastSynth: boolean
-  ) {
-    for (let i = 0; i <= CONCURRENT_SYNTHS; i++) {
-      const isFreeSynth = !this._playingSynths.has(i);
-      const isAlreadyPlaying = this._playingNotes[note] !== undefined;
-      if (isAlreadyPlaying) {
-        // notes can be played twice without releasing
-        this.triggerRelease(note);
-      }
-      if (isFreeSynth) {
-        try {
-          this.synths[instrumentIndex][i].triggerAttack(
-            note,
-            `+${this._delay}`,
-            velocity
-          );
-        } catch (error) {
-          console.log(
-            "Expected error: synth not released yet. Skipping to next available synth"
-          );
-          /**
-           * theres a chance where a synth's sustain is so long
-           * that the synth wont be available even after the next
-           * note. in this case, skip to the next synth
-           */
-          continue;
-        }
-        if (isLastSynth) {
-          this._playingSynths.add(i);
-          this._playingNotes[note] = i;
-        }
-        break;
-      }
-    }
-  }
+  // _triggerAttackSynths(
+  //   note: string,
+  //   velocity: number,
+  //   instrumentIndex: number,
+  //   isLastSynth: boolean
+  // ) {
+  //   for (let i = 0; i <= CONCURRENT_SYNTHS; i++) {
+  //     const isFreeSynth = !this._playingSynths.has(i);
+  //     const isAlreadyPlaying = this._playingNotes[note] !== undefined;
+  //     if (isAlreadyPlaying) {
+  //       // notes can be played twice without releasing
+  //       this.triggerRelease(note);
+  //     }
+  //     if (isFreeSynth) {
+  //       try {
+  //         this.synths[instrumentIndex][i].triggerAttack(
+  //           note,
+  //           `+${this._delay}`,
+  //           velocity
+  //         );
+  //       } catch (error) {
+  //         console.log(
+  //           "Expected error: synth not released yet. Skipping to next available synth"
+  //         );
+  //         /**
+  //          * theres a chance where a synth's sustain is so long
+  //          * that the synth wont be available even after the next
+  //          * note. in this case, skip to the next synth
+  //          */
+  //         continue;
+  //       }
+  //       if (isLastSynth) {
+  //         this._playingSynths.add(i);
+  //         this._playingNotes[note] = i;
+  //       }
+  //       break;
+  //     }
+  //   }
+  // }
 
   triggerAttack(note: string, velocity: number) {
-    if (this._useSampler) {
-      this.samplers.forEach((instrument) => {
-        instrument.triggerAttack(note, `+${this._delay}`, velocity);
-      });
-    } else {
-      for (let i = 0; i < this.synths.length; i++) {
-        const isLastSynth = i === this.synths.length - 1;
-        this._triggerAttackSynths(note, velocity, i, isLastSynth);
-      }
-    }
+    const instruments = this._useSampler ? this.samplers : this.polySynths;
+    instruments.forEach((instrument: Instrument) => {
+      instrument.triggerAttack(note, `+${this._delay}`, velocity);
+    });
+    console.log(this.polySynths[0].activeVoices)
   }
 
   triggerRelease(note: string) {
-    const i = this._playingNotes[note];
-    // const source = getSamplerSource();
-    if (this._useSampler) {
-      // if (source === "local" && this._useSampler) {
-      this.samplers.forEach((instrument) => {
-        instrument.triggerRelease(note, undefined);
-      });
-    } else {
-      if (i !== undefined) {
-        // be careful of 0
-        this.synths.forEach((instrument) => {
-          instrument[i].triggerRelease();
-        });
-        this._playingSynths.delete(i);
-        delete this._playingNotes[note];
-      }
-    }
+    const instruments = this._useSampler ? this.samplers : this.polySynths;
+    instruments.forEach((instrument: Instrument) => {
+      instrument.triggerRelease(note, undefined);
+    });
   }
 
   /**
@@ -302,7 +274,7 @@ export class Instruments {
    * @param track track to be set
    * @param trackIndex index to track to
    */
-  _setTrack(track: Sampler | Synth<SynthOptions>[], trackIndex: number) {
+  _setTrack(track: Instrument, trackIndex: number) {
     try {
       this._disposeTrack(trackIndex);
     } catch {
@@ -312,7 +284,7 @@ export class Instruments {
     if (this._useSampler) {
       this.samplers[trackIndex] = track as Sampler;
     } else {
-      this.synths[trackIndex] = track as Synth<SynthOptions>[];
+      this.polySynths[trackIndex] = track as PolySynth;
     }
     console.log(`Set ${track}@${trackIndex}`);
   }
@@ -406,20 +378,10 @@ export class Instruments {
   ) {
     if (param === "value") {
       // Gain
-      //@ts-ignore
       let gainNode = this._effectChains[trackIndex][fxIndex] as Gain;
-      // gainNode.gain
       gainNode.gain.rampTo(value);
     } else {
       this._effectChains[trackIndex][fxIndex].set({ [param]: value });
-      // return
-      // try {
-      //   //@ts-ignore
-      //   // this._effectChains[trackIndex][fxIndex][param].value = value;
-      // } catch (error) {
-      //   //@ts-ignore
-      //   this._effectChains[trackIndex][fxIndex][param] = value;
-      // }
     }
     localStorageUtils.setFxSettings(trackIndex, fxIndex, param, value);
   }
@@ -427,36 +389,16 @@ export class Instruments {
   clearPlayingNotes() {
     this._playingNotes = {};
     this._playingSynths = new Set();
-
-    if (this._useSampler) {
-      this.samplers.forEach((sampler) => {
-        Object.keys(PIANO_TUNING).forEach((note) => {
-          try {
-            sampler.triggerRelease(note);
-          } catch (error) {}
-        });
-      });
-    } else {
-      for (let i = 0; i < CONCURRENT_SYNTHS; i++) {
-        // python style baby
-        this.synths.forEach((synths) => {
-          try {
-            synths[i].triggerRelease();
-          } catch (error) {}
-        });
-      }
-    }
+    const instruments = this._useSampler ? this.samplers : this.polySynths;
+    instruments.forEach((instrument: Instrument) => {
+      instrument.releaseAll();
+    });
   }
 
   _disposeTrack(trackIndex: number) {
     console.log(`Disposing track ${trackIndex}`);
-    if (this._useSampler) {
-      this.samplers[trackIndex].dispose();
-    } else {
-      this.synths[trackIndex].forEach((synth) => {
-        synth.dispose();
-      });
-    }
+    const instruments = this._useSampler ? this.samplers : this.polySynths;
+    instruments[trackIndex].dispose();
     this._effectChains[trackIndex].forEach((chain) => {
       chain.dispose();
     });
@@ -464,7 +406,9 @@ export class Instruments {
 
   destroy() {
     console.log("Destroying Instrument");
-    const range = this._useSampler ? this.samplers.length : this.synths.length;
+    const range = this._useSampler
+      ? this.samplers.length
+      : this.polySynths.length;
     for (let i = 0; i < range; i++) {
       this._disposeTrack(i);
     }
@@ -476,23 +420,11 @@ export class Instruments {
   }
 
   getVolume() {
-    if (this._useSampler) {
-      if (this.samplers.length > 0) {
-        return this.samplers[0].volume.value;
-      }
-    } else {
-      if (this.synths.length > 0) {
-        return this.synths[0][0].volume.value;
-      }
-    }
-    return 0; // default to 0
+    const instruments = this._useSampler ? this.samplers : this.polySynths;
+    return instruments[0].volume.value;
   }
 
-  changeVolume(
-    volume: number,
-    samplers?: Sampler[],
-    synths?: (Synth<SynthOptions> | AMSynth | FMSynth)[][]
-  ) {
+  changeVolume(volume: number, samplers?: Sampler[], polySynths?: PolySynth[]) {
     if (volume <= -15) {
       volume = -1000;
     }
@@ -502,11 +434,9 @@ export class Instruments {
         sampler.volume.value = volume;
       });
     } else {
-      const synths_ = synths || this.synths;
-      synths_.forEach((synths) => {
-        synths.forEach((synth) => {
-          synth.volume.value = volume;
-        });
+      const polySynths_: PolySynth[] = polySynths || this.polySynths;
+      polySynths_.forEach((polySynth) => {
+        polySynth.volume.value = volume;
       });
     }
     this.metronome.volume.value = volume - 5;
@@ -514,10 +444,12 @@ export class Instruments {
   }
 
   getSynthSettings(): types.ISynthSettings | null {
-    const envelope = this.synths[0][0].envelope;
+    const synthSettings = this.polySynths[0].get();
+    const envelope = synthSettings.envelope;
+    const oscillator = synthSettings.oscillator;
     return {
       oscillator: {
-        type: this.synths[0][0].oscillator.type as types.OscillatorType,
+        type: oscillator.type as types.OscillatorType,
       },
       envelope: {
         attack: envelope.attack,
@@ -525,21 +457,24 @@ export class Instruments {
         sustain: envelope.sustain,
         release: envelope.release,
       },
+      detune: synthSettings.detune
     };
   }
 
   setSynthSettings(settings: types.ISynthSettings) {
-    this.synths.forEach((synths) => {
-      for (let i = 0; i < synths.length; i++) {
-        const synth = synths[i];
-        synth.oscillator.type = settings.oscillator.type;
-        synth.envelope.attack = settings.envelope.attack as number;
-        synth.envelope.decay = settings.envelope.decay as number;
-        synth.envelope.sustain = settings.envelope.sustain as number;
-        synth.envelope.release = settings.envelope.release as number;
-        localStorageUtils.setAudioSettings(settings);
-      }
+    this.polySynths.forEach((polySynth) => {
+      polySynth.set({
+        oscillator: { type: settings.oscillator.type },
+        envelope: {
+          attack: settings.envelope.attack as number,
+          decay: settings.envelope.decay as number,
+          sustain: settings.envelope.sustain as number,
+          release: settings.envelope.release as number,
+        },
+        detune: settings.detune
+      });
     });
+    localStorageUtils.setAudioSettings(settings);
   }
 
   getSynthName(): types.AvailableSynthsEnum {
