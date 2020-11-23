@@ -72,7 +72,7 @@ export class Instruments {
     this._samplerOptions = samplerOptions;
     this._effectsActivated = true;
     this.samplers = [];
-    this._delay = localStorageUtils.getDelay() || 0.0;
+    this._delay = localStorageUtils.getDelay() || 0.01;
 
     this.polySynths = [];
     this._effectChains = [];
@@ -212,7 +212,7 @@ export class Instruments {
   triggerRelease(note: string) {
     const instruments = this._useSampler ? this.samplers : this.polySynths;
     instruments.forEach((instrument: Instrument) => {
-      instrument.triggerRelease(note, undefined);
+      instrument.triggerRelease(note, "+0.01");
     });
   }
 

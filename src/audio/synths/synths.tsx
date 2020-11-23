@@ -7,7 +7,10 @@ import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
 export function initSynths(synth: types.AvailableSynths): PolySynth {
   const options =
     localStorageUtils.getAudioSettings() || constants.DEFAULT_AUDIO_SETTINGS;
+  //@ts-ignore
   const synthToUse = constants.SYNTH_MAP[synth];
   //@ts-ignore
-  return (synth = new PolySynth(synthToUse, options));
+  const polysynth = new PolySynth(synthToUse, options);
+  polysynth.maxPolyphony = 88;
+  return polysynth;
 }

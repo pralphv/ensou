@@ -26,7 +26,7 @@ export default function DelaySlider({
       </Tooltip>
       <Slider
         value={midiPlayer.getDelay()}
-        min={0}
+        min={0.01}
         step={0.001}
         max={0.1}
         valueLabelFormat={(value) => {

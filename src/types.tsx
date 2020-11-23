@@ -30,7 +30,7 @@ export interface IMidiFunctions {
   downloadProgress: number;
   synthSettingsApi: ISynthSettingsApi;
   trackFxApi: ITrackFxApi;
-  delayApi: IDelayApi
+  delayApi: IDelayApi;
 }
 
 interface MetronomeApi {
@@ -158,7 +158,7 @@ export enum AvailableSynthsEnum {
 export interface ISynthSettings {
   oscillator: IOscillatorType;
   envelope: Partial<EnvelopeOptions>;
-  detune: number
+  detune: number;
 }
 
 interface IOscillatorType {
