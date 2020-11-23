@@ -10,7 +10,7 @@ let SAMPLE_CACH: ISampleCache = {};
 async function fetchInstruments(
   instrument: types.Instrument,
   sample: string,
-  setDownloadProgress: (progress: number) => void
+  setPlayerStatus: (status: string) => void
 ) {
   const cacheKey: string = `${instrument}_${sample}`;
   const cache: types.ArrayBufferMap = await indexedDbUtils.getServerSampler(
@@ -20,7 +20,7 @@ async function fetchInstruments(
   if (cache) {
     console.log(`Getting ${cacheKey} from cache`);
     arrayBufferMap = cache;
-    setDownloadProgress(1);
+    setPlayerStatus("100%");
   } else {
     console.log(`No cache. Fetching ${cacheKey}...`);
     const items = await storageRef
@@ -37,7 +37,7 @@ async function fetchInstruments(
         const file: ArrayBuffer = await resp.arrayBuffer();
         arrayBufferMap[note] = file;
         progress++;
-        setDownloadProgress(progress / total);
+        setPlayerStatus(`${Math.floor((progress / total) * 100)}%`);
       })
     );
     console.log(`Finished downloading ${cacheKey}. Saving...`);
@@ -45,6 +45,7 @@ async function fetchInstruments(
     console.log(`Saved ${cacheKey}`);
   }
   console.log("Converting to AudioBuffer...");
+  setPlayerStatus("Applying samples. This may take a while...");
   const sampleMap = convertArrayBufferToAudioContext(arrayBufferMap);
   console.log(`Converted ${cacheKey} to AudioBuffer!`);
   return sampleMap;
@@ -53,7 +54,7 @@ async function fetchInstruments(
 export async function getSamples(
   instrument: types.Instrument,
   sample: string,
-  setDownloadProgress: (progress: number) => void,
+  setPlayerStatus: (status: string) => void
 ): Promise<SamplerOptions["urls"]> {
   const cacheKey: string = `${instrument}_${sample}`;
   if (SAMPLE_CACH[cacheKey]) {
@@ -61,11 +62,7 @@ export async function getSamples(
     return SAMPLE_CACH[cacheKey];
   }
   console.log(`Downloading ${cacheKey}`);
-  const sampleMap = await fetchInstruments(
-    instrument,
-    sample,
-    setDownloadProgress
-  );
+  const sampleMap = await fetchInstruments(instrument, sample, setPlayerStatus);
   // const sampler = new Sampler(sampleMap, {
   //   attack: 0.01,
   // }).toDestination();

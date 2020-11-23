@@ -41,23 +41,23 @@ export default class MyMidiPlayer {
   playRange: types.PlayRange;
   ticksPerBeat: number;
   delay: number;
-  _setDownloadProgress: (progress: number) => void;
+  _setPlayerStatus: (status: string) => void;
   _synthOptions?: ISynthOptions;
   _samplerOptions?: ISamplerOptions;
   _setInstrumentLoading: (loading: boolean) => void;
-  _onPlaying: () => void;
+  _forceCanvasRerender: () => void;
   sampleName?: string; //etc piano-in-162
 
   constructor(
-    setDownloadProgress: (progress: number) => void,
+    setPlayerStatus: (status: string) => void,
     setInstrumentLoading: (loading: boolean) => void,
-    onPlaying: () => void
+    _forceCanvasRerender: () => void
   ) {
     console.log("Constructing new midi player")
     // for getLocalSampler because of async
-    this._setDownloadProgress = setDownloadProgress;
+    this._setPlayerStatus = setPlayerStatus;
     this._setInstrumentLoading = setInstrumentLoading;
-    this._onPlaying = onPlaying;
+    this._forceCanvasRerender = _forceCanvasRerender;
 
     this.instrument = "piano";
     this.isMetronome = false;
@@ -111,7 +111,7 @@ export default class MyMidiPlayer {
   }
 
   _handleOnPlaying(currentTick: Tick) {
-    this._onPlaying();
+    this._forceCanvasRerender();
     // @ts-ignore
     const ticksPerBeat_ = this.midiPlayer.getDivision().division;
 
@@ -149,7 +149,6 @@ export default class MyMidiPlayer {
     }
   }
   _handleFileLoaded() {
-    console.log("ON9");
     const allEvents: MidiPlayer.Event[] = this.midiPlayer.getEvents();
     this.isPlaying = false;
 
@@ -335,7 +334,7 @@ export default class MyMidiPlayer {
       // if its useSample, then it must have this.sampleName
       this.myTonejs = new Instruments(
         true,
-        this._setDownloadProgress,
+        this._setPlayerStatus,
         undefined,
         { instrument: this.instrument, sample: this.sampleName as string }
       );
@@ -346,7 +345,7 @@ export default class MyMidiPlayer {
       const sampleMap = this.localSampler;
       this.myTonejs = new Instruments(
         true,
-        this._setDownloadProgress,
+        this._setPlayerStatus,
         undefined,
         {
           instrument: this.instrument,
@@ -355,7 +354,7 @@ export default class MyMidiPlayer {
         }
       );
     } else {
-      this.myTonejs = new Instruments(false, this._setDownloadProgress);
+      this.myTonejs = new Instruments(false, this._setPlayerStatus);
     }
     await this.myTonejs.init(); // must be here because construct cannot be async
 
@@ -365,9 +364,12 @@ export default class MyMidiPlayer {
     await this.fetchLocalSampler();
     console.log("Constructing My MidiPlayer");
     this._setInstrumentLoading(true);
-    this._setDownloadProgress(0); // tewreset
+    this._forceCanvasRerender();
+    this._setPlayerStatus("0%"); // reset
     this._initToneJs();
     this._setInstrumentLoading(false);
+    this._forceCanvasRerender();
+
   }
 
   async fetchLocalSampler() {

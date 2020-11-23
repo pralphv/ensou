@@ -1,16 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import {
-  Sampler,
-  Synth,
-  MembraneSynth,
-  SamplerOptions,
-  SynthOptions,
-  Gain,
-  PolySynth,
-} from "tone";
-import { AMSynth, FMSynth } from "tone";
+import { Sampler, MembraneSynth, SamplerOptions, Gain, PolySynth } from "tone";
 
-import { PIANO_TUNING } from "./constants";
 import * as types from "types";
 import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
 
@@ -53,8 +42,6 @@ export class Instruments {
   polySynths: PolySynth[];
   synthName: types.AvailableSynthsEnum;
   metronome: MembraneSynth;
-  _playingSynths: Set<number>;
-  _playingNotes: any;
   _useSampler: boolean;
   // _samplerCache: Sampler;
   _synthOptions: ISynthOptions | undefined;
@@ -62,13 +49,13 @@ export class Instruments {
   _effectChains: types.AvailableEffects[][];
   _effectChainsNames: types.AvailableEffectsNames[][];
   _extraConnections: types.IExtraConnection[][];
-  setDownloadProgress: (progress: number) => void;
+  _setPlayerStatus: (status: string) => void;
   _effectsActivated: boolean;
   _delay: number;
 
   constructor(
     useSample: boolean,
-    setDownloadProgress: (progress: number) => void,
+    setPlayerStatus: (status: string) => void,
     synthOptions?: ISynthOptions,
     samplerOptions?: ISamplerOptions
   ) {
@@ -88,12 +75,10 @@ export class Instruments {
     this._delay = localStorageUtils.getDelay() || 0.0;
 
     this.polySynths = [];
-    this._playingSynths = new Set();
-    this._playingNotes = {};
     this._effectChains = [];
     this._effectChainsNames = localStorageUtils.getEffectChainNames() || [];
     this._extraConnections = localStorageUtils.getExtraConnections() || [];
-    this.setDownloadProgress = setDownloadProgress;
+    this._setPlayerStatus = setPlayerStatus;
     this.addInstrument = this.addInstrument.bind(this);
     this.removeInstrument = this.removeInstrument.bind(this);
     this.downloadSamplers = this.downloadSamplers.bind(this);
@@ -134,10 +119,10 @@ export class Instruments {
     this._effectChains.push([]);
     this._effectChainsNames.push([]);
     this._extraConnections.push([]);
-    // const savedVolume = localStorageUtils.getVolume();
-    // if (savedVolume) {
-    //   this.changeVolume(savedVolume);
-    // }
+    const savedVolume = localStorageUtils.getVolume();
+    if (savedVolume) {
+      this.changeVolume(savedVolume);
+    }
   }
 
   removeInstrument(trackIndex: number) {
@@ -185,13 +170,16 @@ export class Instruments {
           attack: 0.01,
         });
         savedVolume && this.changeVolume(savedVolume, [sampler]);
+        this._setPlayerStatus("");
         return buildTrack(sampler, effectsChainName);
       } else {
+        this._setPlayerStatus("");
         throw new Error("CRITICAL: no sample map provided.");
       }
     } else {
-      const polySynth = synthsApi.initSynths(CONCURRENT_SYNTHS, this.synthName);
-      // savedVolume && this.changeVolume(savedVolume, undefined, [synths]);
+      const polySynth = synthsApi.initSynths(this.synthName);
+      savedVolume && this.changeVolume(savedVolume, undefined, [polySynth]);
+      this._setPlayerStatus("");
       return buildTrack(polySynth, effectsChainName);
     }
   }
@@ -208,58 +196,17 @@ export class Instruments {
       const sampler = await getSamples(
         this._samplerOptions.instrument,
         this._samplerOptions.sample,
-        this.setDownloadProgress
+        this._setPlayerStatus
       );
       return sampler;
     }
   }
-
-  // _triggerAttackSynths(
-  //   note: string,
-  //   velocity: number,
-  //   instrumentIndex: number,
-  //   isLastSynth: boolean
-  // ) {
-  //   for (let i = 0; i <= CONCURRENT_SYNTHS; i++) {
-  //     const isFreeSynth = !this._playingSynths.has(i);
-  //     const isAlreadyPlaying = this._playingNotes[note] !== undefined;
-  //     if (isAlreadyPlaying) {
-  //       // notes can be played twice without releasing
-  //       this.triggerRelease(note);
-  //     }
-  //     if (isFreeSynth) {
-  //       try {
-  //         this.synths[instrumentIndex][i].triggerAttack(
-  //           note,
-  //           `+${this._delay}`,
-  //           velocity
-  //         );
-  //       } catch (error) {
-  //         console.log(
-  //           "Expected error: synth not released yet. Skipping to next available synth"
-  //         );
-  //         /**
-  //          * theres a chance where a synth's sustain is so long
-  //          * that the synth wont be available even after the next
-  //          * note. in this case, skip to the next synth
-  //          */
-  //         continue;
-  //       }
-  //       if (isLastSynth) {
-  //         this._playingSynths.add(i);
-  //         this._playingNotes[note] = i;
-  //       }
-  //       break;
-  //     }
-  //   }
-  // }
 
   triggerAttack(note: string, velocity: number) {
     const instruments = this._useSampler ? this.samplers : this.polySynths;
     instruments.forEach((instrument: Instrument) => {
       instrument.triggerAttack(note, `+${this._delay}`, velocity);
     });
-    console.log(this.polySynths[0].activeVoices)
   }
 
   triggerRelease(note: string) {
@@ -387,12 +334,13 @@ export class Instruments {
   }
 
   clearPlayingNotes() {
-    this._playingNotes = {};
-    this._playingSynths = new Set();
     const instruments = this._useSampler ? this.samplers : this.polySynths;
-    instruments.forEach((instrument: Instrument) => {
-      instrument.releaseAll();
-    });
+    setTimeout(() => {
+      // timeout to make sure all attacks are done
+      instruments.forEach((instrument: Instrument) => {
+        instrument.releaseAll();
+      });
+    }, 100);
   }
 
   _disposeTrack(trackIndex: number) {
@@ -421,7 +369,7 @@ export class Instruments {
 
   getVolume() {
     const instruments = this._useSampler ? this.samplers : this.polySynths;
-    return instruments[0].volume.value;
+    return instruments[0]?.volume.value;
   }
 
   changeVolume(volume: number, samplers?: Sampler[], polySynths?: PolySynth[]) {
@@ -457,7 +405,7 @@ export class Instruments {
         sustain: envelope.sustain,
         release: envelope.release,
       },
-      detune: synthSettings.detune
+      detune: synthSettings.detune,
     };
   }
 
@@ -471,7 +419,7 @@ export class Instruments {
           sustain: settings.envelope.sustain as number,
           release: settings.envelope.release as number,
         },
-        detune: settings.detune
+        detune: settings.detune,
       });
     });
     localStorageUtils.setAudioSettings(settings);
@@ -481,9 +429,18 @@ export class Instruments {
     return this.synthName;
   }
 
-  setSynthName(synthName: types.AvailableSynthsEnum) {
+  async setSynthName(synthName: types.AvailableSynthsEnum) {
+    this.clearPlayingNotes();
     this.synthName = synthName;
     localStorageUtils.setSynthName(synthName);
+    for (let i = 0; i < this.polySynths.length; i++) {
+      this.polySynths[i].disconnect();
+      this.polySynths[i].dispose();
+      const trackComponents = await this._buildTrack(
+        this._effectChainsNames[0]
+      ); // assume 0 for now
+      this.polySynths[i] = trackComponents.track as PolySynth;
+    }
   }
 
   getEffectsChain() {
@@ -532,216 +489,5 @@ export class Instruments {
   cleanUp() {
     this.clearPlayingNotes();
     this.destroy();
-    console.log("Cleaned Intrument");
   }
-}
-
-export function useInstrument(
-  getInstrument: types.IMidiFunctions["instrumentApi"]["getInstrument"],
-  getSample: types.IMidiFunctions["sampleApi"]["getSample"],
-  getSamplerSource: types.IMidiFunctions["samplerSourceApi"]["getSamplerSource"],
-  getLocalSampler: types.IMidiFunctions["samplerSourceApi"]["getLocalSampler"]
-): IInstrumentApi {
-  const [instrumentLoading, setInstrmentLoading] = useState<boolean>(false);
-  const [downloadProgress, setDownloadProgress] = useState<number>(0);
-  const instrumentsRef = useRef<Instruments>();
-
-  useEffect(() => {
-    console.log("Reloading useInstrument");
-    async function getSamples_() {
-      setInstrmentLoading(true);
-      setDownloadProgress(0); // reset
-      const source = getSamplerSource();
-      if (source === types.SamplerSourceEnum.server) {
-        instrumentsRef.current = new Instruments(
-          true,
-          setDownloadProgress,
-          undefined,
-          { instrument: getInstrument(), sample: getSample() }
-        );
-      } else if (
-        source === types.SamplerSourceEnum.local ||
-        source === types.SamplerSourceEnum.cachedLocal
-      ) {
-        const sampleMap = getLocalSampler() as SamplerOptions["urls"];
-        instrumentsRef.current = new Instruments(
-          true,
-          setDownloadProgress,
-          undefined,
-          { instrument: getInstrument(), sample: getSample(), sampleMap }
-        );
-      } else {
-        instrumentsRef.current = new Instruments(false, setDownloadProgress);
-      }
-      await instrumentsRef.current.init(); // must be here because construct cannot be async
-      setInstrmentLoading(false);
-    }
-
-    getSamples_();
-
-    return function cleanup() {
-      instrumentsRef.current?.destroy();
-      instrumentsRef.current?.clearPlayingNotes();
-      instrumentsRef.current = undefined;
-      console.log("Cleaned Intrument");
-    };
-  }, [getInstrument, getLocalSampler, getSample, getSamplerSource]);
-
-  function triggerMetronome() {
-    instrumentsRef.current?.playMetronome();
-  }
-
-  function getSynthName() {
-    return instrumentsRef.current?.synthName || types.AvailableSynthsEnum.Synth;
-  }
-
-  function setSynthName(synthName: types.AvailableSynthsEnum) {
-    instrumentsRef.current?.setSynthName(synthName);
-  }
-
-  function triggerAttack(note: string, velocity: number) {
-    instrumentsRef.current?.triggerAttack(note, velocity);
-  }
-
-  function triggerRelease(note: string) {
-    instrumentsRef.current?.triggerRelease(note);
-  }
-
-  function changeVolume(volume: number) {
-    instrumentsRef.current?.changeVolume(volume);
-  }
-
-  function getVolume(): number {
-    return instrumentsRef.current?.getVolume() || 0;
-  }
-
-  function clearPlayingNotes() {
-    instrumentsRef.current?.clearPlayingNotes();
-  }
-
-  function getSynthSettings(): types.ISynthSettings {
-    return instrumentsRef.current?.getSynthSettings() || DEFAULT_AUDIO_SETTINGS;
-  }
-
-  function setSynthSettings(settings: types.ISynthSettings) {
-    instrumentsRef.current?.setSynthSettings(settings);
-  }
-
-  function addInstrument() {
-    instrumentsRef.current?.addInstrument();
-  }
-
-  function removeInstrument(i: number) {
-    instrumentsRef.current?.removeInstrument(i);
-  }
-
-  function getEffectsChain(): types.AvailableEffects[][] {
-    return instrumentsRef.current?.getEffectsChain() || [[]];
-  }
-
-  function addFx(trackIndex: number) {
-    instrumentsRef.current?.addFx(trackIndex);
-  }
-
-  function removeFx(trackIndex: number, fxIndex: number) {
-    instrumentsRef.current?.removeFx(trackIndex, fxIndex);
-  }
-
-  function getDelay(): number {
-    return instrumentsRef.current?.getDelay() || 0;
-  }
-
-  function setDelay(delay: number) {
-    instrumentsRef.current?.setDelay(delay);
-  }
-
-  function changeFxSettings(
-    trackIndex: number,
-    fxIndex: number,
-    param: string,
-    value: any
-  ) {
-    instrumentsRef.current?.changeFxSettings(trackIndex, fxIndex, param, value);
-  }
-
-  function changeFx(
-    trackIndex: number,
-    fxIndex: number,
-    type: types.AvailableEffectsNames
-  ) {
-    instrumentsRef.current?.changeFx(trackIndex, fxIndex, type);
-  }
-
-  function changeExtraConnection(
-    trackIndex: number,
-    fxIndex: number,
-    key: keyof types.IExtraConnection,
-    value: number | boolean | null | string
-  ) {
-    instrumentsRef.current?.changeExtraConnection(
-      trackIndex,
-      fxIndex,
-      key,
-      value
-    );
-  }
-
-  function getExtraConnection(
-    trackIndex: number,
-    fxIndex: number
-  ): types.IExtraConnection {
-    return (
-      instrumentsRef.current?.getExtraConnection(trackIndex, fxIndex) || {
-        toMaster: false,
-        effectorIndex: null,
-      }
-    );
-  }
-
-  function getEffectsActivated(): boolean {
-    if (instrumentsRef.current) {
-      return instrumentsRef.current.getEffectsActivated();
-    } else {
-      return true;
-    }
-  }
-
-  function toggleEffectsActivated() {
-    instrumentsRef.current?.toggleEffectsActivated();
-  }
-
-  const api = {
-    triggerAttack,
-    triggerRelease,
-    changeVolume,
-    getVolumeDb: getVolume,
-    triggerMetronome,
-    instrumentLoading,
-    downloadProgress,
-    clearPlayingNotes,
-    synthSettingsApi: {
-      getSynthName,
-      setSynthName,
-      getSynthSettings,
-      setSynthSettings,
-    },
-    trackFxApi: {
-      addInstrument,
-      removeInstrument,
-      getEffectsChain,
-      addFx,
-      removeFx,
-      changeFxSettings,
-      changeFx,
-      changeExtraConnection,
-      getExtraConnection,
-      getEffectsActivated,
-      toggleEffectsActivated,
-    },
-    delayApi: {
-      getDelay,
-      setDelay,
-    },
-  };
-  return api;
 }

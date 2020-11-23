@@ -23,7 +23,7 @@ export default function LoadingScreen({ text }: ILoadingScreenProps) {
   const classes = useStyles();
   // const profile = useUserProfile();
   // <Backdrop className={classes.backdrop} open={!profile.isLoaded}>
-
+  
   return (
     <Backdrop className={classes.backdrop} open={true} invisible={true}>
       <div>

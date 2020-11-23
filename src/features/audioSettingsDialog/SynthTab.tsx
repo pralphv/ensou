@@ -46,7 +46,6 @@ export default function SynthTab({
       }
       midiPlayer.myTonejs?.setSynthSettings(newSynthSettings);
       forceLocalRender(true);
-      // forceRerender();
     }
   }
 

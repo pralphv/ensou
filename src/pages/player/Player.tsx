@@ -19,7 +19,7 @@ import "./styles.css";
 
 export default function Player(): JSX.Element {
   const [instrumentLoading, setInstrumentLoading] = useState<boolean>(false);
-  const [downloadProgress, setDownloadProgress] = useState<number>(0);
+  const [playerStatus, setPlayerStatus] = useState<string>("");
   const midiPlayerRef = useRef<MyMidiPlayer>();
   const [songName, setSongName] = useState<string>("");
   const [artist, setArtist] = useState<string>("");
@@ -44,6 +44,9 @@ export default function Player(): JSX.Element {
 
   const forceRerenderRef = useRef<any>();
   const forceCanvasRerenderRef = useRef<any>();
+  const setDownloadProgressRef = useRef<(status: string) => void>(
+    (progress: string) => setPlayerStatus(progress)
+  );
   forceRerenderRef.current = forceRerender; // reassigning may be slow?
   forceCanvasRerenderRef.current = forceCanvasRerender;
 
@@ -51,7 +54,9 @@ export default function Player(): JSX.Element {
     const songId: string = urlParams.songId;
     async function initMidiPlayer() {
       const midiPlayer_ = new MyMidiPlayer(
-        setDownloadProgress,
+        (progress: string) => {
+          setDownloadProgressRef.current(progress);
+        },
         setInstrumentLoading,
         () => forceCanvasRerenderRef.current()
       );
@@ -74,11 +79,10 @@ export default function Player(): JSX.Element {
   }, []);
 
   const loadingScreenMemo = useMemo(() => {
-    const progress = `${Math.floor(downloadProgress * 100)}%`;
     return (
-      (instrumentLoading || isLoading) && <LoadingScreen text={progress} />
+      playerStatus !== "" && <LoadingScreen text={playerStatus} />
     );
-  }, [instrumentLoading, isLoading, downloadProgress]);
+  }, [instrumentLoading, isLoading, playerStatus]);
 
   const currentTick = midiPlayerRef.current?.midiPlayer.getCurrentTick();
 
