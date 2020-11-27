@@ -1,3 +1,6 @@
+/**
+ * this whole thing should be a class
+ */
 import React, { useRef, useEffect, useState } from "react";
 
 import clsx from "clsx";

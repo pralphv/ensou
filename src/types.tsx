@@ -156,11 +156,12 @@ export interface IDelayApi {
   setDelay: (delay: number) => void;
 }
 
-export type AvailableSynths = "Synth" | "AMSynth" | "FMSynth";
+export type AvailableSynths = "Synth" | "AMSynth" | "FMSynth" | "MembraneSynth";
 export enum AvailableSynthsEnum {
   Synth = "Synth",
   AMSynth = "AMSynth",
   FMSynth = "FMSynth",
+  MembraneSynth = "MembraneSynth",
 }
 
 export type oscillator = Partial<OmniOscillatorSynthOptions>;
@@ -195,13 +196,24 @@ export interface IOscillator {
 }
 
 export enum OscillatorType {
-  custom = "custom",
   sawtooth = "sawtooth",
   sine = "sine",
   square = "square",
   triangle = "triangle",
-  fatcustom = "fatcustom",
   fatsawtooth = "fatsawtooth",
+  fatsine = "fatsine",
+  fatsquare = "fatsquare",
+  fattriangle = "fattriangle",
+  fmsawtooth = "fmsawtooth",
+  fmsine = "fmsine",
+  fmsquare = "fmsquare",
+  fmtriangle = "fmtriangle",
+  amsine = "amsine",
+  amsquare = "amsquare",
+  amsawtooth = "amsawtooth",
+  amtriangle = "amtriangle",
+  pulse = "pulse",
+  pwm = "pwm",
 }
 
 // export enum AvailableEffects {

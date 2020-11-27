@@ -206,7 +206,6 @@ export class Instruments {
       const instruments = this._useSampler ? this.samplers : this.polySynths;
       for (let i = 0; i < instruments.length; i++) {
         if (!instruments[i].disposed) {
-        
           instruments[i].triggerRelease(note, "+0.01");
         }
       }
@@ -265,19 +264,24 @@ export class Instruments {
     await this._publishFxChange(trackIndex);
   }
 
-  async _publishFxChange(trackIndex: number) {
+  /**
+   * Sometimes active voices dont decrease. So if retried 10 times,
+   * just allow to publish. Active voice should be dead by then.
+   */
+  async _publishFxChange(trackIndex: number, retry: number = 0) {
     this._publishingChanges = true;
-    if (this.polySynths.length > 0 && this.polySynths[0]?.activeVoices > 0) {
-    console.log("Preparing to publish FX change. Waiting for synths to finish")
+    if (retry < 10 && this.polySynths.length > 0 && this.polySynths[0]?.activeVoices > 0) {
+      console.log(
+        "Preparing to publish FX change. Waiting for synths to finish"
+      );
       this.polySynths[0].releaseAll();
       this.polySynths[0].unsync();
       setTimeout(() => {
-        this._publishFxChange(trackIndex);
-
-      }, 100)
-      return
+        this._publishFxChange(trackIndex, retry+1);
+      }, 100);
+      return;
     }
-    console.log("Publishing FX Change...")
+    console.log("Publishing FX Change...");
     if (!this._effectsActivated) {
       // dont add any effects if not activated
       const track = await this._buildTrack([]);
@@ -316,7 +320,7 @@ export class Instruments {
         }
       }
     }
-      this._publishingChanges = false;
+    this._publishingChanges = false;
     this.saveSettingsToLocalStorage();
   }
 
@@ -425,12 +429,6 @@ export class Instruments {
       others: {
         detune: synthSettings.detune,
       },
-    };
-  }
-  getSamplerSettings(): types.IOtherSettings | null {
-    return {
-      //@ts-ignore
-      detune: this.samplers[0].detune,
     };
   }
 

@@ -1,10 +1,11 @@
-import { Synth, AMSynth, FMSynth } from "tone";
+import { Synth, AMSynth, FMSynth, MembraneSynth } from "tone";
 import * as types from "types";
 
 export const SYNTH_MAP = {
-  Synth: Synth,
-  AMSynth: AMSynth,
-  FMSynth: FMSynth,
+  Synth,
+  AMSynth,
+  FMSynth,
+  MembraneSynth,
 };
 
 export const DEFAULT_AUDIO_SETTINGS: types.ISynthSettings = {
@@ -23,5 +24,5 @@ export const DEFAULT_AUDIO_SETTINGS: types.ISynthSettings = {
   },
   others: {
     detune: 0,
-  }
+  },
 };
