@@ -1,7 +1,15 @@
 import { Sampler, SamplerOptions, Gain, PolySynth } from "tone";
 import { EnvelopeOptions } from "tone";
 import { Time, NormalRange } from "tone/Tone/core/type/Units";
-import { Reverb, FeedbackDelay, Chorus, Phaser, Filter } from "tone";
+import {
+  Reverb,
+  FeedbackDelay,
+  Chorus,
+  Phaser,
+  Filter,
+  StereoWidener,
+} from "tone";
+import { OmniOscillatorSynthOptions } from "tone/build/esm/source/oscillator/OscillatorInterface";
 
 // import * as types from "types";
 export interface IMidiFunctions {
@@ -155,14 +163,35 @@ export enum AvailableSynthsEnum {
   FMSynth = "FMSynth",
 }
 
+export type oscillator = Partial<OmniOscillatorSynthOptions>;
+export type envelope = Partial<EnvelopeOptions>;
+export type detune = number;
+
 export interface ISynthSettings {
-  oscillator: IOscillatorType;
-  envelope: Partial<EnvelopeOptions>;
-  detune: number;
+  oscillator: IOscillator;
+  envelope: IEnvelope;
+  others: IOtherSettings;
 }
 
-interface IOscillatorType {
+/**
+ * '["context" | "decay" | "attack" | "sustain" | "release" | "attackCurve" | "releaseCurve" | "decayCurve", any]'.
+ */
+
+export interface IEnvelope {
+  attack: number;
+  decay: number;
+  sustain: number;
+  release: number;
+}
+
+export interface IOtherSettings {
+  detune: number;
+}
+export interface IOscillator {
   type: OscillatorType;
+  partials: number[];
+  spread: number;
+  count: number;
 }
 
 export enum OscillatorType {
@@ -171,6 +200,8 @@ export enum OscillatorType {
   sine = "sine",
   square = "square",
   triangle = "triangle",
+  fatcustom = "fatcustom",
+  fatsawtooth = "fatsawtooth",
 }
 
 // export enum AvailableEffects {
@@ -195,7 +226,9 @@ export type AvailableEffects =
   | Chorus
   | Phaser
   | Gain
-  | Filter;
+  | Filter
+  | StereoWidener;
+
 export enum AvailableEffectsNames {
   reverb = "Reverb",
   delay = "FeedbackDelay",
@@ -203,6 +236,7 @@ export enum AvailableEffectsNames {
   phaser = "Phaser",
   gain = "Gain",
   filter = "Filter",
+  stereoWidener = "StereoWidener",
 }
 
 export type Track = Sampler | PolySynth;

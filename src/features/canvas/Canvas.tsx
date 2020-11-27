@@ -153,16 +153,14 @@ export default function Canvas({
 
   useEffect(() => {
     //highlighter
-    const playRange_ = midiPlayer.playRange;
     if (!app.current || !currentTick) {
       return;
     }
-    const ticksPerBeat = midiPlayer.ticksPerBeat;
-    const upperLimit = ticksPerBeat * 4 * 3; // 4 beats, 3 bars
+    const upperLimit = midiPlayer.ticksPerBeat * 4 * 3; // 4 beats, 3 bars
     if (
       !(
-        playRange_.startTick < currentTick + upperLimit &&
-        playRange_.endTick > currentTick
+        midiPlayer.playRange.startTick < currentTick + upperLimit &&
+        midiPlayer.playRange.endTick > currentTick
       )
     ) {
       // destroy only when highlighter is near current tick
@@ -170,17 +168,19 @@ export default function Canvas({
       highlighter.destroy();
       return;
     }
-    const endY = convertMidiTickToCanvasHeight(
-      midiPlayer.playRange.endTick || 0,
-      currentTick,
-      app.current.screen.height
+    highlighter.initHighlighter(
+      app.current,
+      convertMidiTickToCanvasHeight(
+        midiPlayer.playRange.startTick || 0,
+        currentTick,
+        app.current.screen.height
+      ),
+      convertMidiTickToCanvasHeight(
+        midiPlayer.playRange.endTick || 0,
+        currentTick,
+        app.current.screen.height
+      )
     );
-    const startY = convertMidiTickToCanvasHeight(
-      midiPlayer.playRange.startTick || 0,
-      currentTick,
-      app.current.screen.height
-    );
-    highlighter.initHighlighter(app.current, startY, endY);
   }, [forceRender, currentTick]);
 
   useEffect(() => {
@@ -219,7 +219,7 @@ export default function Canvas({
     <div
       className={clsx({
         "player-canvas": true,
-        "fullscreen-enabled": isFullScreen
+        "fullscreen-enabled": isFullScreen,
       })}
     >
       <div

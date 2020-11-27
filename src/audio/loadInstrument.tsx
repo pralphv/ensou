@@ -6,27 +6,9 @@ import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
 import * as synthsApi from "./synths/synths";
 import { getSamples } from "./samplers/samplers";
 import { initMetronome } from "./metronome/metronome";
-import { DEFAULT_AUDIO_SETTINGS } from "./synths/constants";
 import { buildTrack } from "./utils";
 
-const CONCURRENT_SYNTHS = 15; // 10 fingers + buffer for long release
-
 type Instrument = Sampler | PolySynth;
-
-interface IInstrumentApi {
-  triggerAttack: (note: string, velocity: number) => void;
-  triggerRelease: (note: string) => void;
-  changeVolume: (volume: number) => void;
-  getVolumeDb: () => number | undefined;
-  triggerMetronome: () => void;
-  instrumentLoading: boolean;
-  downloadProgress: number;
-  clearPlayingNotes: () => void;
-  synthSettingsApi: types.ISynthSettingsApi;
-  trackFxApi: types.ITrackFxApi;
-  delayApi: types.IDelayApi;
-}
-
 interface ISynthOptions {
   synthName: types.AvailableSynthsEnum;
 }
@@ -36,6 +18,7 @@ interface ISamplerOptions {
   sample: string;
   sampleMap?: SamplerOptions["urls"];
 }
+let first = true;
 
 export class Instruments {
   samplers: Sampler[];
@@ -52,6 +35,7 @@ export class Instruments {
   _setPlayerStatus: (status: string) => void;
   _effectsActivated: boolean;
   _delay: number;
+  _publishingChanges: boolean;
 
   constructor(
     useSample: boolean,
@@ -71,6 +55,7 @@ export class Instruments {
     this._synthOptions = synthOptions;
     this._samplerOptions = samplerOptions;
     this._effectsActivated = true;
+    this._publishingChanges = false;
     this.samplers = [];
     this._delay = localStorageUtils.getDelay() || 0.01;
 
@@ -90,9 +75,12 @@ export class Instruments {
     this.getVolume = this.getVolume.bind(this);
     this.changeVolume = this.changeVolume.bind(this);
     this.getSynthSettings = this.getSynthSettings.bind(this);
-    this.setSynthSettings = this.setSynthSettings.bind(this);
     this.playMetronome = this.playMetronome.bind(this);
     this._buildTrack = this._buildTrack.bind(this);
+    this._disposeTrack = this._disposeTrack.bind(this);
+    this.setSynthSettingsOscillator = this.setSynthSettingsOscillator.bind(
+      this
+    );
   }
 
   async init() {
@@ -203,17 +191,26 @@ export class Instruments {
   }
 
   triggerAttack(note: string, velocity: number) {
-    const instruments = this._useSampler ? this.samplers : this.polySynths;
-    instruments.forEach((instrument: Instrument) => {
-      instrument.triggerAttack(note, `+${this._delay}`, velocity);
-    });
+    if (!this._publishingChanges) {
+      const instruments = this._useSampler ? this.samplers : this.polySynths;
+      for (let i = 0; i < instruments.length; i++) {
+        if (!instruments[i].disposed) {
+          instruments[i].triggerAttack(note, `+${this._delay}`, velocity);
+        }
+      }
+    }
   }
 
   triggerRelease(note: string) {
-    const instruments = this._useSampler ? this.samplers : this.polySynths;
-    instruments.forEach((instrument: Instrument) => {
-      instrument.triggerRelease(note, "+0.01");
-    });
+    if (!this._publishingChanges) {
+      const instruments = this._useSampler ? this.samplers : this.polySynths;
+      for (let i = 0; i < instruments.length; i++) {
+        if (!instruments[i].disposed) {
+        
+          instruments[i].triggerRelease(note, "+0.01");
+        }
+      }
+    }
   }
 
   /**
@@ -243,7 +240,7 @@ export class Instruments {
       toMaster: false,
       effectorIndex: null,
     });
-    this._publishFxChange(trackIndex);
+    await this._publishFxChange(trackIndex);
   }
 
   async removeFx(trackIndex: number, fxIndex: number) {
@@ -255,7 +252,7 @@ export class Instruments {
     this._extraConnections[trackIndex].splice(fxIndex, 1);
     this._effectChains[trackIndex].splice(fxIndex, 1);
     this._effectChainsNames[trackIndex].splice(fxIndex, 1);
-    this._publishFxChange(trackIndex);
+    await this._publishFxChange(trackIndex);
     localStorageUtils.deleteFxSettings(trackIndex, fxIndex);
   }
 
@@ -265,11 +262,22 @@ export class Instruments {
     type: types.AvailableEffectsNames
   ) {
     this._effectChainsNames[trackIndex][fxIndex] = type;
-    this._publishFxChange(trackIndex);
+    await this._publishFxChange(trackIndex);
   }
 
   async _publishFxChange(trackIndex: number) {
-    console.log("Publishing change");
+    this._publishingChanges = true;
+    if (this.polySynths.length > 0 && this.polySynths[0]?.activeVoices > 0) {
+    console.log("Preparing to publish FX change. Waiting for synths to finish")
+      this.polySynths[0].releaseAll();
+      this.polySynths[0].unsync();
+      setTimeout(() => {
+        this._publishFxChange(trackIndex);
+
+      }, 100)
+      return
+    }
+    console.log("Publishing FX Change...")
     if (!this._effectsActivated) {
       // dont add any effects if not activated
       const track = await this._buildTrack([]);
@@ -289,7 +297,6 @@ export class Instruments {
       this._setTrack(track.track, trackIndex);
       this._effectChains[trackIndex] = track.effectChain;
     }
-    this.saveSettingsToLocalStorage();
 
     const fxSettings = localStorageUtils.getFxSettings();
     if (fxSettings) {
@@ -309,6 +316,8 @@ export class Instruments {
         }
       }
     }
+      this._publishingChanges = false;
+    this.saveSettingsToLocalStorage();
   }
 
   saveSettingsToLocalStorage() {
@@ -336,7 +345,7 @@ export class Instruments {
   clearPlayingNotes() {
     const instruments = this._useSampler ? this.samplers : this.polySynths;
     setTimeout(() => {
-      // timeout to make sure all attacks are done
+      // wait till attacks are done etc. delayed
       instruments.forEach((instrument: Instrument) => {
         instrument.releaseAll();
       });
@@ -345,7 +354,9 @@ export class Instruments {
 
   _disposeTrack(trackIndex: number) {
     console.log(`Disposing track ${trackIndex}`);
+    this.clearPlayingNotes();
     const instruments = this._useSampler ? this.samplers : this.polySynths;
+    instruments[trackIndex].unsync();
     instruments[trackIndex].dispose();
     this._effectChains[trackIndex].forEach((chain) => {
       chain.dispose();
@@ -378,14 +389,14 @@ export class Instruments {
     }
     if (this._useSampler) {
       const samplers_ = samplers || this.samplers;
-      samplers_.forEach((sampler) => {
-        sampler.volume.value = volume;
-      });
+      for (let i = 0; i < samplers_.length; i++) {
+        samplers_[i].volume.value = volume;
+      }
     } else {
       const polySynths_: PolySynth[] = polySynths || this.polySynths;
-      polySynths_.forEach((polySynth) => {
-        polySynth.volume.value = volume;
-      });
+      for (let i = 0; i < polySynths_.length; i++) {
+        polySynths_[i].volume.value = volume;
+      }
     }
     this.metronome.volume.value = volume - 5;
     localStorageUtils.setVolume(volume);
@@ -398,31 +409,82 @@ export class Instruments {
     return {
       oscillator: {
         type: oscillator.type as types.OscillatorType,
+        //@ts-ignore
+        partials: oscillator.partials,
+        //@ts-ignore
+        spread: oscillator.spread,
+        //@ts-ignore
+        count: oscillator.count,
       },
       envelope: {
-        attack: envelope.attack,
-        decay: envelope.decay,
+        attack: envelope.attack as number,
+        decay: envelope.decay as number,
         sustain: envelope.sustain,
-        release: envelope.release,
+        release: envelope.release as number,
       },
-      detune: synthSettings.detune,
+      others: {
+        detune: synthSettings.detune,
+      },
+    };
+  }
+  getSamplerSettings(): types.IOtherSettings | null {
+    return {
+      //@ts-ignore
+      detune: this.samplers[0].detune,
     };
   }
 
-  setSynthSettings(settings: types.ISynthSettings) {
+  setSynthSettingsEnvelope(key: keyof types.IEnvelope, value: any) {
     this.polySynths.forEach((polySynth) => {
       polySynth.set({
-        oscillator: { type: settings.oscillator.type },
         envelope: {
-          attack: settings.envelope.attack as number,
-          decay: settings.envelope.decay as number,
-          sustain: settings.envelope.sustain as number,
-          release: settings.envelope.release as number,
+          [key]: value,
         },
-        detune: settings.detune,
       });
     });
-    localStorageUtils.setAudioSettings(settings);
+    const settings = this.polySynths[0].get();
+    const envelopeSettings: types.IEnvelope = {
+      attack: settings.envelope.attack as number,
+      decay: settings.envelope.decay as number,
+      sustain: settings.envelope.sustain,
+      release: settings.envelope.release as number,
+    };
+    localStorageUtils.setSynthSettingsEnvelope(envelopeSettings);
+  }
+
+  setSynthSettingsOscillator(key: keyof types.IOscillator, value: any) {
+    this.polySynths.forEach((polySynth) => {
+      polySynth.set({
+        oscillator: {
+          [key]: value,
+        },
+      });
+    });
+    const settings = this.polySynths[0].get();
+    const oscillatorSettings: types.IOscillator = {
+      //@ts-ignore
+      type: settings.oscillator.type,
+      //@ts-ignore
+      partials: settings.oscillator.partials,
+      //@ts-ignore
+      count: settings.oscillator.count,
+      //@ts-ignore
+      spread: settings.oscillator.spread,
+    };
+    localStorageUtils.setSynthSettingsOscillator(oscillatorSettings);
+  }
+
+  setSynthSettingsOther(key: keyof types.IOtherSettings, value: any) {
+    this.polySynths.forEach((polySynth) => {
+      polySynth.set({
+        [key]: value,
+      });
+    });
+    const settings = this.polySynths[0].get();
+    const othersSettings: types.IOtherSettings = {
+      detune: settings.detune,
+    };
+    localStorageUtils.setSynthSettingsOthers(othersSettings);
   }
 
   getSynthName(): types.AvailableSynthsEnum {
@@ -455,7 +517,7 @@ export class Instruments {
    * @param value
    * @param publish exists solely for removeFx extraConnections
    */
-  changeExtraConnection(
+  async changeExtraConnection(
     trackIndex: number,
     fxIndex: number,
     key: keyof types.IExtraConnection,
@@ -466,7 +528,7 @@ export class Instruments {
     //@ts-ignore
     this._extraConnections[trackIndex][fxIndex][key] = value;
     if (publish) {
-      this._publishFxChange(trackIndex);
+      await this._publishFxChange(trackIndex);
     }
   }
 

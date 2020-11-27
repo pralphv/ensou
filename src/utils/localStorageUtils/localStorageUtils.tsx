@@ -6,11 +6,15 @@ enum LocalStorageKeys {
   sampleName = "sampleName",
   isLoop = "isLoop",
   synthName = "synthName",
-  audioSettings = "audioSettings",
+  synthSettings = "synthSettings",
   effectChainsNames = "effectChainsNames",
   extraConnections = "extraConnections",
   fxSettings = "fxSettings",
   delay = "delay",
+  oscillator = "oscillator",
+  envelope = "envelope",
+  others = "others",
+  // delay = "delay",
 }
 
 function getLocalStorage(key: string): any | null {
@@ -67,12 +71,36 @@ export function setIsNotLoop(bool: boolean) {
   setLocalStorage(LocalStorageKeys.isLoop, bool);
 }
 
-export function getAudioSettings(): types.ISynthSettings | null {
-  return getLocalStorage(LocalStorageKeys.audioSettings);
+export function getSynthSettings(): types.ISynthSettings | null {
+  return getLocalStorage(LocalStorageKeys.synthSettings);
 }
 
-export function setAudioSettings(audioSettings: types.ISynthSettings) {
-  setLocalStorage(LocalStorageKeys.audioSettings, audioSettings);
+export function setSynthSettings(synthSettings: types.ISynthSettings) {
+  setLocalStorage(LocalStorageKeys.synthSettings, synthSettings);
+}
+
+
+export function getSynthSettingsOscillator(): types.IOscillator | null {
+  return getLocalStorage(LocalStorageKeys.oscillator);
+}
+
+export function setSynthSettingsOscillator(settings: types.IOscillator) {
+  setLocalStorage(LocalStorageKeys.oscillator, settings);
+}
+export function getSynthSettingsEnvelope(): types.IEnvelope | null {
+  return getLocalStorage(LocalStorageKeys.envelope);
+}
+
+export function setSynthSettingsEnvelope(settings: types.IEnvelope) {
+  setLocalStorage(LocalStorageKeys.envelope, settings);
+}
+
+export function getSynthSettingsOthers(): types.IOtherSettings | null {
+  return getLocalStorage(LocalStorageKeys.others);
+}
+
+export function setSynthSettingsOthers(settings: types.IOtherSettings) {
+  setLocalStorage(LocalStorageKeys.others, settings);
 }
 
 export function getSynthName(): types.AvailableSynthsEnum | null {

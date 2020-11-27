@@ -5,7 +5,7 @@ import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 
 import * as types from "types";
-import SynthTab from "./SynthTab";
+import SynthTab from "./synthTab/SynthTab";
 import SamplerTab from "./SamplerTab";
 import EffectsTab from "./effectsTab/EffectsTab";
 import MyMidiPlayer from "audio/midiPlayer";

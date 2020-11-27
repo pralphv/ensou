@@ -19,5 +19,8 @@ export function convertCanvasHeightToMidiTick(
   canvasHeight: number
 ): number {
   // forgot what 50 is
-  return (canvasHeight - 50 - y) * CANVAS_SLOW_DOWN_FACTOR + currentTick;
+  return (
+    (canvasHeight - BOTTOM_TILE_HEIGHT - y) * CANVAS_SLOW_DOWN_FACTOR +
+    currentTick
+  );
 }

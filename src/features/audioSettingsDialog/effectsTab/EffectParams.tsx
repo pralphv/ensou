@@ -7,6 +7,7 @@ import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
 
 import * as types from "types";
+import MyMidiPlayer from "audio/midiPlayer";
 
 interface IRange {
   min: number;
@@ -25,7 +26,12 @@ const EFFECT_PARAMS_MAP: IEFFECT_PARAMS_MAP = {
   Phaser: ["frequency", "octaves", "baseFrequency"],
   Gain: ["value"],
   Filter: ["type", "frequency", "rolloff"],
+  StereoWidener: ["width"],
 };
+
+function getNoteTimeRange() {
+  return { min: 1, max: 32, step: 1, noteScale: true };
+}
 
 function getNoteRange() {
   return { min: 0.001, max: 6, noteScale: true, step: 0.01 }; //  2 ** 6 is 64
@@ -55,6 +61,7 @@ const FIELD_MIN_MAX: IFIELD_MIN_MAX = {
   baseFrequency: getFrequency(),
   octaves: { min: 1, max: 10, step: 1 },
   value: { min: 0, max: 5, step: 0.1 }, //  Gain
+  width: getNormalRange(),
 };
 
 interface IFieldOptions {
@@ -86,6 +93,7 @@ interface IEffectParams {
   changeFxSettings: types.IMidiFunctions["trackFxApi"]["changeFxSettings"];
   trackIndex: number;
   fxIndex: number;
+  midiPlayer: MyMidiPlayer;
   forceLocalRender: types.forceLocalRender;
 }
 
@@ -96,62 +104,69 @@ export default function EffectParams({
   trackIndex,
   fxIndex,
   forceLocalRender,
+  midiPlayer
 }: IEffectParams): JSX.Element {
   return (
     <div>
-      {effectName && EFFECT_PARAMS_MAP[effectName].map((param, i) => {
-        let step = FIELD_MIN_MAX[param]?.step;
-        let min = FIELD_MIN_MAX[param]?.min;
-        let max = FIELD_MIN_MAX[param]?.max;
-        //@ts-ignore
-        let value = fx[param];
-        if (param === "delayTime" && effectName === "Chorus") {
-          min = 2;
-          max = 20;
-        } else if (param === "value") {
-          // Gain
-          fx = fx as Gain;
-          value = fx.gain;
-        }
-        return (
-          <div key={`${param}_${i}`}>
-            <Typography gutterBottom>{param}</Typography>
-            {Object.keys(SELECT_OPTIONS_MAP).includes(param) ? (
-              <CustomSelect
-                value={value}
-                onChange={(e) => {
-                  changeFxSettings(trackIndex, fxIndex, param, e.target.value);
-                  forceLocalRender(true);
-                }}
-                items={SELECT_OPTIONS_MAP[param]}
-              />
-            ) : (
-              <Slider
-                value={extractNumber(value)}
-                valueLabelDisplay="auto"
-                min={min}
-                step={step}
-                // scale={(x) =>
-                //   FIELD_MIN_MAX[param].noteScale ? 2 ** x : x
-                // }
-                max={max}
-                // valueLabelFormat={(x) =>
-                //   FIELD_MIN_MAX[param].noteScale ? `${x}n` : x
-                // }
-                onChange={(e, newValue) => {
-                  changeFxSettings(
-                    trackIndex,
-                    fxIndex,
-                    param,
-                    newValue as number
-                  );
-                  forceLocalRender(true);
-                }}
-              />
-            )}
-          </div>
-        );
-      })}
+      {effectName &&
+        EFFECT_PARAMS_MAP[effectName].map((param, i) => {
+          let step = FIELD_MIN_MAX[param]?.step;
+          let min = FIELD_MIN_MAX[param]?.min;
+          let max = FIELD_MIN_MAX[param]?.max;
+          //@ts-ignore
+          let value = fx[param];
+          if (param === "delayTime" && effectName === "Chorus") {
+            min = 2;
+            max = 20;
+          } else if (param === "value") {
+            // Gain
+            fx = fx as Gain;
+            value = fx.gain;
+          }
+          return (
+            <div key={`${param}_${i}`}>
+              <Typography gutterBottom>{param}</Typography>
+              {Object.keys(SELECT_OPTIONS_MAP).includes(param) ? (
+                <CustomSelect
+                  value={value}
+                  onChange={(e) => {
+                    changeFxSettings(
+                      trackIndex,
+                      fxIndex,
+                      param,
+                      e.target.value
+                    );
+                    forceLocalRender(true);
+                  }}
+                  items={SELECT_OPTIONS_MAP[param]}
+                />
+              ) : (
+                <Slider
+                  value={extractNumber(value)}
+                  valueLabelDisplay="auto"
+                  min={min}
+                  step={step}
+                  // scale={(x) =>
+                  //   FIELD_MIN_MAX[param].noteScale ? 2 ** x : x
+                  // }
+                  max={max}
+                  // valueLabelFormat={(x) =>
+                  //   FIELD_MIN_MAX[param].noteScale ? `${x}n` : x
+                  // }
+                  onChange={(e, newValue) => {
+                    midiPlayer.myTonejs?.changeFxSettings(
+                      trackIndex,
+                      fxIndex,
+                      param,
+                      newValue 
+                    );
+                    forceLocalRender(true);
+                  }}
+                />
+              )}
+            </div>
+          );
+        })}
     </div>
   );
 }

@@ -76,6 +76,7 @@ export default function EffectsTab({
                           }}
                         />
                         <EffectParams
+                        midiPlayer={midiPlayer}
                           effectName={effectName}
                           fx={fx}
                           trackIndex={trackIndex}

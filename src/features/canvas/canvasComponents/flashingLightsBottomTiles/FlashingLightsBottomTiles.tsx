@@ -108,9 +108,8 @@ export function draw(playingNotes: Set<number>) {
     // flash and unflash tiles
     const spriteToFlash = getRandomInt(0, 2);
     const targetNote: boolean = playingNotes.has(i) ? true : false;
-    COLUMNS[i].forEach((col, index: number) => {
-      const flash = targetNote && index === spriteToFlash;
-      COLUMNS[i][index].visible = flash;
-    });
+    for (let j = 0; j < COLUMNS[i].length; j++) {
+      COLUMNS[i][j].visible = targetNote && j === spriteToFlash;
+    }
   }
 }

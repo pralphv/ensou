@@ -6,6 +6,7 @@ import {
   Gain,
   Destination,
   Filter,
+  StereoWidener
 } from "tone";
 
 import * as types from "types";
@@ -17,6 +18,7 @@ const NAME_TO_EFFECT_MAP = {
   Phaser,
   Gain,
   Filter,
+  StereoWidener
 };
 
 /**

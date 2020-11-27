@@ -53,7 +53,7 @@ export default class MyMidiPlayer {
     setInstrumentLoading: (loading: boolean) => void,
     _forceCanvasRerender: () => void
   ) {
-    console.log("Constructing new midi player")
+    console.log("Constructing new midi player");
     // for getLocalSampler because of async
     this._setPlayerStatus = setPlayerStatus;
     this._setInstrumentLoading = setInstrumentLoading;
@@ -115,10 +115,18 @@ export default class MyMidiPlayer {
     // @ts-ignore
     const ticksPerBeat_ = this.midiPlayer.getDivision().division;
 
-    const remainder = currentTick.tick % ticksPerBeat_;
-    const progressToOneBeat = remainder / (ticksPerBeat_ * 4); // 1 is on the beat
-    const fourthBeat = progressToOneBeat <= 0.0 + BEAT_BUFFER;
-    if (this.isMetronome && fourthBeat) {
+    /**
+     const remainder = currentTick.tick % ticksPerBeat_;
+     const progressToOneBeat = currentTick.tick % ticksPerBeat_ / (ticksPerBeat_ * 4); // 1 is on the beat
+     const fourthBeat = progressToOneBeat <= 0.0 + BEAT_BUFFER;
+     if (this.isMetronome && fourthBeat) {
+    */
+    if (
+      this.isMetronome &&
+      (currentTick.tick % ticksPerBeat_) / (ticksPerBeat_ * 4) <=
+        0.0 + BEAT_BUFFER
+    ) {
+      // dont play if played once already
       if (!this._isBlockMetronome) {
         this.myTonejs?.playMetronome();
       }
@@ -128,12 +136,13 @@ export default class MyMidiPlayer {
     }
 
     // handle song loop
-    const songEnded: boolean = currentTick.tick >= this.totalTicks;
-    const playRangeReached: boolean =
-      currentTick.tick >= this.playRange.endTick;
-    const hasPlayRange = this.playRange.startTick !== this.playRange.endTick;
-
-    if (this.isPlaying && (songEnded || (hasPlayRange && playRangeReached))) {
+    // if isPlaying && (songEnded || (hasPlayRange && playRangeReached))
+    if (
+      this.isPlaying &&
+      (currentTick.tick >= this.totalTicks ||
+        (this.playRange.startTick !== this.playRange.endTick &&
+          currentTick.tick >= this.playRange.endTick))
+    ) {
       this.myTonejs?.clearPlayingNotes();
       if (this.isLoop) {
         this.midiPlayer.skipToTick(this.playRange.startTick);
@@ -164,8 +173,8 @@ export default class MyMidiPlayer {
   _handleOnMidiEvent(midiEvent: any) {
     if (midiEvent.name === "Set Tempo") {
       this.songTempo = this.midiPlayer.tempo; //this.midiPlayer.tempo?
-      const customizedTempo = this.midiPlayer.tempo * this.tempoPercent;
-      this.setTempo(customizedTempo);
+      // const customizedTempo = this.midiPlayer.tempo * this.tempoPercent;
+      this.setTempo(this.midiPlayer.tempo * this.tempoPercent);
     } else if (midiEvent.velocity !== 0 && midiEvent.name === "Note on") {
       // some stupid midi can have note on but 0 velocity to represent note off
       this.myTonejs?.triggerAttack(
@@ -332,32 +341,24 @@ export default class MyMidiPlayer {
   async _initToneJs() {
     if (this.samplerSource === types.SamplerSourceEnum.server) {
       // if its useSample, then it must have this.sampleName
-      this.myTonejs = new Instruments(
-        true,
-        this._setPlayerStatus,
-        undefined,
-        { instrument: this.instrument, sample: this.sampleName as string }
-      );
+      this.myTonejs = new Instruments(true, this._setPlayerStatus, undefined, {
+        instrument: this.instrument,
+        sample: this.sampleName as string,
+      });
     } else if (
       this.samplerSource === types.SamplerSourceEnum.local ||
       this.samplerSource === types.SamplerSourceEnum.cachedLocal
     ) {
       const sampleMap = this.localSampler;
-      this.myTonejs = new Instruments(
-        true,
-        this._setPlayerStatus,
-        undefined,
-        {
-          instrument: this.instrument,
-          sample: this.sampleName as string,
-          sampleMap,
-        }
-      );
+      this.myTonejs = new Instruments(true, this._setPlayerStatus, undefined, {
+        instrument: this.instrument,
+        sample: this.sampleName as string,
+        sampleMap,
+      });
     } else {
       this.myTonejs = new Instruments(false, this._setPlayerStatus);
     }
     await this.myTonejs.init(); // must be here because construct cannot be async
-
   }
 
   async init() {
@@ -369,7 +370,6 @@ export default class MyMidiPlayer {
     this._initToneJs();
     this._setInstrumentLoading(false);
     this._forceCanvasRerender();
-
   }
 
   async fetchLocalSampler() {
@@ -385,7 +385,9 @@ export default class MyMidiPlayer {
   }
 
   async loadArrayBuffer(arrayBuffer: ArrayBuffer) {
+    this._setPlayerStatus("Importing...");
     await this.midiPlayer.loadArrayBuffer(arrayBuffer);
+    this._setPlayerStatus(""); 
   }
 
   cleanup() {

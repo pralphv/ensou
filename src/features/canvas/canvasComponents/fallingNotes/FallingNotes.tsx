@@ -119,18 +119,19 @@ export function draw(
   ticksPerBeat: number
 ) {
   const upperLimit = ticksPerBeat * 4 * 8; // assume 4 beats per bar, show 3 bars
-  FALLING_NOTES.forEach((note: FallingNotes) => {
-    const sprite = note.rectSprite;
+  for (let i = 0; i < FALLING_NOTES.length; i++) {
     if (
-      currentTick >= note.on * CANVAS_SLOW_DOWN_FACTOR - upperLimit &&
-      currentTick <= note.off * CANVAS_SLOW_DOWN_FACTOR
+      currentTick >=
+        FALLING_NOTES[i].on * CANVAS_SLOW_DOWN_FACTOR - upperLimit &&
+      currentTick <= FALLING_NOTES[i].off * CANVAS_SLOW_DOWN_FACTOR
     ) {
-      const on = note.on - currentTick / CANVAS_SLOW_DOWN_FACTOR;
-      sprite.position.x = note.x;
-      sprite.position.y = canvasHeight - on - note.height - BOTTOM_TILE_HEIGHT;
-      sprite.visible = true;
+      const on = FALLING_NOTES[i].on - currentTick / CANVAS_SLOW_DOWN_FACTOR;
+      FALLING_NOTES[i].rectSprite.position.x = FALLING_NOTES[i].x;
+      FALLING_NOTES[i].rectSprite.position.y =
+        canvasHeight - on - FALLING_NOTES[i].height - BOTTOM_TILE_HEIGHT;
+      FALLING_NOTES[i].rectSprite.visible = true;
     } else {
-      sprite.visible = false;
+      FALLING_NOTES[i].rectSprite.visible = false;
     }
-  });
+  }
 }

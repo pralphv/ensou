@@ -1,7 +1,6 @@
 import React from "react";
 import clsx from "clsx";
 
-import Slider from "@material-ui/core/Slider";
 import { useHotkeys } from "react-hotkeys-hook";
 import * as types from "types";
 import "./styles.css";
@@ -67,19 +66,5 @@ export default function ProgressBar({
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     />
-    // <Slider
-    //   className={clsx({
-    //     fullScreenSlider: isFullScreen,
-    //     "custom-slider": true,
-    //     hide: getIsPlaying() && !isHovering,
-    //   })}
-    //   valueLabelDisplay="off"
-    //   defaultValue={0}
-    //   value={songProgress}
-    //   max={100}
-    //   onChange={handleChange}
-    //   onMouseEnter={() => setIsHovering(true)}
-    //   onMouseLeave={() => setIsHovering(false)}
-    // />
   );
 }

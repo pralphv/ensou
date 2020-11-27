@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 
 import { Typography } from "@material-ui/core";
+import Divider from "@material-ui/core/Divider";
 import { useFirestore } from "react-redux-firebase";
 
 import LoadingScreen from "features/loadingScreen/LoadingScreen";
@@ -13,16 +14,37 @@ import { useParams } from "react-router";
 
 import { useEventListener } from "utils/customHooks";
 import { Helmet } from "react-helmet";
-// import { FullScreen, useFullScreenHandle } from "react-full-screen";
+
+import {
+  increaseSlowDownFactor,
+  decreaseSlowDownFactor,
+} from "features/canvas/constants";
 import useFullscreenStatus from "./fullscreener";
 import "./styles.css";
+
+/**
+ * artist: "YOASOBI"
+date: t {seconds: 1603188226, nanoseconds: 522000000}
+filename: "Yoru Ni Kakeru"
+instrument: "Piano"
+transcribedBy: "hecap1005"
+uploader: "your_oniichan"
+ */
+
+interface ISongMetaData {
+  artist: string;
+  filename: string;
+  instrument: string;
+  transcribedBy: string;
+  uploader: string;
+  date: Date;
+}
 
 export default function Player(): JSX.Element {
   const [instrumentLoading, setInstrumentLoading] = useState<boolean>(false);
   const [playerStatus, setPlayerStatus] = useState<string>("");
   const midiPlayerRef = useRef<MyMidiPlayer>();
-  const [songName, setSongName] = useState<string>("");
-  const [artist, setArtist] = useState<string>("");
+  const [songMetaData, setSongMetaData] = useState<ISongMetaData>();
   const [isHovering, setIsHovering] = useState<boolean>(false);
   const [isHorizontal, setIsHorizontal] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -67,9 +89,11 @@ export default function Player(): JSX.Element {
     async function fetchSongDetails() {
       const ref = await firestore.collection("midi").doc(songId);
       const snapshot = await ref.get();
-      // please typescript this
-      setSongName(snapshot.data()?.filename);
-      setArtist(snapshot.data()?.artist);
+      const data = snapshot.data();
+      if (data) {
+        data.date = new Date(data?.date?.seconds * 1000);
+        setSongMetaData(data as ISongMetaData);
+      }
     }
     initMidiPlayer();
     fetchSongDetails();
@@ -79,9 +103,7 @@ export default function Player(): JSX.Element {
   }, []);
 
   const loadingScreenMemo = useMemo(() => {
-    return (
-      playerStatus !== "" && <LoadingScreen text={playerStatus} />
-    );
+    return playerStatus !== "" && <LoadingScreen text={playerStatus} />;
   }, [instrumentLoading, isLoading, playerStatus]);
 
   const currentTick = midiPlayerRef.current?.midiPlayer.getCurrentTick();
@@ -155,26 +177,36 @@ export default function Player(): JSX.Element {
 
   const songNameMemo = useMemo(
     () => (
-      <Typography variant="h6" style={{ paddingLeft: "1%" }}>
-        {songName}
-      </Typography>
+      <div style={{ paddingLeft: "1%" }}>
+        <Typography variant="h6">
+          {songMetaData?.filename} - {songMetaData?.artist}
+        </Typography>
+        <Typography variant="caption" color="textSecondary">
+          Transcribed By: {songMetaData?.transcribedBy} •{" "}
+          {songMetaData?.date.toLocaleString("default", {
+            day: "numeric",
+            year: "numeric",
+            month: "long",
+          })}
+        </Typography>
+        <Divider style={{ marginTop: "8px", marginBottom: "8px" }} />
+        <Typography variant="body2">{songMetaData?.uploader}</Typography>
+      </div>
     ),
-    [songName]
+    [songMetaData]
   );
 
   const helmentMemo = useMemo(
     () => (
       <Helmet>
-        <title>
-          {songName} by {artist}
-        </title>
+        <title>{`${songMetaData?.filename} by ${songMetaData?.artist}`}</title>
         <meta
           name="description"
-          content={`${songName} by ${artist} with free online MIDI player. Practice piano without downloading software with Ensou.`}
+          content={`${songMetaData?.filename} by ${songMetaData?.artist} with free online MIDI player. Practice piano without downloading software with Ensou.`}
         />
       </Helmet>
     ),
-    [artist]
+    [songMetaData]
   );
 
   useEventListener("wheel", (e) => {
@@ -184,6 +216,8 @@ export default function Player(): JSX.Element {
       | number
       | undefined = midiPlayerRef.current?.midiPlayer.getCurrentTick();
     const totalTicks = midiPlayerRef.current?.getTotalTicks();
+    if (e.ctrlKey) {
+    }
     if (currentTick && totalTicks) {
       let newTick: number = currentTick + e.deltaY / 2;
       const SCROLL_BUFFER: number = 300;

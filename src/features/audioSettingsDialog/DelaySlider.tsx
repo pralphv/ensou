@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Typography } from "@material-ui/core";
+import InputLabel from "@material-ui/core/InputLabel";
 import Slider from "@material-ui/core/Slider";
 import * as types from "types";
 import prettyMilliseconds from "pretty-ms";
@@ -22,7 +22,7 @@ export default function DelaySlider({
         title="Increasing this may help with performance"
         placement="top"
       >
-        <Typography gutterBottom>Delay</Typography>
+        <InputLabel>Delay</InputLabel>
       </Tooltip>
       <Slider
         value={midiPlayer.getDelay()}

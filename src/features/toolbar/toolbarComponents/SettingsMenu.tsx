@@ -42,7 +42,7 @@ export default function SettingsMenu({
       // super hacky way to wait for effectchain to finish building
       setTimeout(() => {
         setForceLocalRenderDummy(forceLocalRenderDummy + 1);
-      }, 500);
+      }, 1000);
     }
   }
 

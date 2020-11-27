@@ -3,7 +3,7 @@ import React from "react";
 import { Typography } from "@material-ui/core";
 import Checkbox from "@material-ui/core/Checkbox";
 
-interface IToMasterCheckbox {
+interface IToMasterCheckboxProps {
   checked: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
@@ -11,7 +11,7 @@ interface IToMasterCheckbox {
 export default function ToMasterCheckbox({
   checked,
   onChange,
-}: IToMasterCheckbox): JSX.Element {
+}: IToMasterCheckboxProps): JSX.Element {
   return (
     <Typography>
       To Master
