@@ -321,6 +321,7 @@ export default class MyMidiPlayer {
   }
 
   async downloadMidiFromFirebase(songId: string, onLoad: () => void) {
+    this._setPlayerStatus("Downloading Midi...")
     const midiRef = storageRef.child("midi").child(`${songId}.mid`);
     const url = await midiRef.getDownloadURL();
     const xhr = new XMLHttpRequest();
@@ -330,6 +331,8 @@ export default class MyMidiPlayer {
       this.midiPlayer.loadArrayBuffer(blob);
       onLoad();
       console.log("Finished downloading");
+    this._setPlayerStatus("")
+
     };
     xhr.onerror = () => {
       // probably cors

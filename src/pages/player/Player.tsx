@@ -22,15 +22,6 @@ import {
 import useFullscreenStatus from "./fullscreener";
 import "./styles.css";
 
-/**
- * artist: "YOASOBI"
-date: t {seconds: 1603188226, nanoseconds: 522000000}
-filename: "Yoru Ni Kakeru"
-instrument: "Piano"
-transcribedBy: "hecap1005"
-uploader: "your_oniichan"
- */
-
 interface ISongMetaData {
   artist: string;
   filename: string;

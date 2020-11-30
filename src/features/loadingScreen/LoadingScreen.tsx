@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Typography } from "@material-ui/core";
+import { Typography, Grid } from "@material-ui/core";
 import Backdrop from "@material-ui/core/Backdrop";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import { makeStyles } from "@material-ui/core";
@@ -23,13 +23,13 @@ export default function LoadingScreen({ text }: ILoadingScreenProps) {
   const classes = useStyles();
   // const profile = useUserProfile();
   // <Backdrop className={classes.backdrop} open={!profile.isLoaded}>
-  
+
   return (
     <Backdrop className={classes.backdrop} open={true} invisible={true}>
-      <div>
+      <Grid container direction="column" justify="center" alignItems="center">
         <CircularProgress color="inherit" />
         {text && <Typography align="center">{text}</Typography>}
-      </div>
+      </Grid>
     </Backdrop>
   );
 }
