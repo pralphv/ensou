@@ -8,10 +8,8 @@ import * as types from "types";
 import ToMasterCheckbox from "./ToMasterCheckBox";
 import ExtraOutput from "./ExtraOutput";
 import EffectParams from "./EffectParams";
-import EffectHeader from "./EffectHeader";
 import EffectSelector from "./EffectSelector";
 import AddFxButton from "./AddFxButton";
-import AddInstrumentButton from "./AddInstrumentButton";
 import RemoveFxButton from "./RemoveFxButton";
 import ActivateSwitch from "./ActivateSwitch";
 import MyMidiPlayer from "audio/midiPlayer";
@@ -42,13 +40,6 @@ export default function EffectsTab({
             />
             {myTonejs.getEffectsChain().map((tracks, trackIndex) => (
               <div key={trackIndex}>
-                {/* <EffectHeader
-              trackIndex={trackIndex}
-              onClick={() => {
-                trackFxApi.removeInstrument(trackIndex);
-                forceLocalRender();
-              }}
-            /> */}
                 <Grid
                   container
                   spacing={2}
@@ -76,7 +67,7 @@ export default function EffectsTab({
                           }}
                         />
                         <EffectParams
-                        midiPlayer={midiPlayer}
+                          midiPlayer={midiPlayer}
                           effectName={effectName}
                           fx={fx}
                           trackIndex={trackIndex}
@@ -140,10 +131,6 @@ export default function EffectsTab({
               </div>
             ))}
           </div>
-          {/* <AddInstrumentButton
-        addInstrument={trackFxApi.addInstrument}
-        forceLocalRender={forceLocalRender}
-      /> */}
         </DialogContent>
       )}
     </div>

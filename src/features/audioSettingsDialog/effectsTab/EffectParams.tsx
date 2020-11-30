@@ -153,6 +153,7 @@ export default function EffectParams({
                   // valueLabelFormat={(x) =>
                   //   FIELD_MIN_MAX[param].noteScale ? `${x}n` : x
                   // }
+                  valueLabelFormat={(x) => x.toFixed(2)}
                   onChange={(e, newValue) => {
                     midiPlayer.myTonejs?.changeFxSettings(
                       trackIndex,

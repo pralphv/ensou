@@ -35,7 +35,7 @@ export class Instruments {
   _setPlayerStatus: (status: string) => void;
   _effectsActivated: boolean;
   _delay: number;
-  _publishingChanges: boolean;
+  publishingChanges: boolean;
 
   constructor(
     useSample: boolean,
@@ -55,7 +55,7 @@ export class Instruments {
     this._synthOptions = synthOptions;
     this._samplerOptions = samplerOptions;
     this._effectsActivated = true;
-    this._publishingChanges = false;
+    this.publishingChanges = false;
     this.samplers = [];
     this._delay = localStorageUtils.getDelay() || 0.01;
 
@@ -191,7 +191,7 @@ export class Instruments {
   }
 
   triggerAttack(note: string, velocity: number) {
-    if (!this._publishingChanges) {
+    if (!this.publishingChanges) {
       const instruments = this._useSampler ? this.samplers : this.polySynths;
       for (let i = 0; i < instruments.length; i++) {
         if (!instruments[i].disposed) {
@@ -202,7 +202,7 @@ export class Instruments {
   }
 
   triggerRelease(note: string) {
-    if (!this._publishingChanges) {
+    if (!this.publishingChanges) {
       const instruments = this._useSampler ? this.samplers : this.polySynths;
       for (let i = 0; i < instruments.length; i++) {
         if (!instruments[i].disposed) {
@@ -269,15 +269,19 @@ export class Instruments {
    * just allow to publish. Active voice should be dead by then.
    */
   async _publishFxChange(trackIndex: number, retry: number = 0) {
-    this._publishingChanges = true;
-    if (retry < 50 && this.polySynths.length > 0 && this.polySynths[0]?.activeVoices > 0) {
+    this.publishingChanges = true;
+    if (
+      retry < 50 &&
+      this.polySynths.length > 0 &&
+      this.polySynths[0]?.activeVoices > 0
+    ) {
       console.log(
         "Preparing to publish FX change. Waiting for synths to finish"
       );
       this.polySynths[0].releaseAll();
       this.polySynths[0].unsync();
       setTimeout(() => {
-        this._publishFxChange(trackIndex, retry+1);
+        this._publishFxChange(trackIndex, retry + 1);
       }, 100);
       return;
     }
@@ -320,7 +324,7 @@ export class Instruments {
         }
       }
     }
-    this._publishingChanges = false;
+    this.publishingChanges = false;
     this.saveSettingsToLocalStorage();
   }
 
@@ -336,13 +340,8 @@ export class Instruments {
     param: string,
     value: any
   ) {
-    if (param === "value") {
-      // Gain
-      let gainNode = this._effectChains[trackIndex][fxIndex] as Gain;
-      gainNode.gain.rampTo(value);
-    } else {
-      this._effectChains[trackIndex][fxIndex].set({ [param]: value });
-    }
+    param = param === "value" ? "gain" : param;
+    this._effectChains[trackIndex][fxIndex].set({ [param]: value });
     localStorageUtils.setFxSettings(trackIndex, fxIndex, param, value);
   }
 

@@ -26,9 +26,10 @@ export default function SettingsMenu({
 }: ISettingsMenu): JSX.Element {
   const [forceLocalRenderDummy, setForceLocalRenderDummy] = useState<number>(0);
   const [samplerDialogOpen, setSamplerDialogOpen] = useState<boolean>(false);
-  const [audioSettingsDialogOpen, setAudioSettingsDialogOpen] = useState<
-    boolean
-  >(false);
+  const [
+    audioSettingsDialogOpen,
+    setAudioSettingsDialogOpen,
+  ] = useState<boolean>(false);
 
   /**
    * for rerendering settings because checking objects
@@ -39,10 +40,15 @@ export default function SettingsMenu({
     if (skipWait) {
       setForceLocalRenderDummy(forceLocalRenderDummy + 1);
     } else {
-      // super hacky way to wait for effectchain to finish building
       setTimeout(() => {
-        setForceLocalRenderDummy(forceLocalRenderDummy + 1);
-      }, 1000);
+        if (!midiPlayer.myTonejs?.publishingChanges) {
+          console.log("waiting for change...")
+          setForceLocalRenderDummy(forceLocalRenderDummy + 1);
+          return;
+        } else {
+          forceLocalRender(false);
+        }
+      }, 100);
     }
   }
 
