@@ -1,97 +1,93 @@
-import React, { Fragment, useState, useEffect } from "react";
-import clsx from "clsx";
+import React, { useState, useEffect } from "react";
 
-import { useHistory } from "react-router-dom";
-import { Grid, makeStyles, Paper, Typography } from "@material-ui/core";
-
-import LoadingScreen from "features/loadingScreen/LoadingScreen";
+import { makeStyles, Theme, createStyles } from "@material-ui/core/styles";
+import { Paper } from "@material-ui/core";
+import InputBase from "@material-ui/core/InputBase";
+import { useFirestore } from "react-redux-firebase";
+import IconButton from "@material-ui/core/IconButton";
 import LoadingSpinner from "features/loadingSpinner/LoadingSpinner";
-import { storageRef } from "firebaseApi/firebase";
 import SongTable from "features/songTable/SongTable";
 
-import TextField from "@material-ui/core/TextField";
-import Autocomplete from "@material-ui/lab/Autocomplete";
 import SearchIcon from "@material-ui/icons/Search";
+import * as types from "features/songTable/types";
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    flexGrow: 1,
-    height: "200px",
-  },
-  width: {
-    width: "250px",
-  },
-  paper: {
-    padding: theme.spacing(2),
-    cursor: "pointer",
-    "&:hover": {
-      background: "#353535",
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    root: {
+      padding: "2px 4px",
+      display: "flex",
+      alignItems: "center",
+      marginTop: theme.spacing(2),
+      marginBottom: theme.spacing(2),
+      // width: 400,
     },
-  },
-}));
-
-const MAX_BOX_HEIGHT: number = 200;
-
-function useAvailableUserUploadedMidis(): string[] {
-  const [midiNames, setMidiNames] = useState<string[]>([]);
-  useEffect(() => {
-    async function load() {
-      console.log("Loading Midis");
-      const midisRef = storageRef.child("midi");
-      try {
-        const result = await midisRef.listAll();
-        const midiNames_: string[] = result.items.map(
-          (itemRef) => itemRef.name
-        );
-        setMidiNames(midiNames_);
-        console.log("Successfully loaded Midis");
-      } catch (error) {
-        console.log(`Fetch user uploaded midis error: ${error}`);
-      }
-    }
-    load();
-  }, []);
-  return midiNames;
-}
+    input: {
+      marginLeft: theme.spacing(1),
+      flex: 1,
+    },
+    iconButton: {
+      padding: 10,
+    },
+    divider: {
+      height: 28,
+      margin: 4,
+    },
+  })
+);
 
 export default function Home(): JSX.Element {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [tableRows, setTableRows] = useState<types.ISongTableData[]>([]);
+  const [searchText, setSearchText] = useState<string>("");
+  const [filteredTableRows, setFilteredTableRows] = useState<
+    types.ISongTableData[]
+  >([]);
   const classes = useStyles();
-  const history = useHistory();
-  const loading: boolean = false;
-  const midiNames = useAvailableUserUploadedMidis();
+  const firestore = useFirestore();
+  useEffect(() => {
+    async function fetchSongTable() {
+      setIsLoading(true);
+      const ref = await firestore.collection("midi");
+      const snapshot = await ref.get();
+      const midi: types.ISongTableData[] = snapshot.docs.map((doc) => {
+        return { id: doc.id, ...doc.data() };
+      }) as types.ISongTableData[];
+      setTableRows(midi);
+      setIsLoading(false);
+    }
+    fetchSongTable();
+  }, []);
+
+  function handleOnChange(
+    e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+  ) {
+    const value = e.target.value;
+    setSearchText(value);
+    const filtered = tableRows.filter(
+      (tableRow) =>
+        tableRow.filename.toLowerCase().includes(value) ||
+        tableRow.artist.toLowerCase().includes(value)
+    );
+    setFilteredTableRows(filtered);
+  }
 
   return (
     <div>
-      {/* <LoadingScreen /> */}
-      {loading ? (
+      {isLoading ? (
         <LoadingSpinner />
       ) : (
         <div>
-          {/* <Autocomplete
-            options={midiNames}
-            getOptionLabel={(option) => option}
-            renderInput={(params) => (
-              <div
-                style={{
-                  position: "relative",
-                  display: "inline-block",
-                  width: "50vw",
-                }}
-              >
-                <SearchIcon
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    top: 15,
-                    width: 20,
-                    height: 20,
-                  }}
-                />
-                <TextField {...params} variant="outlined" />
-              </div>
-            )}
-          /> */}
-          <SongTable />
+          <Paper component="form" className={classes.root} variant="outlined">
+            <InputBase
+              className={classes.input}
+              placeholder="Search for a song"
+              onChange={handleOnChange}
+            />
+            <IconButton type="submit" className={classes.iconButton}>
+              <SearchIcon />
+            </IconButton>
+          </Paper>
+          <SongTable tableRows={searchText ? filteredTableRows : tableRows} />
         </div>
       )}
     </div>

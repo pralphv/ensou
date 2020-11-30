@@ -265,12 +265,12 @@ export class Instruments {
   }
 
   /**
-   * Sometimes active voices dont decrease. So if retried 10 times,
+   * Sometimes active voices dont decrease. So if retried n times,
    * just allow to publish. Active voice should be dead by then.
    */
   async _publishFxChange(trackIndex: number, retry: number = 0) {
     this._publishingChanges = true;
-    if (retry < 10 && this.polySynths.length > 0 && this.polySynths[0]?.activeVoices > 0) {
+    if (retry < 50 && this.polySynths.length > 0 && this.polySynths[0]?.activeVoices > 0) {
       console.log(
         "Preparing to publish FX change. Waiting for synths to finish"
       );

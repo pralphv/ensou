@@ -1,13 +1,8 @@
-import React, { useEffect, useState } from "react";
-
-import { useFirestore } from "react-redux-firebase";
-import { useHistory } from "react-router-dom";
-import { Pages } from "layouts/constants";
+import React, { useState } from "react";
 
 import { makeStyles } from "@material-ui/core/styles";
 import Paper from "@material-ui/core/Paper";
 
-import LoadingScreen from "features/loadingScreen/LoadingScreen";
 import OneRowCard from "./OneRowCard";
 import * as types from "./types";
 
@@ -36,44 +31,16 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function SongTable() {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  function handleChangePage(event: unknown, newPage: number) {
-    setPage(newPage);
-  }
+interface ISongTableProps {
+  tableRows: types.ISongTableData[];
+}
 
-  function handleChangeRowsPerPage(event: React.ChangeEvent<HTMLInputElement>) {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  }
-
-  function handleOnClick(songId: string) {
-    history.push(`${Pages.Player}/${songId}`);
-  }
-
-  const firestore = useFirestore();
-  const [tableRows, setTableRows] = useState<types.ISongTableData[]>([]);
-  useEffect(() => {
-    async function fetchSongTable() {
-      setIsLoading(true);
-      const ref = await firestore.collection("midi");
-      const snapshot = await ref.get();
-      const midi: types.ISongTableData[] = snapshot.docs.map((doc) => {
-        return { id: doc.id, ...doc.data() };
-      }) as types.ISongTableData[];
-      setTableRows(midi);
-      setIsLoading(false);
-    }
-    fetchSongTable();
-  }, []);
+export default function SongTable({ tableRows }: ISongTableProps) {
   const classes = useStyles();
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
-
-  const history = useHistory();
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   return (
-    isLoading? <LoadingScreen/>:
     <Paper className={classes.root}>
       {tableRows
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
