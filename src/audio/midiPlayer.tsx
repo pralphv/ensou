@@ -395,6 +395,7 @@ export default class MyMidiPlayer {
 
   cleanup() {
     this.stop();
+    this.midiPlayer.on("playing", () => {})
     this.myTonejs?.cleanUp();
     console.log("Cleaned Midi Player");
   }
