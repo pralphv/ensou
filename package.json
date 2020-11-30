@@ -36,6 +36,7 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.1",
     "redux-firestore": "^0.13.0",
+    "startaudiocontext": "^1.2.1",
     "tone": "^14.7.58",
     "typescript": "~3.7.2"
   },

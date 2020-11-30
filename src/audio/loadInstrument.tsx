@@ -1,4 +1,5 @@
-import { Sampler, MembraneSynth, SamplerOptions, Gain, PolySynth } from "tone";
+import { Sampler, MembraneSynth, SamplerOptions, PolySynth, context } from "tone";
+import StartAudioContext from "startaudiocontext";
 
 import * as types from "types";
 import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
@@ -81,6 +82,9 @@ export class Instruments {
     this.setSynthSettingsOscillator = this.setSynthSettingsOscillator.bind(
       this
     );
+    StartAudioContext(context, '#button').then(function(){
+      //started
+    })
   }
 
   async init() {
