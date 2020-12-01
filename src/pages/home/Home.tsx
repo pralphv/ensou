@@ -61,7 +61,7 @@ export default function Home(): JSX.Element {
   function handleOnChange(
     e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
   ) {
-    const value = e.target.value;
+    const value = e.target.value.toLowerCase();
     setSearchText(value);
     const filtered = tableRows.filter(
       (tableRow) =>
