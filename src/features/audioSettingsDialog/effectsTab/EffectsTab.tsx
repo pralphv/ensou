@@ -45,7 +45,7 @@ export default function EffectsTab({
                   spacing={2}
                   direction="row"
                   justify="center"
-                  alignItems="center"
+                  alignItems="stretch"
                 >
                   {tracks.map((fx, fxIndex) => {
                     const effectName = fx.name as types.AvailableEffectsNames;
@@ -53,7 +53,12 @@ export default function EffectsTab({
                       <Grid
                         key={`${trackIndex}${fxIndex}`}
                         item
-                        style={{ background: grey[800], padding: 16 }}
+                        style={{
+                          background: grey[800],
+                          padding: 16,
+                          width: "160px",
+                        }}
+                        spacing={2}
                       >
                         <EffectSelector
                           value={effectName}
@@ -119,7 +124,14 @@ export default function EffectsTab({
                       </Grid>
                     );
                   })}
-                  <Grid item>
+                  <Grid
+                    item
+                    style={{
+                      background: grey[800],
+                      padding: 16,
+                      width: "160px",
+                    }}
+                  >
                     <AddFxButton
                       onClick={() => {
                         myTonejs.addFx(trackIndex);

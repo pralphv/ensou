@@ -23,13 +23,6 @@ export default function PlayButton({
 }: PlayButtonProps): JSX.Element {
   const isPlaying = getIsPlaying() === true; // can be undefined
 
-  function toggle() {
-    if (isPlaying) {
-      pause();
-    } else {
-      play();
-    }
-  }
   // useHotkeys("space", toggle);
 
   return (
@@ -48,6 +41,7 @@ export default function PlayButton({
       ) : (
         // make arrow function to prevent event insterting into play()
         <CustomButton
+          id="playButton"
           onClick={() => {
             play();
             start();

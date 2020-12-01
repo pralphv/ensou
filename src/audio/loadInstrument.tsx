@@ -1,4 +1,10 @@
-import { Sampler, MembraneSynth, SamplerOptions, PolySynth, context } from "tone";
+import {
+  Sampler,
+  MembraneSynth,
+  SamplerOptions,
+  PolySynth,
+  context,
+} from "tone";
 import StartAudioContext from "startaudiocontext";
 
 import * as types from "types";
@@ -82,9 +88,10 @@ export class Instruments {
     this.setSynthSettingsOscillator = this.setSynthSettingsOscillator.bind(
       this
     );
-    StartAudioContext(context, '#button').then(function(){
+    StartAudioContext(context, "#playButton").then(function () {
       //started
-    })
+
+    });
   }
 
   async init() {
@@ -268,12 +275,12 @@ export class Instruments {
     await this._publishFxChange(trackIndex);
   }
 
-  /**
-   * Sometimes active voices dont decrease. So if retried n times,
-   * just allow to publish. Active voice should be dead by then.
-   */
   async _publishFxChange(trackIndex: number, retry: number = 0) {
     this.publishingChanges = true;
+    /**
+     * Sometimes active voices dont decrease. So if retried n times,
+     * just allow to publish. Active voice should be dead by then.
+     */
     if (
       retry < 50 &&
       this.polySynths.length > 0 &&
@@ -492,11 +499,26 @@ export class Instruments {
     return this.synthName;
   }
 
-  async setSynthName(synthName: types.AvailableSynthsEnum) {
+  async setSynthName(synthName: types.AvailableSynthsEnum, retry: number = 0) {
+    this.publishingChanges = true;
     this.clearPlayingNotes();
     this.synthName = synthName;
     localStorageUtils.setSynthName(synthName);
+    if (
+      retry < 50 &&
+      this.polySynths.length > 0 &&
+      this.polySynths[0]?.activeVoices > 0
+    ) {
+      this.polySynths[0].releaseAll();
+      this.polySynths[0].unsync();
+      setTimeout(() => {
+        this.setSynthName(synthName, retry + 1);
+      }, 100);
+      return;
+    }
+
     for (let i = 0; i < this.polySynths.length; i++) {
+      this.polySynths[i].releaseAll();
       this.polySynths[i].disconnect();
       this.polySynths[i].dispose();
       const trackComponents = await this._buildTrack(
@@ -504,6 +526,7 @@ export class Instruments {
       ); // assume 0 for now
       this.polySynths[i] = trackComponents.track as PolySynth;
     }
+    this.publishingChanges = false;
   }
 
   getEffectsChain() {
