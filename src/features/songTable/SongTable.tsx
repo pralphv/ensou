@@ -26,7 +26,7 @@ const useStyles = makeStyles((theme) => ({
   root: {
     width: "60vw",
     [theme.breakpoints.down("sm")]: {
-      width: "100vw",
+      width: "95vw",
     },
   },
 }));
