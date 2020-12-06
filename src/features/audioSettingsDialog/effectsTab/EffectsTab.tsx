@@ -9,9 +9,9 @@ import ToMasterCheckbox from "./ToMasterCheckBox";
 import ExtraOutput from "./ExtraOutput";
 import EffectParams from "./EffectParams";
 import EffectSelector from "./EffectSelector";
-import AddFxButton from "./AddFxButton";
-import RemoveFxButton from "./RemoveFxButton";
+import AddButton from "../../addButton/AddButton";
 import ActivateSwitch from "./ActivateSwitch";
+import RemoveButton from "features/removeButton/RemoveButton"
 import MyMidiPlayer from "audio/midiPlayer";
 
 interface IEffectsTab {
@@ -30,7 +30,7 @@ export default function EffectsTab({
     <div>
       {myTonejs && (
         <DialogContent>
-          <div style={{ background: grey[900], padding: 16 }}>
+          <div style={{ padding: 16 }}>
             <ActivateSwitch
               checked={myTonejs.getEffectsActivated()}
               onChange={() => {
@@ -38,110 +38,82 @@ export default function EffectsTab({
                 forceLocalRender();
               }}
             />
-            {myTonejs.getEffectsChain().map((tracks, trackIndex) => (
-              <div key={trackIndex}>
-                <Grid
-                  container
-                  spacing={2}
-                  direction="row"
-                  justify="center"
-                  alignItems="stretch"
-                >
-                  {tracks.map((fx, fxIndex) => {
-                    const effectName = fx.name as types.AvailableEffectsNames;
-                    return (
-                      <Grid
-                        key={`${trackIndex}${fxIndex}`}
-                        item
-                        style={{
-                          background: grey[800],
-                          padding: 16,
-                          width: "160px",
-                        }}
-                        spacing={2}
-                      >
-                        <EffectSelector
-                          value={effectName}
-                          onChange={(e: any) => {
-                            myTonejs.changeFx(
-                              trackIndex,
-                              fxIndex,
-                              e.target.value as types.AvailableEffectsNames
-                            );
-                            forceLocalRender();
-                          }}
-                        />
-                        <EffectParams
-                          midiPlayer={midiPlayer}
-                          effectName={effectName}
-                          fx={fx}
-                          trackIndex={trackIndex}
-                          fxIndex={fxIndex}
-                          forceLocalRender={forceLocalRender}
-                          changeFxSettings={myTonejs.changeFxSettings}
-                        />
-                        <ExtraOutput
-                          trackIndex={trackIndex}
-                          fxIndex={fxIndex}
-                          noOfTracks={tracks.length}
-                          value={
-                            myTonejs.getExtraConnection(trackIndex, fxIndex)
-                              .effectorIndex
-                          }
-                          onChange={(e: any) => {
-                            myTonejs.changeExtraConnection(
-                              trackIndex,
-                              fxIndex,
-                              "effectorIndex",
-                              e.target.value
-                            );
-                            forceLocalRender();
-                          }}
-                        />
-                        <ToMasterCheckbox
-                          checked={
-                            myTonejs.getExtraConnection(trackIndex, fxIndex)
-                              .toMaster
-                          }
-                          onChange={(
-                            e: React.ChangeEvent<HTMLInputElement>
-                          ) => {
-                            myTonejs.changeExtraConnection(
-                              trackIndex,
-                              fxIndex,
-                              "toMaster",
-                              e.target.checked
-                            );
-                            forceLocalRender();
-                          }}
-                        />
-                        <RemoveFxButton
-                          onClick={() => {
-                            myTonejs.removeFx(trackIndex, fxIndex);
-                            forceLocalRender();
-                          }}
-                        />
-                      </Grid>
-                    );
-                  })}
+            <Grid
+              container
+              spacing={2}
+              direction="row"
+              justify="center"
+              alignItems="stretch"
+            >
+              {myTonejs.getEffectsChain().map((fx, fxIndex) => {
+                const effectName = fx.name as types.AvailableEffectsNames;
+                return (
                   <Grid
+                    key={`${fxIndex}`}
                     item
                     style={{
-                      background: grey[800],
+                      background: grey[900],
                       padding: 16,
                       width: "160px",
                     }}
                   >
-                    <AddFxButton
+                    <EffectSelector
+                      value={effectName}
+                      onChange={(e: any) => {
+                        myTonejs.changeFx(
+                          fxIndex,
+                          e.target.value as types.AvailableEffectsNames
+                        );
+                        forceLocalRender();
+                      }}
+                    />
+                    <EffectParams
+                      midiPlayer={midiPlayer}
+                      effectName={effectName}
+                      fx={fx}
+                      fxIndex={fxIndex}
+                      forceLocalRender={forceLocalRender}
+                    />
+                    <ExtraOutput
+                      fxIndex={fxIndex}
+                      noOfTracks={myTonejs.getEffectsChain().length}
+                      value={myTonejs.getExtraConnection(fxIndex).effectorIndex}
+                      onChange={(e: any) => {
+                        myTonejs.changeExtraConnection(
+                          fxIndex,
+                          "effectorIndex",
+                          e.target.value
+                        );
+                        forceLocalRender();
+                      }}
+                    />
+                    <ToMasterCheckbox
+                      checked={myTonejs.getExtraConnection(fxIndex).toMaster}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        myTonejs.changeExtraConnection(
+                          fxIndex,
+                          "toMaster",
+                          e.target.checked
+                        );
+                        forceLocalRender();
+                      }}
+                    />
+                    <RemoveButton
                       onClick={() => {
-                        myTonejs.addFx(trackIndex);
+                        myTonejs.removeFx(fxIndex);
                         forceLocalRender();
                       }}
                     />
                   </Grid>
-                </Grid>
-              </div>
-            ))}
+                );
+              })}
+              <AddButton
+                onClick={() => {
+                  myTonejs.addFx();
+                  forceLocalRender();
+                }}
+              />
+            </Grid>
           </div>
         </DialogContent>
       )}

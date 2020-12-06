@@ -79,53 +79,52 @@ export function setSynthSettings(synthSettings: types.ISynthSettings) {
   setLocalStorage(LocalStorageKeys.synthSettings, synthSettings);
 }
 
-
-export function getSynthSettingsOscillator(): types.IOscillator | null {
+export function getSynthSettingsOscillator(): types.IOscillator[] | null {
   return getLocalStorage(LocalStorageKeys.oscillator);
 }
 
-export function setSynthSettingsOscillator(settings: types.IOscillator) {
+export function setSynthSettingsOscillator(settings: types.IOscillator[]) {
   setLocalStorage(LocalStorageKeys.oscillator, settings);
 }
-export function getSynthSettingsEnvelope(): types.IEnvelope | null {
+export function getSynthSettingsEnvelope(): types.IEnvelope[] | null {
   return getLocalStorage(LocalStorageKeys.envelope);
 }
 
-export function setSynthSettingsEnvelope(settings: types.IEnvelope) {
+export function setSynthSettingsEnvelope(settings: types.IEnvelope[]) {
   setLocalStorage(LocalStorageKeys.envelope, settings);
 }
 
-export function getSynthSettingsOthers(): types.IOtherSettings | null {
+export function getSynthSettingsOthers(): types.IOtherSettings[] | null {
   return getLocalStorage(LocalStorageKeys.others);
 }
 
-export function setSynthSettingsOthers(settings: types.IOtherSettings) {
+export function setSynthSettingsOthers(settings: types.IOtherSettings[]) {
   setLocalStorage(LocalStorageKeys.others, settings);
 }
 
-export function getSynthName(): types.AvailableSynthsEnum | null {
+export function getSynthName(): types.AvailableSynthsEnum[] | null {
   return getLocalStorage(LocalStorageKeys.synthName);
 }
 
-export function setSynthName(synthName: types.AvailableSynthsEnum) {
+export function setSynthName(synthName: types.AvailableSynthsEnum[]) {
   setLocalStorage(LocalStorageKeys.synthName, synthName);
 }
 
-export function getEffectChainNames(): types.AvailableEffectsNames[][] | null {
+export function getEffectChainNames(): types.AvailableEffectsNames[] | null {
   return getLocalStorage(LocalStorageKeys.effectChainsNames);
 }
 
 export function setEffectChainNames(
-  effectChainNames: types.AvailableEffectsNames[][]
+  effectChainNames: types.AvailableEffectsNames[]
 ) {
   setLocalStorage(LocalStorageKeys.effectChainsNames, effectChainNames);
 }
-export function getExtraConnections(): types.IExtraConnection[][] | null {
+export function getExtraConnections(): types.IExtraConnection[] | null {
   return getLocalStorage(LocalStorageKeys.extraConnections);
 }
 
 export function setExtraConnections(
-  extraConnections: types.IExtraConnection[][]
+  extraConnections: types.IExtraConnection[]
 ) {
   setLocalStorage(LocalStorageKeys.extraConnections, extraConnections);
 }
@@ -139,41 +138,28 @@ interface IFxSettings {
   [key: string]: IParamSetting;
 }
 
-export function createFxSettingsKey(
-  trackIndex: number,
-  fxIndex: number
-): string {
-  return `${trackIndex}_${fxIndex}`;
-}
-
 export function getFxSettings(): IFxSettings | null {
   return getLocalStorage(LocalStorageKeys.fxSettings);
 }
 
-export function setFxSettings(
-  trackIndex: number,
-  fxIndex: number,
-  param: string,
-  value: any
-) {
+export function setFxSettings(fxIndex: number, param: string, value: any) {
   const fxSetting = getFxSettings() || {};
-  fxSetting[createFxSettingsKey(trackIndex, fxIndex)] = { param, value };
+  fxSetting[fxIndex] = { param, value };
   setLocalStorage(LocalStorageKeys.fxSettings, fxSetting);
 }
 
-export function deleteFxSettings(trackIndex: number, fxIndex: number) {
+export function deleteFxSettings(fxIndex: number) {
   const fxSetting = getFxSettings();
   if (fxSetting) {
-    const key = createFxSettingsKey(trackIndex, fxIndex);
-    delete fxSetting[key];
+    delete fxSetting[fxIndex];
     setLocalStorage(LocalStorageKeys.fxSettings, fxSetting);
   }
 }
 
-export function getDelay(): number | null {
+export function getDelay(): number[] | null {
   return getLocalStorage(LocalStorageKeys.delay);
 }
 
-export function setDelay(delay: number) {
+export function setDelay(delay: number[]) {
   setLocalStorage(LocalStorageKeys.delay, delay);
 }

@@ -40,7 +40,6 @@ export default class MyMidiPlayer {
   samplerSource?: types.SamplerSource;
   playRange: types.PlayRange;
   ticksPerBeat: number;
-  delay: number;
   _setPlayerStatus: (status: string) => void;
   _synthOptions?: ISynthOptions;
   _samplerOptions?: ISamplerOptions;
@@ -69,7 +68,6 @@ export default class MyMidiPlayer {
     this.songTempo = 100;
     this.ticksPerBeat = 0;
     this.tempoPercent = 1;
-    this.delay = 0;
     this.playRange = { startTick: 0, endTick: 0 };
     this.localSampler = undefined;
     const cachedSampler =
@@ -300,14 +298,6 @@ export default class MyMidiPlayer {
     }
   }
 
-  getDelay() {
-    return this.delay;
-  }
-
-  setDelay(delay: number) {
-    this.delay = delay;
-  }
-
   getSampleName() {
     return this.sampleName;
   }
@@ -321,7 +311,7 @@ export default class MyMidiPlayer {
   }
 
   async downloadMidiFromFirebase(songId: string, onLoad: () => void) {
-    this._setPlayerStatus("Downloading Midi...")
+    this._setPlayerStatus("Downloading Midi...");
     const midiRef = storageRef.child("midi").child(`${songId}.mid`);
     const url = await midiRef.getDownloadURL();
     const xhr = new XMLHttpRequest();
@@ -331,8 +321,7 @@ export default class MyMidiPlayer {
       this.midiPlayer.loadArrayBuffer(blob);
       onLoad();
       console.log("Finished downloading");
-    this._setPlayerStatus("")
-
+      this._setPlayerStatus("");
     };
     xhr.onerror = () => {
       // probably cors
@@ -390,12 +379,12 @@ export default class MyMidiPlayer {
   async loadArrayBuffer(arrayBuffer: ArrayBuffer) {
     this._setPlayerStatus("Importing...");
     await this.midiPlayer.loadArrayBuffer(arrayBuffer);
-    this._setPlayerStatus(""); 
+    this._setPlayerStatus("");
   }
 
   cleanup() {
     this.stop();
-    this.midiPlayer.on("playing", () => {})
+    this.midiPlayer.on("playing", () => {});
     this.myTonejs?.cleanUp();
     console.log("Cleaned Midi Player");
   }

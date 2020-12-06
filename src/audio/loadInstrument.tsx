@@ -4,6 +4,7 @@ import {
   SamplerOptions,
   PolySynth,
   context,
+  Destination,
 } from "tone";
 import StartAudioContext from "startaudiocontext";
 
@@ -13,7 +14,7 @@ import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
 import * as synthsApi from "./synths/synths";
 import { getSamples } from "./samplers/samplers";
 import { initMetronome } from "./metronome/metronome";
-import { buildTrack } from "./utils";
+import { buildEffectsChain } from "./utils";
 
 type Instrument = Sampler | PolySynth;
 interface ISynthOptions {
@@ -25,23 +26,22 @@ interface ISamplerOptions {
   sample: string;
   sampleMap?: SamplerOptions["urls"];
 }
-let first = true;
 
 export class Instruments {
   samplers: Sampler[];
   polySynths: PolySynth[];
-  synthName: types.AvailableSynthsEnum;
+  synthNames: types.AvailableSynthsEnum[];
   metronome: MembraneSynth;
   _useSampler: boolean;
   // _samplerCache: Sampler;
   _synthOptions: ISynthOptions | undefined;
   _samplerOptions: ISamplerOptions | undefined;
-  _effectChains: types.AvailableEffects[][];
-  _effectChainsNames: types.AvailableEffectsNames[][];
-  _extraConnections: types.IExtraConnection[][];
+  _effectChains: types.AvailableEffects[];
+  _effectChainsNames: types.AvailableEffectsNames[];
+  _extraConnections: types.IExtraConnection[];
   _setPlayerStatus: (status: string) => void;
   _effectsActivated: boolean;
-  _delay: number;
+  _delays: number[];
   publishingChanges: boolean;
 
   constructor(
@@ -55,8 +55,9 @@ export class Instruments {
     // }
     console.log("Constructing new Instruments class");
 
-    this.synthName =
-      localStorageUtils.getSynthName() || types.AvailableSynthsEnum.Synth;
+    this.synthNames = localStorageUtils.getSynthName() || [
+      types.AvailableSynthsEnum.Synth,
+    ];
     this.metronome = initMetronome();
     this._useSampler = useSample;
     this._synthOptions = synthOptions;
@@ -64,7 +65,7 @@ export class Instruments {
     this._effectsActivated = true;
     this.publishingChanges = false;
     this.samplers = [];
-    this._delay = localStorageUtils.getDelay() || 0.01;
+    this._delays = localStorageUtils.getDelay() || [];
 
     this.polySynths = [];
     this._effectChains = [];
@@ -90,34 +91,37 @@ export class Instruments {
     );
     StartAudioContext(context, "#playButton").then(function () {
       //started
-
     });
   }
 
   async init() {
     // have this because constructor cant have async
+    const settings = localStorageUtils.getDelay() || [0]; // just to get number of instruments dont really need delay
+    for (let i = 0; i < settings.length; i++) {
+      await this.addInstrument(i);
+    }
     const hasSaveFromLocalStorage = this._effectChainsNames.length > 0;
     if (hasSaveFromLocalStorage) {
-      for (let i = 0; i < this._effectChainsNames.length; i++) {
-        await this._publishFxChange(i);
-      }
-    } else {
-      await this.addInstrument();
+      await this._publishFxChange();
     }
   }
 
-  async addInstrument() {
+  /**
+   * If there is trackIndex, then it is not just adding instrument
+   * Saved settings will be loaded
+   * @param trackIndex actually only for synths not samplers
+   */
+  async addInstrument(trackIndex?: number) {
     console.log("Adding instrument");
-    const trackComponents = await this._buildTrack([]);
+    const instrument = await this._buildTrack(trackIndex);
+    // need to connect to effectChain if have effects
+    instrument.toDestination();
     if (this._useSampler) {
-      this.samplers.push(trackComponents.track as Sampler);
-      console.log(this.samplers);
+      this.samplers.push(instrument as Sampler);
     } else {
-      this.polySynths.push(trackComponents.track as PolySynth);
+      this.polySynths.push(instrument as PolySynth);
     }
-    this._effectChains.push([]);
-    this._effectChainsNames.push([]);
-    this._extraConnections.push([]);
+
     const savedVolume = localStorageUtils.getVolume();
     if (savedVolume) {
       this.changeVolume(savedVolume);
@@ -130,8 +134,6 @@ export class Instruments {
     if (instrument.length > 1) {
       this._disposeTrack(trackIndex);
       instrument.splice(trackIndex, 1);
-      this._effectChains.splice(trackIndex, 1);
-      this._effectChainsNames.splice(trackIndex, 1);
     }
   }
 
@@ -149,37 +151,44 @@ export class Instruments {
       if (this._effectsActivated) {
         instrument.toDestination();
       } else {
-        instrument.connect(this._effectChains[0][0]);
+        instrument.connect(this._effectChains[0]); // wrong?
       }
     });
     this._effectsActivated = !this._effectsActivated;
   }
 
-  async _buildTrack(
-    effectsChainName: types.AvailableEffectsNames[]
-  ): Promise<types.ITrackComponents> {
-    console.log(`Building track for ${effectsChainName}`);
+  /**
+   * will load synth settings if synthIndex
+   * @param effectsChainName
+   * @param synthIndex
+   */
+  async _buildTrack(synthIndex?: number): Promise<Sampler | PolySynth> {
     const savedVolume = localStorageUtils.getVolume();
     if (this._useSampler) {
       const sampleMap = this._samplerOptions?.sampleMap
         ? this._samplerOptions?.sampleMap
         : await this.downloadSamplers();
       if (sampleMap) {
-        const sampler = new Sampler(sampleMap, {
+        let sampler = new Sampler(sampleMap, {
           attack: 0.01,
         });
         savedVolume && this.changeVolume(savedVolume, [sampler]);
         this._setPlayerStatus("");
-        return buildTrack(sampler, effectsChainName);
+        return sampler;
       } else {
         this._setPlayerStatus("");
         throw new Error("CRITICAL: no sample map provided.");
       }
     } else {
-      const polySynth = synthsApi.initSynths(this.synthName);
+      let polySynth = synthsApi.initSynths(
+        synthIndex !== undefined
+          ? this.synthNames[synthIndex]
+          : types.AvailableSynthsEnum.Synth,
+        synthIndex
+      );
       savedVolume && this.changeVolume(savedVolume, undefined, [polySynth]);
       this._setPlayerStatus("");
-      return buildTrack(polySynth, effectsChainName);
+      return polySynth;
     }
   }
 
@@ -206,7 +215,15 @@ export class Instruments {
       const instruments = this._useSampler ? this.samplers : this.polySynths;
       for (let i = 0; i < instruments.length; i++) {
         if (!instruments[i].disposed) {
-          instruments[i].triggerAttack(note, `+${this._delay}`, velocity);
+          try {
+            instruments[i].triggerAttack(
+              note,
+              `+${this._delays[i] || 0}`,
+              velocity
+            );
+          } catch (error) {
+            console.log({ error });
+          }
         }
       }
     }
@@ -228,7 +245,7 @@ export class Instruments {
    * @param track track to be set
    * @param trackIndex index to track to
    */
-  _setTrack(track: Instrument, trackIndex: number) {
+  _setTrack(newTrack: Instrument, trackIndex: number) {
     try {
       this._disposeTrack(trackIndex);
     } catch {
@@ -236,102 +253,111 @@ export class Instruments {
       console.log("No tracks to dispose");
     }
     if (this._useSampler) {
-      this.samplers[trackIndex] = track as Sampler;
+      this.samplers[trackIndex] = newTrack as Sampler;
     } else {
-      this.polySynths[trackIndex] = track as PolySynth;
+      this.polySynths[trackIndex] = newTrack as PolySynth;
     }
-    console.log(`Set ${track}@${trackIndex}`);
+    console.log(`Set ${newTrack}@${trackIndex}`);
   }
 
-  async addFx(trackIndex: number) {
-    console.log(`Adding FX to track ${trackIndex}`);
-    this._effectChainsNames[trackIndex].push(types.AvailableEffectsNames.gain);
-    this._extraConnections[trackIndex].push({
+  async addFx() {
+    console.log(`Adding FX`);
+    this._effectChainsNames.push(types.AvailableEffectsNames.gain);
+    this._extraConnections.push({
       toMaster: false,
       effectorIndex: null,
     });
-    await this._publishFxChange(trackIndex);
+    await this._publishFxChange();
   }
 
-  async removeFx(trackIndex: number, fxIndex: number) {
-    console.log(`Removing FX ${fxIndex} from track ${trackIndex}`);
-    for (let i = 0; i < this._extraConnections[trackIndex].length; i++) {
-      this.changeExtraConnection(trackIndex, i, "effectorIndex", null, false);
+  async removeFx(fxIndex: number) {
+    console.log(`Removing FX ${fxIndex}`);
+    for (let i = 0; i < this._extraConnections.length; i++) {
+      this.changeExtraConnection(i, "effectorIndex", null, false);
     }
 
-    this._extraConnections[trackIndex].splice(fxIndex, 1);
-    this._effectChains[trackIndex].splice(fxIndex, 1);
-    this._effectChainsNames[trackIndex].splice(fxIndex, 1);
-    await this._publishFxChange(trackIndex);
-    localStorageUtils.deleteFxSettings(trackIndex, fxIndex);
+    this._extraConnections.splice(fxIndex, 1);
+    this._effectChains.splice(fxIndex, 1);
+    this._effectChainsNames.splice(fxIndex, 1);
+    await this._publishFxChange();
+    // await this._publishFxChange;
+    localStorageUtils.deleteFxSettings(fxIndex);
   }
 
-  async changeFx(
-    trackIndex: number,
-    fxIndex: number,
-    type: types.AvailableEffectsNames
-  ) {
-    this._effectChainsNames[trackIndex][fxIndex] = type;
-    await this._publishFxChange(trackIndex);
+  async changeFx(fxIndex: number, type: types.AvailableEffectsNames) {
+    this._effectChainsNames[fxIndex] = type;
+    await this._publishFxChange();
   }
 
-  async _publishFxChange(trackIndex: number, retry: number = 0) {
+  async _publishFxChange(retry: number = 0) {
     this.publishingChanges = true;
     /**
      * Sometimes active voices dont decrease. So if retried n times,
      * just allow to publish. Active voice should be dead by then.
      */
     if (
-      retry < 50 &&
+      !this._useSampler &&
+      retry < 20 &&
       this.polySynths.length > 0 &&
       this.polySynths[0]?.activeVoices > 0
     ) {
       console.log(
         "Preparing to publish FX change. Waiting for synths to finish"
       );
-      this.polySynths[0].releaseAll();
-      this.polySynths[0].unsync();
+      this.polySynths.forEach((polySynth) => {
+        polySynth.releaseAll();
+        polySynth.unsync();
+      });
       setTimeout(() => {
-        this._publishFxChange(trackIndex, retry + 1);
+        this._publishFxChange(retry + 1);
       }, 100);
       return;
     }
     console.log("Publishing FX Change...");
+    const noOfExistingTracks = this._useSampler
+      ? this.samplers.length
+      : this.polySynths.length;
     if (!this._effectsActivated) {
       // dont add any effects if not activated
-      const track = await this._buildTrack([]);
-      this._setTrack(track.track, trackIndex);
+      for (let i = 0; i < noOfExistingTracks; i++) {
+        const instrument = await this._buildTrack();
+        instrument.toDestination();
+        this._setTrack(instrument, i);
+      }
     } else {
-      const track = await this._buildTrack(this._effectChainsNames[trackIndex]);
-      this._extraConnections[trackIndex].forEach((extraConnection, fxIndex) => {
-        if (extraConnection.effectorIndex) {
-          track.effectChain[fxIndex].connect(
-            track.effectChain[extraConnection.effectorIndex]
-          );
-          if (extraConnection.toMaster) {
-            track.effectChain[fxIndex].toDestination();
-          }
+      if (this._effectChainsNames.length > 0) {
+        const effectsChain = buildEffectsChain(this._effectChainsNames);
+        this._effectChains = effectsChain;
+        for (let i = 0; i < noOfExistingTracks; i++) {
+          let instrument = await this._buildTrack(i);
+          instrument = instrument.chain(...effectsChain, Destination);
+          this._extraConnections.forEach((extraConnection, fxIndex) => {
+            if (extraConnection.effectorIndex) {
+              effectsChain[fxIndex].connect(
+                effectsChain[extraConnection.effectorIndex]
+              );
+              if (extraConnection.toMaster) {
+                effectsChain[fxIndex].toDestination();
+              }
+            }
+          });
+          this._setTrack(instrument, i);
         }
-      });
-      this._setTrack(track.track, trackIndex);
-      this._effectChains[trackIndex] = track.effectChain;
+      } else {
+        for (let i = 0; i < noOfExistingTracks; i++) {
+          let instrument = await this._buildTrack(i);
+          instrument = instrument.toDestination();
+          this._setTrack(instrument, i);
+        }
+      }
     }
 
     const fxSettings = localStorageUtils.getFxSettings();
     if (fxSettings) {
-      for (let i = 0; i < this._effectChainsNames[trackIndex].length; i++) {
-        const fxSettingKey = localStorageUtils.createFxSettingsKey(
-          trackIndex,
-          i
-        );
-        const paramSetting = fxSettings[fxSettingKey];
+      for (let i = 0; i < this._effectChainsNames.length; i++) {
+        const paramSetting = fxSettings[i];
         if (paramSetting) {
-          this.changeFxSettings(
-            trackIndex,
-            i,
-            paramSetting.param,
-            paramSetting.value
-          );
+          this.changeFxSettings(i, paramSetting.param, paramSetting.value);
         }
       }
     }
@@ -345,15 +371,10 @@ export class Instruments {
     localStorageUtils.setExtraConnections(this._extraConnections);
   }
 
-  changeFxSettings(
-    trackIndex: number,
-    fxIndex: number,
-    param: string,
-    value: any
-  ) {
+  changeFxSettings(fxIndex: number, param: string, value: any) {
     param = param === "value" ? "gain" : param;
-    this._effectChains[trackIndex][fxIndex].set({ [param]: value });
-    localStorageUtils.setFxSettings(trackIndex, fxIndex, param, value);
+    this._effectChains[fxIndex].set({ [param]: value });
+    localStorageUtils.setFxSettings(fxIndex, param, value);
   }
 
   clearPlayingNotes() {
@@ -372,9 +393,9 @@ export class Instruments {
     const instruments = this._useSampler ? this.samplers : this.polySynths;
     instruments[trackIndex].unsync();
     instruments[trackIndex].dispose();
-    this._effectChains[trackIndex].forEach((chain) => {
-      chain.dispose();
-    });
+    // this._effectChains.forEach((chain) => {
+    //   chain.dispose();
+    // });
   }
 
   destroy() {
@@ -389,7 +410,7 @@ export class Instruments {
   }
 
   playMetronome() {
-    this.metronome.triggerAttackRelease("A1", 0.2, `+${this._delay}`);
+    this.metronome.triggerAttackRelease("A1", 0.2, `+${this._delays[0]}`);
   }
 
   getVolume() {
@@ -416,11 +437,11 @@ export class Instruments {
     localStorageUtils.setVolume(volume);
   }
 
-  getSynthSettings(): types.ISynthSettings | null {
-    const synthSettings = this.polySynths[0].get();
+  getSynthSettings(synthIndex: number): types.ISynthSettings | null {
+    const synthSettings = this.polySynths[synthIndex].get();
     const envelope = synthSettings.envelope;
     const oscillator = synthSettings.oscillator;
-    return {
+    const settings = {
       oscillator: {
         type: oscillator.type as types.OscillatorType,
         //@ts-ignore
@@ -429,6 +450,8 @@ export class Instruments {
         spread: oscillator.spread,
         //@ts-ignore
         count: oscillator.count,
+        //@ts-ignore
+        harmonicity: oscillator.harmonicity,
       },
       envelope: {
         attack: envelope.attack as number,
@@ -438,94 +461,149 @@ export class Instruments {
       },
       others: {
         detune: synthSettings.detune,
+        volume: synthSettings.volume,
       },
     };
+    return settings;
   }
 
-  setSynthSettingsEnvelope(key: keyof types.IEnvelope, value: any) {
-    this.polySynths.forEach((polySynth) => {
-      polySynth.set({
-        envelope: {
-          [key]: value,
-        },
-      });
-    });
-    const settings = this.polySynths[0].get();
-    const envelopeSettings: types.IEnvelope = {
-      attack: settings.envelope.attack as number,
-      decay: settings.envelope.decay as number,
-      sustain: settings.envelope.sustain,
-      release: settings.envelope.release as number,
-    };
-    localStorageUtils.setSynthSettingsEnvelope(envelopeSettings);
-  }
-
-  setSynthSettingsOscillator(key: keyof types.IOscillator, value: any) {
-    this.polySynths.forEach((polySynth) => {
-      polySynth.set({
-        oscillator: {
-          [key]: value,
-        },
-      });
-    });
-    const settings = this.polySynths[0].get();
-    const oscillatorSettings: types.IOscillator = {
-      //@ts-ignore
-      type: settings.oscillator.type,
-      //@ts-ignore
-      partials: settings.oscillator.partials,
-      //@ts-ignore
-      count: settings.oscillator.count,
-      //@ts-ignore
-      spread: settings.oscillator.spread,
-    };
-    localStorageUtils.setSynthSettingsOscillator(oscillatorSettings);
-  }
-
-  setSynthSettingsOther(key: keyof types.IOtherSettings, value: any) {
-    this.polySynths.forEach((polySynth) => {
-      polySynth.set({
+  setSynthSettingsEnvelope(
+    key: keyof types.IEnvelope,
+    value: any,
+    synthIndex: number
+  ) {
+    this.polySynths[synthIndex].set({
+      envelope: {
         [key]: value,
-      });
+      },
     });
-    const settings = this.polySynths[0].get();
-    const othersSettings: types.IOtherSettings = {
-      detune: settings.detune,
-    };
-    localStorageUtils.setSynthSettingsOthers(othersSettings);
+    const allSettings = this.polySynths.map((polySynth) => {
+      const settings = polySynth.get();
+      const envelopeSettings: types.IEnvelope = {
+        attack: settings.envelope.attack as number,
+        decay: settings.envelope.decay as number,
+        sustain: settings.envelope.sustain,
+        release: settings.envelope.release as number,
+      };
+      return envelopeSettings;
+    });
+    localStorageUtils.setSynthSettingsEnvelope(allSettings);
   }
 
-  getSynthName(): types.AvailableSynthsEnum {
-    return this.synthName;
-  }
-
-  async setSynthName(synthName: types.AvailableSynthsEnum, retry: number = 0) {
+  async setSynthSettingsOscillator(
+    key: keyof types.IOscillator,
+    value: any,
+    synthIndex: number,
+    retry: number = 0
+  ) {
     this.publishingChanges = true;
-    this.clearPlayingNotes();
-    this.synthName = synthName;
-    localStorageUtils.setSynthName(synthName);
     if (
+      key === "type" &&
       retry < 50 &&
       this.polySynths.length > 0 &&
-      this.polySynths[0]?.activeVoices > 0
+      this.polySynths[synthIndex]?.activeVoices > 0
     ) {
-      this.polySynths[0].releaseAll();
-      this.polySynths[0].unsync();
+      this.polySynths[synthIndex].releaseAll();
+      this.polySynths[synthIndex].unsync();
       setTimeout(() => {
-        this.setSynthName(synthName, retry + 1);
+        this.setSynthSettingsOscillator(key, value, synthIndex, retry + 1);
       }, 100);
       return;
     }
 
-    for (let i = 0; i < this.polySynths.length; i++) {
-      this.polySynths[i].releaseAll();
-      this.polySynths[i].disconnect();
-      this.polySynths[i].dispose();
-      const trackComponents = await this._buildTrack(
-        this._effectChainsNames[0]
-      ); // assume 0 for now
-      this.polySynths[i] = trackComponents.track as PolySynth;
+    this.polySynths[synthIndex].set({
+      oscillator: {
+        [key]: value,
+      },
+    });
+    const oscillatorSettings = this.polySynths.map((polySynth) => {
+      const synthSetting = polySynth.get();
+      const oscillatorSetting: types.IOscillator = {
+        //@ts-ignore
+        type: synthSetting.oscillator.type,
+        //@ts-ignore
+        partials: synthSetting.oscillator.partials,
+        //@ts-ignore
+        count: synthSetting.oscillator.count,
+        //@ts-ignore
+        spread: synthSetting.oscillator.spread,
+        //@ts-ignore
+        harmonicity: synthSetting.oscillator.harmonicity,
+      };
+      return oscillatorSetting;
+    });
+    localStorageUtils.setSynthSettingsOscillator(oscillatorSettings);
+    if (key === "type") {
+      // if switch to new osci, the new osci will inherit the old osci settings
+      // causing bugs. so just init a new one
+      let polySynth = (await this._buildTrack(synthIndex)) as PolySynth;
+      if (this._effectChainsNames.length > 0) {
+        polySynth = polySynth.chain(...this._effectChains, Destination);
+      } else {
+        polySynth = polySynth.toDestination();
+      }
+      this._setTrack(polySynth, synthIndex);
     }
+    this.publishingChanges = false;
+  }
+
+  setSynthSettingsOther(
+    key: keyof types.IOtherSettings,
+    value: any,
+    synthIndex: number
+  ) {
+    this.polySynths[synthIndex].set({
+      [key]: value,
+    });
+    const otherSettings = this.polySynths.map((polySynth) => {
+      const settings = polySynth.get();
+      const othersSetting: types.IOtherSettings = {
+        detune: settings.detune,
+        volume: settings.volume,
+      };
+      return othersSetting;
+    });
+    localStorageUtils.setSynthSettingsOthers(otherSettings);
+  }
+
+  getSynthName(synthIndex: number): types.AvailableSynthsEnum {
+    return this.synthNames[synthIndex];
+  }
+
+  async setSynthName(
+    synthName: types.AvailableSynthsEnum,
+    synthIndex: number,
+    retry: number = 0
+  ) {
+    this.publishingChanges = true;
+    this.clearPlayingNotes();
+    this.synthNames[synthIndex] = synthName;
+    if (
+      retry < 50 &&
+      this.polySynths.length > 0 &&
+      this.polySynths[synthIndex]?.activeVoices > 0
+    ) {
+      this.polySynths[synthIndex].releaseAll();
+      this.polySynths[synthIndex].unsync();
+      setTimeout(() => {
+        this.setSynthName(synthName, synthIndex, retry + 1);
+      }, 100);
+      return;
+    }
+    localStorageUtils.setSynthName(this.synthNames);
+    this.polySynths[synthIndex].releaseAll();
+    this.polySynths[synthIndex].disconnect();
+    this.polySynths[synthIndex].dispose();
+    let polySynth = await this._buildTrack(
+      synthIndex // not here originally
+    );
+    if (this._effectChainsNames.length > 0) {
+      // const effectsChain = buildEffectsChain(this._effectChainsNames);
+      polySynth = polySynth.chain(...this._effectChains, Destination);
+    } else {
+      polySynth = polySynth.toDestination();
+    }
+    this.polySynths[synthIndex] = polySynth as PolySynth;
     this.publishingChanges = false;
   }
 
@@ -535,14 +613,12 @@ export class Instruments {
 
   /**
    *
-   * @param trackIndex
    * @param fxIndex
    * @param key
    * @param value
    * @param publish exists solely for removeFx extraConnections
    */
   async changeExtraConnection(
-    trackIndex: number,
     fxIndex: number,
     key: keyof types.IExtraConnection,
     value: number | string | null | boolean,
@@ -550,26 +626,28 @@ export class Instruments {
   ) {
     value = value === "" ? null : value;
     //@ts-ignore
-    this._extraConnections[trackIndex][fxIndex][key] = value;
+    this._extraConnections[fxIndex][key] = value;
     if (publish) {
-      await this._publishFxChange(trackIndex);
+      await this._publishFxChange();
     }
   }
 
-  getExtraConnection(
-    trackIndex: number,
-    fxIndex: number
-  ): types.IExtraConnection {
-    return this._extraConnections[trackIndex][fxIndex];
+  getExtraConnection(fxIndex: number): types.IExtraConnection {
+    return this._extraConnections[fxIndex];
   }
 
-  getDelay(): number {
-    return this._delay;
+  getDelay(trackIndex: number): number {
+    if (this._delays[trackIndex] === undefined) {
+      // delay not set up yet. just push a slot
+      this._delays.push(0);
+      this.setDelay(0, trackIndex);
+    }
+    return this._delays[trackIndex];
   }
 
-  setDelay(delay: number) {
-    this._delay = delay;
-    localStorageUtils.setDelay(delay);
+  setDelay(delay: number, trackIndex: number) {
+    this._delays[trackIndex] = delay;
+    localStorageUtils.setDelay(this._delays);
   }
 
   cleanUp() {

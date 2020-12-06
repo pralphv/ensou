@@ -104,7 +104,7 @@ export default function SettingsMenu({
     ),
     [
       audioSettingsDialogOpen,
-      midiPlayer.myTonejs?.getSynthName(),
+      // midiPlayer.myTonejs?.getSynthName(),
       forceLocalRenderDummy,
     ]
   );

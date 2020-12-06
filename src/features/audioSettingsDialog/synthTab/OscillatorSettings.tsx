@@ -11,15 +11,19 @@ import * as types from "types";
 interface IOscillatorSettingsProps {
   midiPlayer: MyMidiPlayer;
   forceLocalRender: types.forceLocalRender;
+  synthIndex: number;
 }
 
 export default function OscillatorSettings({
   midiPlayer,
   forceLocalRender,
+  synthIndex,
 }: IOscillatorSettingsProps) {
-  const settings = midiPlayer.myTonejs?.getSynthSettings()?.oscillator;
+  const settings = midiPlayer.myTonejs?.getSynthSettings(synthIndex)
+    ?.oscillator;
   const count = settings?.count;
   const spread = settings?.spread;
+  const harmonicity = settings?.harmonicity;
 
   return (
     <div>
@@ -32,7 +36,8 @@ export default function OscillatorSettings({
             onChange={(e: any) => {
               midiPlayer.myTonejs?.setSynthSettingsOscillator(
                 "type",
-                e.target.value
+                e.target.value,
+                synthIndex
               );
               forceLocalRender();
             }}
@@ -50,11 +55,12 @@ export default function OscillatorSettings({
                 value={count}
                 min={1}
                 step={1}
-                max={5}
+                max={7}
                 onChange={(e, newValue) => {
                   midiPlayer.myTonejs?.setSynthSettingsOscillator(
                     "count",
-                    newValue as number
+                    newValue as number,
+                    synthIndex
                   );
                   forceLocalRender();
                 }}
@@ -73,7 +79,28 @@ export default function OscillatorSettings({
                 onChange={(e, newValue) => {
                   midiPlayer.myTonejs?.setSynthSettingsOscillator(
                     "spread",
-                    newValue as number
+                    newValue as number,
+                    synthIndex
+                  );
+                  forceLocalRender();
+                }}
+                valueLabelDisplay="auto"
+              />
+            </div>
+          )}
+          {harmonicity && (
+            <div>
+              <InputLabel>Harmonicity</InputLabel>
+              <Slider
+                value={settings.harmonicity}
+                min={0.1}
+                step={0.1}
+                max={5}
+                onChange={(e, newValue) => {
+                  midiPlayer.myTonejs?.setSynthSettingsOscillator(
+                    "harmonicity",
+                    newValue as number,
+                    synthIndex
                   );
                   forceLocalRender();
                 }}

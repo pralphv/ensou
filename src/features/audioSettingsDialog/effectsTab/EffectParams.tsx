@@ -22,11 +22,14 @@ interface IEFFECT_PARAMS_MAP {
 const EFFECT_PARAMS_MAP: IEFFECT_PARAMS_MAP = {
   Reverb: ["wet", "decay", "preDelay"],
   FeedbackDelay: ["feedback", "delayTime"],
-  Chorus: ["frequency", "delayTime", "depth"],
+  Chorus: ["wet", "frequency", "delayTime", "depth", "feedback", "spread"],
   Phaser: ["frequency", "octaves", "baseFrequency"],
   Gain: ["value"],
   Filter: ["type", "frequency", "rolloff"],
   StereoWidener: ["width"],
+  PingPongDelay: ["wet", "delayTime", "feedback"],
+  PitchShift: ["wet", "pitch", "windowSize", "delayTime", "feedback"],
+  Distortion: ["wet", "distortion"],
 };
 
 function getNoteTimeRange() {
@@ -43,7 +46,7 @@ function getNormalRange() {
 }
 
 function getFrequency() {
-  return { min: 0, max: 20000, step: 1 };
+  return { min: 0, max: 12000, step: 1 };
 }
 
 interface IFIELD_MIN_MAX {
@@ -62,6 +65,10 @@ const FIELD_MIN_MAX: IFIELD_MIN_MAX = {
   octaves: { min: 1, max: 10, step: 1 },
   value: { min: 0, max: 5, step: 0.1 }, //  Gain
   width: getNormalRange(),
+  spread: { min: 1, max: 7, step: 1 },
+  pitch: { min: -12, max: 12, step: 1 },
+  windowSize: { min: 0.01, max: 1, step: 0.01 },
+  distortion: { min: 0, max: 1, step: 0.01 },
 };
 
 interface IFieldOptions {
@@ -90,8 +97,6 @@ function extractNumber(value: any): number {
 interface IEffectParams {
   effectName: types.AvailableEffectsNames;
   fx: types.AvailableEffects;
-  changeFxSettings: types.IMidiFunctions["trackFxApi"]["changeFxSettings"];
-  trackIndex: number;
   fxIndex: number;
   midiPlayer: MyMidiPlayer;
   forceLocalRender: types.forceLocalRender;
@@ -100,11 +105,9 @@ interface IEffectParams {
 export default function EffectParams({
   effectName,
   fx,
-  changeFxSettings,
-  trackIndex,
   fxIndex,
   forceLocalRender,
-  midiPlayer
+  midiPlayer,
 }: IEffectParams): JSX.Element {
   return (
     <div>
@@ -130,8 +133,7 @@ export default function EffectParams({
                 <CustomSelect
                   value={value}
                   onChange={(e) => {
-                    changeFxSettings(
-                      trackIndex,
+                    midiPlayer.myTonejs?.changeFxSettings(
                       fxIndex,
                       param,
                       e.target.value
@@ -156,10 +158,9 @@ export default function EffectParams({
                   valueLabelFormat={(x) => x.toFixed(2)}
                   onChange={(e, newValue) => {
                     midiPlayer.myTonejs?.changeFxSettings(
-                      trackIndex,
                       fxIndex,
                       param,
-                      newValue 
+                      newValue
                     );
                     forceLocalRender(true);
                   }}

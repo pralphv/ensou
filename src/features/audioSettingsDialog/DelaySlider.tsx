@@ -10,11 +10,13 @@ import MyMidiPlayer from "audio/midiPlayer";
 interface IDelaySliderProps {
   midiPlayer: MyMidiPlayer;
   forceLocalRender: types.forceLocalRender;
+  synthIndex: number;
 }
 
 export default function DelaySlider({
   midiPlayer,
   forceLocalRender,
+  synthIndex,
 }: IDelaySliderProps): JSX.Element {
   return (
     <div>
@@ -24,22 +26,24 @@ export default function DelaySlider({
       >
         <InputLabel>Delay</InputLabel>
       </Tooltip>
-      <Slider
-        value={midiPlayer.getDelay()}
-        min={0.01}
-        step={0.001}
-        max={0.1}
-        valueLabelFormat={(value) => {
-          return prettyMilliseconds(value * 1000, {
-            formatSubMilliseconds: true,
-          });
-        }}
-        onChange={(e, newValue) => {
-          midiPlayer.setDelay(newValue as number);
-          forceLocalRender(true);
-        }}
-        valueLabelDisplay="auto"
-      />
+      {midiPlayer.myTonejs && (
+        <Slider
+          value={midiPlayer.myTonejs.getDelay(synthIndex)}
+          min={0.01}
+          step={0.001}
+          max={0.1}
+          valueLabelFormat={(value) => {
+            return prettyMilliseconds(value * 1000, {
+              formatSubMilliseconds: true,
+            });
+          }}
+          onChange={(e, newValue) => {
+            midiPlayer.myTonejs?.setDelay(newValue as number, synthIndex);
+            forceLocalRender(true);
+          }}
+          valueLabelDisplay="auto"
+        />
+      )}
     </div>
   );
 }

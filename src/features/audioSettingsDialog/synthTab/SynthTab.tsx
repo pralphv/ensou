@@ -1,19 +1,19 @@
 import React from "react";
 
+import grey from "@material-ui/core/colors/grey";
+import Grid from "@material-ui/core/Grid";
 import DialogContent from "@material-ui/core/DialogContent";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
-import Select from "@material-ui/core/Select";
-import Slider from "@material-ui/core/Slider";
 import * as types from "types";
-import { AvailableSynthsEnum } from "types";
 import DelaySlider from "../DelaySlider";
 import MyMidiPlayer from "audio/midiPlayer";
 
 import EnvelopeSettings from "./EnvelopeSettings";
 import OscillatorSettings from "./OscillatorSettings";
 import OtherSettings from "../OtherSettings";
-
+import SynthesizerSettings from "./SynthesizerSettings";
+import AddButton from "features/addButton/AddButton";
+import RemoveButton from "features/removeButton/RemoveButton";
+import { range } from "lodash";
 export interface ISynthTab {
   midiPlayer: MyMidiPlayer;
   forceRerender: types.forceRerender;
@@ -25,44 +25,67 @@ export default function SynthTab({
   forceRerender,
   forceLocalRender,
 }: ISynthTab) {
-  function handleOnChangeSynthName(e: any) {
-    midiPlayer.myTonejs?.setSynthName(e.target.value);
-    setTimeout(forceLocalRender, 500);
-  }
-
-  const availableValues = Object.keys(AvailableSynthsEnum);
-
   return (
-    <div>
-      <DialogContent>
-        <InputLabel>Synthesizer</InputLabel>
-        <Select
-          value={midiPlayer.myTonejs?.getSynthName()}
-          onChange={handleOnChangeSynthName}
-        >
-          {availableValues.map((value) => (
-            <MenuItem key={value} value={value}>
-              {value}
-            </MenuItem>
+    <DialogContent>
+      <Grid
+        container
+        spacing={2}
+        direction="row"
+        justify="center"
+        alignItems="stretch"
+      >
+        {midiPlayer.myTonejs &&
+          range(midiPlayer.myTonejs?.polySynths.length).map((i) => (
+            <div key={i}>
+              <Grid
+                item
+                style={{
+                  background: grey[900],
+                  padding: 16,
+                  width: "160px",
+                }}
+              >
+                <SynthesizerSettings
+                  midiPlayer={midiPlayer}
+                  forceLocalRender={forceLocalRender}
+                  synthIndex={i}
+                />
+                <EnvelopeSettings
+                  midiPlayer={midiPlayer}
+                  forceLocalRender={forceLocalRender}
+                  synthIndex={i}
+                />
+                <OscillatorSettings
+                  midiPlayer={midiPlayer}
+                  forceLocalRender={forceLocalRender}
+                  synthIndex={i}
+                />
+                <DelaySlider
+                  midiPlayer={midiPlayer}
+                  forceLocalRender={forceLocalRender}
+                  synthIndex={i}
+                />
+                <OtherSettings
+                  midiPlayer={midiPlayer}
+                  forceLocalRender={forceLocalRender}
+                  synthIndex={i}
+                />
+                <RemoveButton
+                  onClick={() => {
+                    midiPlayer.myTonejs?.removeInstrument(i);
+                    forceLocalRender();
+                  }}
+                />
+              </Grid>
+            </div>
           ))}
-        </Select>
-        <EnvelopeSettings
-          midiPlayer={midiPlayer}
-          forceLocalRender={forceLocalRender}
+        <AddButton
+          onClick={() => {
+            midiPlayer.myTonejs?.addInstrument();
+            forceLocalRender();
+          }}
         />
-        <OscillatorSettings
-          midiPlayer={midiPlayer}
-          forceLocalRender={forceLocalRender}
-        />
-        <DelaySlider
-          midiPlayer={midiPlayer}
-          forceLocalRender={forceLocalRender}
-        />
-        <OtherSettings
-          midiPlayer={midiPlayer}
-          forceLocalRender={forceLocalRender}
-        />
-      </DialogContent>
-    </div>
+      </Grid>
+    </DialogContent>
   );
 }

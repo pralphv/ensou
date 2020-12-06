@@ -6,7 +6,6 @@ import { range } from "lodash";
 import Select from "@material-ui/core/Select";
 
 interface IExtraOutput {
-  trackIndex: number;
   fxIndex: number;
   noOfTracks: number;
   value: number | null;

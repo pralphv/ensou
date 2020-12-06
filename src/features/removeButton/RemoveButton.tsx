@@ -2,13 +2,13 @@ import React from "react";
 
 import { Button } from "@material-ui/core";
 
-interface IRemoveFxButtonProps {
+interface IRemoveButtonProps {
   onClick: () => void;
 }
 
-export default function RemoveFxButton({
+export default function RemoveButton({
   onClick,
-}: IRemoveFxButtonProps): JSX.Element {
+}: IRemoveButtonProps): JSX.Element {
   return (
     <Button size="medium" variant="contained" onClick={onClick}>
       Remove

@@ -11,13 +11,15 @@ import * as types from "types";
 interface IEnvelopeSettingsProps {
   midiPlayer: MyMidiPlayer;
   forceLocalRender: types.forceLocalRender;
+  synthIndex: number;
 }
 
 export default function EnvelopeSettings({
   midiPlayer,
   forceLocalRender,
+  synthIndex,
 }: IEnvelopeSettingsProps) {
-  const settings = midiPlayer.myTonejs?.getSynthSettings()?.envelope;
+  const settings = midiPlayer.myTonejs?.getSynthSettings(synthIndex)?.envelope;
 
   return (
     <div>
@@ -37,7 +39,11 @@ export default function EnvelopeSettings({
                 });
               }}
               onChange={(e, newValue) => {
-                midiPlayer.myTonejs?.setSynthSettingsEnvelope(key, newValue);
+                midiPlayer.myTonejs?.setSynthSettingsEnvelope(
+                  key,
+                  newValue,
+                  synthIndex
+                );
                 forceLocalRender();
               }}
               valueLabelDisplay="auto"

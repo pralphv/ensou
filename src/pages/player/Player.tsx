@@ -117,7 +117,7 @@ export default function Player(): JSX.Element {
       forceRender,
       midiPlayerRef.current?.getIsPlaying(),
       isFullscreen,
-      midiPlayerRef.current?.myTonejs?.getSynthName(),
+      // midiPlayerRef.current?.myTonejs?.getSynthName(),
     ]
   );
 

@@ -15,6 +15,7 @@ export const DEFAULT_AUDIO_SETTINGS: types.ISynthSettings = {
     partials: [0, 0, 0, 0, 0],
     spread: 0,
     count: 0,
+    harmonicity: 1
   },
   envelope: {
     attack: 0.005,
@@ -24,5 +25,6 @@ export const DEFAULT_AUDIO_SETTINGS: types.ISynthSettings = {
   },
   others: {
     detune: 0,
+    volume: 0
   },
 };

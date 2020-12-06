@@ -8,6 +8,9 @@ import {
   Phaser,
   Filter,
   StereoWidener,
+  PingPongDelay,
+  PitchShift,
+  Distortion,
 } from "tone";
 import { OmniOscillatorSynthOptions } from "tone/build/esm/source/oscillator/OscillatorInterface";
 
@@ -156,7 +159,12 @@ export interface IDelayApi {
   setDelay: (delay: number) => void;
 }
 
-export type AvailableSynths = "Synth" | "AMSynth" | "FMSynth" | "MembraneSynth";
+export type AvailableSynths =
+  | "Synth"
+  | "AMSynth"
+  | "FMSynth"
+  | "MembraneSynth"
+  
 export enum AvailableSynthsEnum {
   Synth = "Synth",
   AMSynth = "AMSynth",
@@ -187,12 +195,14 @@ export interface IEnvelope {
 
 export interface IOtherSettings {
   detune: number;
+  volume: number;
 }
 export interface IOscillator {
   type: OscillatorType;
   partials: number[];
   spread: number;
   count: number;
+  harmonicity: number;
 }
 
 export enum OscillatorType {
@@ -239,7 +249,10 @@ export type AvailableEffects =
   | Phaser
   | Gain
   | Filter
-  | StereoWidener;
+  | StereoWidener
+  | PingPongDelay
+  | PitchShift
+  | Distortion;
 
 export enum AvailableEffectsNames {
   reverb = "Reverb",
@@ -249,6 +262,9 @@ export enum AvailableEffectsNames {
   gain = "Gain",
   filter = "Filter",
   stereoWidener = "StereoWidener",
+  pingPongDelay = "PingPongDelay",
+  pitchShift = "PitchShift",
+  distortion = "Distortion",
 }
 
 export type Track = Sampler | PolySynth;
