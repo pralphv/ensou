@@ -1,4 +1,5 @@
 import {
+  Compressor,
   Reverb,
   FeedbackDelay,
   Chorus,
@@ -14,6 +15,7 @@ import {
 import * as types from "types";
 
 const NAME_TO_EFFECT_MAP = {
+  Compressor,
   Reverb,
   FeedbackDelay,
   Chorus,

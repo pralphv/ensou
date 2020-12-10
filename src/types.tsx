@@ -2,6 +2,7 @@ import { Sampler, SamplerOptions, Gain, PolySynth } from "tone";
 import { EnvelopeOptions } from "tone";
 import { Time, NormalRange } from "tone/Tone/core/type/Units";
 import {
+  Compressor,
   Reverb,
   FeedbackDelay,
   Chorus,
@@ -159,12 +160,8 @@ export interface IDelayApi {
   setDelay: (delay: number) => void;
 }
 
-export type AvailableSynths =
-  | "Synth"
-  | "AMSynth"
-  | "FMSynth"
-  | "MembraneSynth"
-  
+export type AvailableSynths = "Synth" | "AMSynth" | "FMSynth" | "MembraneSynth";
+
 export enum AvailableSynthsEnum {
   Synth = "Synth",
   AMSynth = "AMSynth",
@@ -199,7 +196,6 @@ export interface IOtherSettings {
 }
 export interface IOscillator {
   type: OscillatorType;
-  partials: number[];
   spread: number;
   count: number;
   harmonicity: number;
@@ -243,6 +239,7 @@ export interface IDelaySettings {
 }
 
 export type AvailableEffects =
+  | Compressor
   | Reverb
   | FeedbackDelay
   | Chorus
@@ -255,6 +252,7 @@ export type AvailableEffects =
   | Distortion;
 
 export enum AvailableEffectsNames {
+  compressor = "Compressor",
   reverb = "Reverb",
   delay = "FeedbackDelay",
   chorus = "Chorus",

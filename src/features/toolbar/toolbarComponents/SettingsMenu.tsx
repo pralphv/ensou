@@ -42,7 +42,7 @@ export default function SettingsMenu({
     } else {
       setTimeout(() => {
         if (!midiPlayer.myTonejs?.publishingChanges) {
-          console.log("waiting for change...")
+          console.log("waiting for change...");
           setForceLocalRenderDummy(forceLocalRenderDummy + 1);
           return;
         } else {
@@ -123,6 +123,21 @@ export default function SettingsMenu({
           opacity: 0.9,
         }}
       >
+        <ListItem button>
+          <ListItemText primary="Open Microphone" />
+          <Switch
+            checked={midiPlayer.myTonejs?.isMicrophoneOn()}
+            onChange={() => {
+              if (midiPlayer.myTonejs?.isMicrophoneOn()) {
+                console.log("JER")
+                midiPlayer.myTonejs?.closeMicrophone();
+              } else {
+                midiPlayer.myTonejs?.openMicrophone();
+              }
+              forceRerender();
+            }}
+          />
+        </ListItem>
         <ListItem button>
           <ListItemText primary="Horizontal" />
           <Switch

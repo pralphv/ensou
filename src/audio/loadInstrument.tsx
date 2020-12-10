@@ -5,6 +5,7 @@ import {
   PolySynth,
   context,
   Destination,
+  UserMedia,
 } from "tone";
 import StartAudioContext from "startaudiocontext";
 
@@ -42,6 +43,7 @@ export class Instruments {
   _setPlayerStatus: (status: string) => void;
   _effectsActivated: boolean;
   _delays: number[];
+  _microphone: UserMedia | null;
   publishingChanges: boolean;
 
   constructor(
@@ -66,6 +68,7 @@ export class Instruments {
     this.publishingChanges = false;
     this.samplers = [];
     this._delays = localStorageUtils.getDelay() || [];
+    this._microphone = null;
 
     this.polySynths = [];
     this._effectChains = [];
@@ -104,6 +107,36 @@ export class Instruments {
     if (hasSaveFromLocalStorage) {
       await this._publishFxChange();
     }
+  }
+
+  _activateMicrophone() {
+    console.log("Activating microphone...")
+    if (this._microphone) {
+      this.closeMicrophone();
+    }
+    const mic = new UserMedia();
+    mic.chain(...this._effectChains, Destination);
+    this._microphone = mic;
+  }
+
+  openMicrophone() {
+    console.log("Opening microphone...")
+    if (!this._microphone) {
+      this._activateMicrophone();
+    }
+    this._microphone?.open();
+  }
+
+  closeMicrophone() {
+    console.log("Closing Microphone...")
+    this._microphone?.close();
+    this._microphone?.disconnect();
+    this._microphone?.dispose();
+    this._microphone = null;
+  }
+
+  isMicrophoneOn() {
+    return Boolean(this._microphone);
   }
 
   /**
@@ -280,7 +313,6 @@ export class Instruments {
     this._effectChains.splice(fxIndex, 1);
     this._effectChainsNames.splice(fxIndex, 1);
     await this._publishFxChange();
-    // await this._publishFxChange;
     localStorageUtils.deleteFxSettings(fxIndex);
   }
 
@@ -363,6 +395,10 @@ export class Instruments {
     }
     this.publishingChanges = false;
     this.saveSettingsToLocalStorage();
+    if (this._microphone) {
+      this._activateMicrophone(); // restart mic
+      this.openMicrophone();
+    }
   }
 
   saveSettingsToLocalStorage() {
@@ -444,8 +480,6 @@ export class Instruments {
     const settings = {
       oscillator: {
         type: oscillator.type as types.OscillatorType,
-        //@ts-ignore
-        partials: oscillator.partials,
         //@ts-ignore
         spread: oscillator.spread,
         //@ts-ignore

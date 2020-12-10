@@ -30,6 +30,7 @@ const EFFECT_PARAMS_MAP: IEFFECT_PARAMS_MAP = {
   PingPongDelay: ["wet", "delayTime", "feedback"],
   PitchShift: ["wet", "pitch", "windowSize", "delayTime", "feedback"],
   Distortion: ["wet", "distortion"],
+  Compressor: ["threshold", "ratio", "attack", "release"],
 };
 
 function getNoteTimeRange() {
@@ -69,6 +70,10 @@ const FIELD_MIN_MAX: IFIELD_MIN_MAX = {
   pitch: { min: -12, max: 12, step: 1 },
   windowSize: { min: 0.01, max: 1, step: 0.01 },
   distortion: { min: 0, max: 1, step: 0.01 },
+  threshold: { min: -100, max: 0, step: 0.1 },
+  ratio: { min: 1, max: 20, step: 0.1 },
+  attack: getNormalRange(),
+  release: getNormalRange(),
 };
 
 interface IFieldOptions {
