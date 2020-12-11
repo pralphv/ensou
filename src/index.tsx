@@ -6,7 +6,17 @@ import { Provider } from "react-redux";
 
 import "./index.css";
 
+const VERSION = "1.0.0";
+const LOCAL_STORAGE_VERSION_KEY = "appVersion";
+
 function render() {
+  const userVersion = localStorage.getItem(LOCAL_STORAGE_VERSION_KEY);
+  if (userVersion !== VERSION) {
+    localStorage.clear();
+    localStorage.setItem(LOCAL_STORAGE_VERSION_KEY, VERSION);
+    window.location.reload();
+  }
+
   ReactDOM.render(
     <Provider store={store}>
       <App />
