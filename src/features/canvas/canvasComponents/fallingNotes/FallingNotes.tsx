@@ -61,9 +61,14 @@ function gradient(from: string, to: string, height: number) {
   return texture;
 }
 
-function initRectangle(width: number, height: number): PIXI.Graphics {
+function initRectangle(
+  width: number,
+  height: number,
+  color1: string,
+  color2: string
+): PIXI.Graphics {
   const rect = new PIXI.Graphics();
-  rect.beginTextureFill({ texture: gradient("#63F0FF", "#35D1FC", height) });
+  rect.beginTextureFill({ texture: gradient(color1, color2, height) });
   rect.drawRoundedRect(0, 0, width, height, width / 2.5);
   rect.endFill();
   return rect;
@@ -73,7 +78,9 @@ export function initFallingNotes(
   groupedNotes: types.GroupedNotes[],
   noteWidth: number,
   app: PIXI.Application,
-  setIsLoading: (loading: boolean) => void
+  setIsLoading: (loading: boolean) => void,
+  color1: string = "#63F0FF",
+  color2: string = "#35D1FC"
 ): FallingNotes[] {
   console.log("Constructing new FallingNotes");
   setIsLoading(true);
@@ -96,7 +103,7 @@ export function initFallingNotes(
     const width = pianoNoteXMap[note.noteName].width;
     const cacheKey = `${height}_${width}`;
     if (!rectCached[cacheKey]) {
-      const rect = initRectangle(width + 1, height);
+      const rect = initRectangle(width + 1, height, color1, color2);
       rectCached[cacheKey] = rect;
     }
     // @ts-ignore
