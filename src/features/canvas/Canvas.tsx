@@ -146,6 +146,7 @@ export default function Canvas({
   }, [isHorizontal, isFullScreen]);
 
   useEffect(() => {
+    // load other midi file
     fallingNotes.initFallingNotes(
       midiPlayer.groupedNotes,
       NOTE_WIDTH,
@@ -187,6 +188,7 @@ export default function Canvas({
   }, [forceRender, currentTick]);
 
   useEffect(() => {
+    // draw canvas when playing midi
     if (app.current) {
       fallingNotes.draw(
         currentTick,
