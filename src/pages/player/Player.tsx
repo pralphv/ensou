@@ -15,10 +15,6 @@ import { useParams } from "react-router";
 
 import { Helmet } from "react-helmet";
 
-import {
-  increaseSlowDownFactor,
-  decreaseSlowDownFactor,
-} from "features/canvas/constants";
 import useFullscreenStatus from "./fullscreener";
 import "./styles.css";
 import midiPlayer from "audio";
