@@ -2,24 +2,15 @@ import React from "react";
 
 import Slider from "@material-ui/core/Slider";
 
-import * as types from "types";
-
-
 interface ITempoChange {
-  forceRerender: types.forceRerender;
   value: number;
   setValue: (value: number) => void;
 }
 
-function TempoChange({
-  forceRerender,
-  value,
-  setValue,
-}: ITempoChange) {
+function TempoChange({ value, setValue }: ITempoChange) {
   const handleChange = (e: any, newValue: number | number[]) => {
     newValue = newValue as number;
     setValue(Math.round(newValue));
-    forceRerender();
   };
 
   return (
@@ -29,7 +20,8 @@ function TempoChange({
       onChange={handleChange}
       min={0}
       max={200}
-      style={{ // use styles to be faster
+      style={{
+        // use styles to be faster
         width: 100,
         paddingTop: 20,
         paddingBottom: 20,

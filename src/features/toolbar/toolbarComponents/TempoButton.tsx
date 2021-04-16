@@ -5,18 +5,9 @@ import Popover from "@material-ui/core/Popover";
 
 import TempoChange from "features/tempoChange/TempoChange";
 import CustomButton from "./cutomButton/CustomButton";
-import * as types from "types";
-interface ITempoButtonProps {
-  getIsPlaying: types.IMidiFunctions["getIsPlaying"];
-  setTempoPercent: types.IMidiFunctions["tempoApi"]["setTempoPercent"];
-  forceRerender: types.forceRerender;
-}
+import myMidiPlayer from "audio";
 
-export default function TempoButton({
-  getIsPlaying,
-  setTempoPercent,
-  forceRerender,
-}: ITempoButtonProps): JSX.Element {
+export default function TempoButton(): JSX.Element {
   const [value, setValue] = useState<number>(100);
 
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(
@@ -37,7 +28,7 @@ export default function TempoButton({
         onClick={handleClick}
         // style={{ width: BUTTON_WIDTH, height: BUTTON_HEIGHT }}
         size="small"
-        disabled={getIsPlaying() === true}
+        disabled={myMidiPlayer.getIsPlaying() === true}
       >
         <Typography variant="body2">{value}%</Typography>
       </CustomButton>
@@ -55,10 +46,9 @@ export default function TempoButton({
         }}
       >
         <TempoChange
-          forceRerender={forceRerender}
           value={value}
           setValue={(tempo) => {
-            setTempoPercent(tempo);
+            myMidiPlayer.setTempoPercent(tempo);
             setValue(tempo);
           }}
         />

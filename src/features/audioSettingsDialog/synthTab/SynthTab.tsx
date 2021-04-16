@@ -5,7 +5,7 @@ import Grid from "@material-ui/core/Grid";
 import DialogContent from "@material-ui/core/DialogContent";
 import * as types from "types";
 import DelaySlider from "../DelaySlider";
-import MyMidiPlayer from "audio/midiPlayer";
+import myMidiPlayer from "audio";
 
 import EnvelopeSettings from "./EnvelopeSettings";
 import OscillatorSettings from "./OscillatorSettings";
@@ -15,16 +15,10 @@ import AddButton from "features/addButton/AddButton";
 import RemoveButton from "features/removeButton/RemoveButton";
 import { range } from "lodash";
 export interface ISynthTab {
-  midiPlayer: MyMidiPlayer;
-  forceRerender: types.forceRerender;
   forceLocalRender: types.forceLocalRender;
 }
 
-export default function SynthTab({
-  midiPlayer,
-  forceRerender,
-  forceLocalRender,
-}: ISynthTab) {
+export default function SynthTab({ forceLocalRender }: ISynthTab) {
   return (
     <DialogContent>
       <Grid
@@ -34,8 +28,8 @@ export default function SynthTab({
         justify="center"
         alignItems="stretch"
       >
-        {midiPlayer.myTonejs &&
-          range(midiPlayer.myTonejs?.polySynths.length).map((i) => (
+        {myMidiPlayer.myTonejs &&
+          range(myMidiPlayer.myTonejs?.polySynths.length).map((i) => (
             <div key={i}>
               <Grid
                 item
@@ -46,33 +40,28 @@ export default function SynthTab({
                 }}
               >
                 <SynthesizerSettings
-                  midiPlayer={midiPlayer}
                   forceLocalRender={forceLocalRender}
                   synthIndex={i}
                 />
                 <EnvelopeSettings
-                  midiPlayer={midiPlayer}
                   forceLocalRender={forceLocalRender}
                   synthIndex={i}
                 />
                 <OscillatorSettings
-                  midiPlayer={midiPlayer}
                   forceLocalRender={forceLocalRender}
                   synthIndex={i}
                 />
                 <DelaySlider
-                  midiPlayer={midiPlayer}
                   forceLocalRender={forceLocalRender}
                   synthIndex={i}
                 />
                 <OtherSettings
-                  midiPlayer={midiPlayer}
                   forceLocalRender={forceLocalRender}
                   synthIndex={i}
                 />
                 <RemoveButton
                   onClick={() => {
-                    midiPlayer.myTonejs?.removeInstrument(i);
+                    myMidiPlayer.myTonejs?.removeInstrument(i);
                     forceLocalRender();
                   }}
                 />
@@ -81,7 +70,7 @@ export default function SynthTab({
           ))}
         <AddButton
           onClick={() => {
-            midiPlayer.myTonejs?.addInstrument();
+            myMidiPlayer.myTonejs?.addInstrument();
             forceLocalRender();
           }}
         />

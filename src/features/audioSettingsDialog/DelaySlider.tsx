@@ -5,16 +5,14 @@ import Slider from "@material-ui/core/Slider";
 import * as types from "types";
 import prettyMilliseconds from "pretty-ms";
 import Tooltip from "@material-ui/core/Tooltip";
-import MyMidiPlayer from "audio/midiPlayer";
+import myMidiPlayer from "audio";
 
 interface IDelaySliderProps {
-  midiPlayer: MyMidiPlayer;
   forceLocalRender: types.forceLocalRender;
   synthIndex: number;
 }
 
 export default function DelaySlider({
-  midiPlayer,
   forceLocalRender,
   synthIndex,
 }: IDelaySliderProps): JSX.Element {
@@ -26,9 +24,9 @@ export default function DelaySlider({
       >
         <InputLabel>Delay</InputLabel>
       </Tooltip>
-      {midiPlayer.myTonejs && (
+      {myMidiPlayer.myTonejs && (
         <Slider
-          value={midiPlayer.myTonejs.getDelay(synthIndex)}
+          value={myMidiPlayer.myTonejs.getDelay(synthIndex)}
           min={0.01}
           step={0.001}
           max={0.1}
@@ -38,7 +36,7 @@ export default function DelaySlider({
             });
           }}
           onChange={(e, newValue) => {
-            midiPlayer.myTonejs?.setDelay(newValue as number, synthIndex);
+            myMidiPlayer.myTonejs?.setDelay(newValue as number, synthIndex);
             forceLocalRender(true);
           }}
           valueLabelDisplay="auto"

@@ -4,27 +4,20 @@ import Dialog from "@material-ui/core/Dialog";
 import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 
-import * as types from "types";
 import SynthTab from "./synthTab/SynthTab";
 import SamplerTab from "./SamplerTab";
 import EffectsTab from "./effectsTab/EffectsTab";
-import MyMidiPlayer from "audio/midiPlayer";
+import myMidiPlayer from "audio";
 
 interface ISamplesDialog {
-  midiPlayer: MyMidiPlayer;
   open: boolean;
   setOpen: (bool: boolean) => void;
-  forceRerender: types.forceRerender;
-  isSampler: boolean;
   forceLocalRender: () => void;
 }
 
 export default function AudioSettingsDialog({
-  midiPlayer,
   open,
   setOpen,
-  forceRerender,
-  isSampler,
   forceLocalRender,
 }: ISamplesDialog) {
   const [value, setValue] = React.useState(0);
@@ -32,6 +25,8 @@ export default function AudioSettingsDialog({
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
     setValue(newValue);
   };
+
+  const isSampler = myMidiPlayer.checkIfSampler();
   return (
     <Dialog maxWidth="lg" open={open} onClose={() => setOpen(false)}>
       <Tabs
@@ -45,24 +40,11 @@ export default function AudioSettingsDialog({
       </Tabs>
       {value === 0 &&
         (isSampler ? (
-          <SamplerTab
-            midiPlayer={midiPlayer}
-            forceLocalRender={forceLocalRender}
-          />
+          <SamplerTab forceLocalRender={forceLocalRender} />
         ) : (
-          <SynthTab
-            midiPlayer={midiPlayer}
-            forceRerender={forceRerender}
-            forceLocalRender={forceLocalRender}
-          />
+          <SynthTab forceLocalRender={forceLocalRender} />
         ))}
-      {value === 1 && (
-        <EffectsTab
-          forceRerender={forceRerender}
-          midiPlayer={midiPlayer}
-          forceLocalRender={forceLocalRender}
-        />
-      )}
+      {value === 1 && <EffectsTab forceLocalRender={forceLocalRender} />}
     </Dialog>
   );
 }

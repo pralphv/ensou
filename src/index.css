@@ -18,3 +18,8 @@ canvas {
   margin-right: auto;
   display: block;
 }
+
+a, a:hover, a:focus, a:active {
+  text-decoration: none;
+  color: inherit;
+}

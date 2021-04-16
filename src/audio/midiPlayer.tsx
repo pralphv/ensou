@@ -8,10 +8,8 @@ import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
 import { convertArrayBufferToAudioContext } from "utils/helper";
 import { Instruments } from "./loadInstrument";
 import { storageRef } from "firebaseApi/firebase";
+import myCanvas from "canvas";
 
-interface Tick {
-  tick: number;
-}
 const BEAT_BUFFER = 0.02;
 
 // needs to be in global types
@@ -22,6 +20,10 @@ interface ISamplerOptions {
   instrument: types.Instrument;
   sample: string;
   sampleMap?: SamplerOptions["urls"];
+}
+
+interface IMyMidiPlayerEvents {
+  [key: string]: Function;
 }
 
 export default class MyMidiPlayer {
@@ -40,23 +42,22 @@ export default class MyMidiPlayer {
   samplerSource?: types.SamplerSource;
   playRange: types.PlayRange;
   ticksPerBeat: number;
-  _setPlayerStatus: (status: string) => void;
+  // _setPlayerStatus: (status: string) => void;
   _synthOptions?: ISynthOptions;
   _samplerOptions?: ISamplerOptions;
-  _setInstrumentLoading: (loading: boolean) => void;
-  _forceCanvasRerender: () => void;
+  // _setInstrumentLoading: (loading: boolean) => void;
+  // _forceCanvasRerender: () => void;
   sampleName?: string; //etc piano-in-162
+  eventListeners: IMyMidiPlayerEvents;
+  playingNotes: Set<number>;
 
-  constructor(
-    setPlayerStatus: (status: string) => void,
-    setInstrumentLoading: (loading: boolean) => void,
-    _forceCanvasRerender: () => void
-  ) {
+  constructor() {
+    // _forceCanvasRerender: () => void // ) => void, //   groupedNotes: types.IGroupedNotes[] //   ticksPerBeat: number, //   currentTick: number, // onPlaying: ( // setInstrumentLoading: (loading: boolean) => void, // setPlayerStatus: (status: string) => void,
     console.log("Constructing new midi player");
     // for getLocalSampler because of async
-    this._setPlayerStatus = setPlayerStatus;
-    this._setInstrumentLoading = setInstrumentLoading;
-    this._forceCanvasRerender = _forceCanvasRerender;
+    // this._setPlayerStatus = setPlayerStatus;
+    // this._setInstrumentLoading = setInstrumentLoading;
+    // this._forceCanvasRerender = _forceCanvasRerender;
 
     this.instrument = "piano";
     this.isMetronome = false;
@@ -77,6 +78,8 @@ export default class MyMidiPlayer {
         ? types.SamplerSourceEnum.local
         : cachedSampler; // force rerender in useInstrument and getLocalSampler;
     this.sampleName = localStorageUtils.getSampleName() as string;
+    this.eventListeners = {};
+    this.playingNotes = new Set();
 
     // init should be here but its await so it cant
     // should be safe to say string because when useSample is chosen it would save to local storage
@@ -98,18 +101,40 @@ export default class MyMidiPlayer {
     this.setSamplerSource = this.setSamplerSource.bind(this);
     this._initToneJs = this._initToneJs.bind(this);
     this.getCurrentTick = this.getCurrentTick.bind(this);
+    this.handleOnDownloaded = this.handleOnDownloaded.bind(this);
+    this.on = this.on.bind(this);
     const midiPlayer = new MidiPlayer.Player() as MidiPlayer.Player &
       MidiPlayer.Event &
       MidiPlayer.Track;
 
-    midiPlayer.on("playing", this._handleOnPlaying);
+    // midiPlayer.on("playing", (currentTick: types.Tick) => {
+    //   this._handleOnPlaying(currentTick, onPlaying);
+    // });
     midiPlayer.on("fileLoaded", this._handleFileLoaded);
     midiPlayer.on("midiEvent", this._handleOnMidiEvent);
     this.midiPlayer = midiPlayer;
   }
 
-  _handleOnPlaying(currentTick: Tick) {
-    this._forceCanvasRerender();
+  on(event: string, callback: Function) {
+    if (event === "playing") {
+      this.midiPlayer.on("playing", (currentTick: types.Tick) => {
+        this._handleOnPlaying(currentTick, callback);
+      });
+    }
+    this.eventListeners[event] = callback;
+    // playing, willMount, mounted, willDownloadMidi, downloadedMidi, willImport, imported
+  }
+
+  _handleOnPlaying(
+    currentTick: types.Tick,
+    callback: Function
+    // callback: (
+    //   currentTick: number,
+    //   ticksPerBeat: number,
+    //   types: types.IGroupedNotes[]
+    // ) => void
+  ) {
+    // this._forceCanvasRerender();
     // @ts-ignore
     const ticksPerBeat_ = this.midiPlayer.getDivision().division;
 
@@ -154,7 +179,17 @@ export default class MyMidiPlayer {
         }
       }
     }
+    const playingNotes: Set<number> = new Set();
+    this.groupedNotes.forEach((note) => {
+      if (currentTick.tick >= note.on && currentTick.tick <= note.off) {
+        playingNotes.add(note.x);
+      }
+    });
+    this.playingNotes = playingNotes;
+
+    callback();
   }
+
   _handleFileLoaded() {
     const allEvents: MidiPlayer.Event[] = this.midiPlayer.getEvents();
     this.isPlaying = false;
@@ -202,31 +237,38 @@ export default class MyMidiPlayer {
     }
     this.midiPlayer.play();
     this._isBlockMetronome = false;
+    this.eventListeners.actioned();
   }
 
   stop() {
     this.myTonejs?.clearPlayingNotes();
     this.isPlaying = false;
     this.midiPlayer.stop();
+    this.eventListeners.actioned();
   }
 
   pause() {
     this.myTonejs?.clearPlayingNotes();
     this.isPlaying = false;
     this.midiPlayer.pause();
+    this.eventListeners.actioned();
   }
 
   restart() {
     this.myTonejs?.clearPlayingNotes();
     this.skipToPercent(0);
     this.setPlayRange(0, 0);
+    this.eventListeners.actioned();
   }
 
   skipToPercent(percent: number) {
     this.myTonejs?.clearPlayingNotes();
     this.midiPlayer.skipToPercent(percent);
     if (this.isPlaying) {
+      // actioned included in play
       this.play(true, true);
+    } else {
+      this.eventListeners.actioned();
     }
   }
 
@@ -235,6 +277,8 @@ export default class MyMidiPlayer {
     this.midiPlayer.skipToTick(tick);
     if (this.isPlaying) {
       this.play(true, true);
+    } else {
+      this.eventListeners.actioned();
     }
   }
 
@@ -242,12 +286,15 @@ export default class MyMidiPlayer {
     // it is there stupid
     // @ts-ignore
     this.midiPlayer.setTempo(tempo);
+    this.eventListeners.actioned();
   }
 
   async setSamplerSource(source: types.SamplerSource) {
     this.samplerSource = source;
     localStorageUtils.setSamplerSource(source);
     await this._initToneJs();
+    // after sample set
+    this.eventListeners.actioned();
   }
 
   getTotalTicks(): number {
@@ -267,6 +314,7 @@ export default class MyMidiPlayer {
     const newValue = (this.songTempo * percent) / 100;
     // @ts-ignore
     this.midiPlayer.setTempo(newValue);
+    this.eventListeners.actioned();
   }
 
   getIsLoop() {
@@ -276,6 +324,7 @@ export default class MyMidiPlayer {
   setIsLoop(isLoop: boolean) {
     this.isLoop = isLoop;
     localStorageUtils.setIsLoop(isLoop);
+    this.eventListeners.actioned();
   }
 
   getIsMetronome() {
@@ -284,6 +333,7 @@ export default class MyMidiPlayer {
 
   setIsMetronome(isMetronome: boolean) {
     this.isMetronome = isMetronome;
+    this.eventListeners.actioned();
   }
 
   checkIfSampler(): boolean {
@@ -310,19 +360,13 @@ export default class MyMidiPlayer {
     return this.midiPlayer.getCurrentTick();
   }
 
-  async downloadMidiFromFirebase(songId: string, onLoad: () => void) {
-    this._setPlayerStatus("Downloading Midi...");
+  async downloadMidiFromFirebase(songId: string) {
+    this.eventListeners?.willDownloadMidi();
     const midiRef = storageRef.child("midi").child(`${songId}.mid`);
     const url = await midiRef.getDownloadURL();
     const xhr = new XMLHttpRequest();
     xhr.responseType = "arraybuffer";
-    xhr.onload = () => {
-      const blob = xhr.response;
-      this.midiPlayer.loadArrayBuffer(blob);
-      onLoad();
-      console.log("Finished downloading");
-      this._setPlayerStatus("");
-    };
+    xhr.onload = () => this.handleOnDownloaded(xhr);
     xhr.onerror = () => {
       // probably cors
     };
@@ -330,10 +374,22 @@ export default class MyMidiPlayer {
     xhr.send();
   }
 
+  handleOnDownloaded(xhr: XMLHttpRequest) {
+    const blob = xhr.response;
+    this.loadArrayBuffer(blob);
+    console.log("Finished downloading");
+    this.tempoPercent = 1;
+    myCanvas.buildNotes(this.groupedNotes);
+    this.eventListeners?.downloadedMidi();
+  }
+
   async _initToneJs() {
+    this.eventListeners.willSetTone();
+    const pastEventListeners = this.myTonejs?.eventListeners;
+    this.myTonejs?.destroy();
     if (this.samplerSource === types.SamplerSourceEnum.server) {
       // if its useSample, then it must have this.sampleName
-      this.myTonejs = new Instruments(true, this._setPlayerStatus, undefined, {
+      this.myTonejs = new Instruments(true, undefined, {
         instrument: this.instrument,
         sample: this.sampleName as string,
       });
@@ -342,26 +398,36 @@ export default class MyMidiPlayer {
       this.samplerSource === types.SamplerSourceEnum.cachedLocal
     ) {
       const sampleMap = this.localSampler;
-      this.myTonejs = new Instruments(true, this._setPlayerStatus, undefined, {
+      this.myTonejs = new Instruments(true, undefined, {
         instrument: this.instrument,
         sample: this.sampleName as string,
         sampleMap,
       });
     } else {
-      this.myTonejs = new Instruments(false, this._setPlayerStatus);
+      this.myTonejs = new Instruments(false);
     }
+    this.myTonejs.on(
+      "downloadingSamples",
+      this.eventListeners?.downloadingSamples
+    );
     await this.myTonejs.init(); // must be here because construct cannot be async
+    if (pastEventListeners) {
+      Object.entries(pastEventListeners).forEach(([event, func]) => {
+        this.myTonejs?.on(event, func);
+      });
+    }
+    this.eventListeners.toneSet();
+    console.log("JER!!!");
   }
 
   async init() {
-    await this.fetchLocalSampler();
-    console.log("Constructing My MidiPlayer");
-    this._setInstrumentLoading(true);
-    this._forceCanvasRerender();
-    this._setPlayerStatus("0%"); // reset
-    this._initToneJs();
-    this._setInstrumentLoading(false);
-    this._forceCanvasRerender();
+    if (!this.myTonejs) {
+      await this.fetchLocalSampler();
+      console.log("Constructing My MidiPlayer");
+      this.eventListeners?.willMount();
+      await this._initToneJs();
+      this.eventListeners?.mounted();
+    }
   }
 
   async fetchLocalSampler() {
@@ -377,9 +443,12 @@ export default class MyMidiPlayer {
   }
 
   async loadArrayBuffer(arrayBuffer: ArrayBuffer) {
-    this._setPlayerStatus("Importing...");
+    this.eventListeners?.import();
     await this.midiPlayer.loadArrayBuffer(arrayBuffer);
-    this._setPlayerStatus("");
+    myCanvas.buildNotes(this.groupedNotes);
+    //@ts-ignore
+    this.eventListeners?.imported();
+    this.eventListeners.actioned();
   }
 
   cleanup() {

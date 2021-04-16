@@ -45,6 +45,11 @@ export interface IMidiFunctions {
   delayApi: IDelayApi;
 }
 
+// midiplayer does not provide types
+export interface Tick {
+  tick: number;
+}
+
 interface MetronomeApi {
   getIsMetronome: () => boolean;
   setIsMetronome: () => void;

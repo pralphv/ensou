@@ -12,13 +12,10 @@ import * as types from "types";
 import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
 import { SamplerOptions } from "tone";
 import { convertArrayBufferToAudioContext } from "utils/helper";
-import MyMidiPlayer from "audio/midiPlayer";
+import myMidiPlayer from "audio";
 
 interface ILocalSamplesTabProps {
-  open: boolean;
   setOpen: (bool: boolean) => void;
-  forceRerender: types.forceRerender;
-  midiPlayer: MyMidiPlayer;
 }
 
 function checkValidMusicNote(note: string) {
@@ -26,7 +23,7 @@ function checkValidMusicNote(note: string) {
     return false;
   }
   if (note.includes("#") || note.includes("b")) {
-    if (!/^([A-G]{1})(\#|b{1})([0-9]{1})$/.test(note)) {
+    if (!/^([A-G]{1})(|b{1})([0-9]{1})$/.test(note)) {
       return false;
     }
   } else {
@@ -37,11 +34,7 @@ function checkValidMusicNote(note: string) {
   return true;
 }
 
-export default function LocalSamplesTab({
-  setOpen,
-  midiPlayer,
-  forceRerender,
-}: ILocalSamplesTabProps) {
+export default function LocalSamplesTab({ setOpen }: ILocalSamplesTabProps) {
   const [sampleMap, setSampleMap] = useState<SamplerOptions["urls"]>();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -76,10 +69,9 @@ export default function LocalSamplesTab({
 
   function handleOnSubmit() {
     if (sampleMap) {
-      midiPlayer.setLocalSampler(sampleMap);
-      midiPlayer.setSamplerSource(types.SamplerSourceEnum.local);
+      myMidiPlayer.setLocalSampler(sampleMap);
+      myMidiPlayer.setSamplerSource(types.SamplerSourceEnum.local);
       setOpen(false);
-      forceRerender();
     }
   }
 

@@ -2,5 +2,51 @@
   width: 100vw;
   left: 0;
   position: absolute;
-  padding: 0.5%;
+  /* padding: 0.5%; */
+}
+
+.progress-bar {
+  margin: 0.5em 0em 0.1em 0em;
+  width: 100vw;
+  transform: scaleY(0.5);
+  top: 50%;
+}
+
+.progress-bar:hover {
+  cursor: pointer;
+  transform: scaleY(1);
+}
+
+.fullscreen-enabled canvas {
+  height: 95vh;
+  width: 100vw;
+}
+
+.fullscreen-enabled .horizontal canvas {
+  height: 100vw !important;
+  width: 95vh !important;
+  margin-top: -5vh !important;
+}
+
+.vertical canvas {
+  display: block;
+  width: 80vw;
+  max-width: 142.22vh;
+  /* 80 * 16/9 = 142.22 */
+  height: 45vw;
+  /* height:width ratio = 9/16 = .5625  */
+  max-height: 80vh;
+  background-color: black;
+  left: 0;
+}
+
+.player-canvas {
+  background: black;
+}
+
+.horizontal {
+  -ms-transform: rotate(90deg) translateY(-100%) translateX(-20%);
+  -webkit-transform: rotate(90deg) translateY(-100%) translateX(-20%);
+  transform: rotate(90deg) translateY(-100%) translateX(-20%);
+  transform-origin: top left;
 }

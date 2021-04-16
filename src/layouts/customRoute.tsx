@@ -1,13 +1,8 @@
 import React from "react";
-import clsx from "clsx";
 import { Route, Redirect } from "react-router-dom";
-
-import { makeStyles } from "@material-ui/core";
 
 import Navigation from "./navigation";
 import { Pages } from "./constants";
-import { useIsMobile } from "utils/customHooks";
-
 export interface CustomRouteProps {
   Component: React.ElementType;
   isPrivate: boolean;

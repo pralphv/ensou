@@ -10,7 +10,8 @@ let SAMPLE_CACH: ISampleCache = {};
 async function fetchInstruments(
   instrument: types.Instrument,
   sample: string,
-  setPlayerStatus: (status: string) => void
+  downloadingSamples: Function
+  // downloading: (status: string) => void
 ) {
   const cacheKey: string = `${instrument}_${sample}`;
   const cache: types.ArrayBufferMap = await indexedDbUtils.getServerSampler(
@@ -20,9 +21,11 @@ async function fetchInstruments(
   if (cache) {
     console.log(`Getting ${cacheKey} from cache`);
     arrayBufferMap = cache;
-    setPlayerStatus("100%");
+    downloadingSamples("100%");
   } else {
     console.log(`No cache. Fetching ${cacheKey}...`);
+    downloadingSamples("Preparing files...");
+
     const items = await storageRef
       .child(`samples/${instrument}/124k/${sample}`)
       // .child(`samples/piano-in-162/PedalOffMezzoForte1`)
@@ -37,7 +40,7 @@ async function fetchInstruments(
         const file: ArrayBuffer = await resp.arrayBuffer();
         arrayBufferMap[note] = file;
         progress++;
-        setPlayerStatus(`${Math.floor((progress / total) * 100)}%`);
+        downloadingSamples(`${Math.floor((progress / total) * 100)}%`);
       })
     );
     console.log(`Finished downloading ${cacheKey}. Saving...`);
@@ -45,16 +48,18 @@ async function fetchInstruments(
     console.log(`Saved ${cacheKey}`);
   }
   console.log("Converting to AudioBuffer...");
-  setPlayerStatus("Applying samples. This may take a while...");
+  downloadingSamples("Applying samples. This may take a while...");
   const sampleMap = convertArrayBufferToAudioContext(arrayBufferMap);
   console.log(`Converted ${cacheKey} to AudioBuffer!`);
+  // downloadingSamples("");
   return sampleMap;
 }
 
 export async function getSamples(
   instrument: types.Instrument,
   sample: string,
-  setPlayerStatus: (status: string) => void
+  downloadingSamples: Function
+  // downloading: (status: string) => void
 ): Promise<SamplerOptions["urls"]> {
   const cacheKey: string = `${instrument}_${sample}`;
   if (SAMPLE_CACH[cacheKey]) {
@@ -62,7 +67,7 @@ export async function getSamples(
     return SAMPLE_CACH[cacheKey];
   }
   console.log(`Downloading ${cacheKey}`);
-  const sampleMap = await fetchInstruments(instrument, sample, setPlayerStatus);
+  const sampleMap = await fetchInstruments(instrument, sample, downloadingSamples);
   // const sampler = new Sampler(sampleMap, {
   //   attack: 0.01,
   // }).toDestination();
