@@ -5,21 +5,20 @@ import InputLabel from "@material-ui/core/InputLabel";
 import prettyMilliseconds from "pretty-ms";
 import Slider from "@material-ui/core/Slider";
 
-import MyMidiPlayer from "audio/midiPlayer";
+import myMidiPlayer from "audio";
 import * as types from "types";
 
 interface IEnvelopeSettingsProps {
-  midiPlayer: MyMidiPlayer;
   forceLocalRender: types.forceLocalRender;
   synthIndex: number;
 }
 
 export default function EnvelopeSettings({
-  midiPlayer,
   forceLocalRender,
   synthIndex,
 }: IEnvelopeSettingsProps) {
-  const settings = midiPlayer.myTonejs?.getSynthSettings(synthIndex)?.envelope;
+  const settings = myMidiPlayer.myTonejs?.getSynthSettings(synthIndex)
+    ?.envelope;
 
   return (
     <div>
@@ -39,7 +38,7 @@ export default function EnvelopeSettings({
                 });
               }}
               onChange={(e, newValue) => {
-                midiPlayer.myTonejs?.setSynthSettingsEnvelope(
+                myMidiPlayer.myTonejs?.setSynthSettingsEnvelope(
                   key,
                   newValue,
                   synthIndex

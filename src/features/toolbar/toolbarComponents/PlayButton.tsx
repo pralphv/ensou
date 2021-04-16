@@ -3,36 +3,18 @@ import React from "react";
 import { start } from "tone";
 import PauseIcon from "@material-ui/icons/Pause";
 import PlayArrowIcon from "@material-ui/icons/PlayArrow";
-import { useHotkeys } from "react-hotkeys-hook";
 
 import CustomButton from "./cutomButton/CustomButton";
-import * as types from "types";
+import myMidiPlayer from "audio";
 
-interface PlayButtonProps {
-  play: types.IMidiFunctions["play"];
-  pause: types.IMidiFunctions["pause"];
-  getIsPlaying: types.IMidiFunctions["getIsPlaying"];
-  forceRerender: types.forceRerender;
-}
-
-export default function PlayButton({
-  play,
-  pause,
-  getIsPlaying,
-  forceRerender,
-}: PlayButtonProps): JSX.Element {
-  const isPlaying = getIsPlaying() === true; // can be undefined
-
-  // useHotkeys("space", toggle);
+export default function PlayButton(): JSX.Element {
+  const isPlaying = myMidiPlayer.getIsPlaying() === true; // can be undefined
 
   return (
     <div>
       {isPlaying ? (
         <CustomButton
-          onClick={() => {
-            pause();
-            forceRerender();
-          }}
+          onClick={myMidiPlayer.pause}
           // style={{ width: BUTTON_WIDTH, height: BUTTON_HEIGHT }}
           size="small"
         >
@@ -43,9 +25,8 @@ export default function PlayButton({
         <CustomButton
           id="playButton"
           onClick={() => {
-            play();
             start();
-            forceRerender();
+            myMidiPlayer.play();
           }}
           size="small"
           // style={{ width: BUTTON_WIDTH }}

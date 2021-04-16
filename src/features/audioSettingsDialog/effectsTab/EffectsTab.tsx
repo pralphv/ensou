@@ -11,21 +11,17 @@ import EffectParams from "./EffectParams";
 import EffectSelector from "./EffectSelector";
 import AddButton from "../../addButton/AddButton";
 import ActivateSwitch from "./ActivateSwitch";
-import RemoveButton from "features/removeButton/RemoveButton"
-import MyMidiPlayer from "audio/midiPlayer";
+import RemoveButton from "features/removeButton/RemoveButton";
+import myMidiPlayer from "audio";
 
 interface IEffectsTab {
-  forceRerender: types.forceRerender;
-  midiPlayer: MyMidiPlayer;
   forceLocalRender: types.forceLocalRender;
 }
 
 export default function EffectsTab({
-  forceRerender,
-  midiPlayer,
   forceLocalRender,
 }: IEffectsTab): JSX.Element {
-  const myTonejs = midiPlayer.myTonejs;
+  const myTonejs = myMidiPlayer.myTonejs;
   return (
     <div>
       {myTonejs && (
@@ -34,7 +30,7 @@ export default function EffectsTab({
             <ActivateSwitch
               checked={myTonejs.getEffectsActivated()}
               onChange={() => {
-                midiPlayer.myTonejs?.toggleEffectsActivated();
+                myTonejs?.toggleEffectsActivated();
                 forceLocalRender();
               }}
             />
@@ -68,7 +64,6 @@ export default function EffectsTab({
                       }}
                     />
                     <EffectParams
-                      midiPlayer={midiPlayer}
                       effectName={effectName}
                       fx={fx}
                       fxIndex={fxIndex}

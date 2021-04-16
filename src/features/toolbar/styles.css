@@ -1,4 +1,12 @@
 .toolbarFullScreen {
   position: absolute;
+  width: 100%;
   bottom: 0;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  margin-top: -15;
+  width: 99%;
 }

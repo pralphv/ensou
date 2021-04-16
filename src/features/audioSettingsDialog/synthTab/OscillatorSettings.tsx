@@ -5,21 +5,19 @@ import Select from "@material-ui/core/Select";
 import Slider from "@material-ui/core/Slider";
 import MenuItem from "@material-ui/core/MenuItem";
 
-import MyMidiPlayer from "audio/midiPlayer";
+import myMidiPlayer from "audio";
 import * as types from "types";
 
 interface IOscillatorSettingsProps {
-  midiPlayer: MyMidiPlayer;
   forceLocalRender: types.forceLocalRender;
   synthIndex: number;
 }
 
 export default function OscillatorSettings({
-  midiPlayer,
   forceLocalRender,
   synthIndex,
 }: IOscillatorSettingsProps) {
-  const settings = midiPlayer.myTonejs?.getSynthSettings(synthIndex)
+  const settings = myMidiPlayer.myTonejs?.getSynthSettings(synthIndex)
     ?.oscillator;
   const count = settings?.count;
   const spread = settings?.spread;
@@ -34,7 +32,7 @@ export default function OscillatorSettings({
             //@ts-ignore
             value={settings.type}
             onChange={(e: any) => {
-              midiPlayer.myTonejs?.setSynthSettingsOscillator(
+              myMidiPlayer.myTonejs?.setSynthSettingsOscillator(
                 "type",
                 e.target.value,
                 synthIndex
@@ -57,7 +55,7 @@ export default function OscillatorSettings({
                 step={1}
                 max={7}
                 onChange={(e, newValue) => {
-                  midiPlayer.myTonejs?.setSynthSettingsOscillator(
+                  myMidiPlayer.myTonejs?.setSynthSettingsOscillator(
                     "count",
                     newValue as number,
                     synthIndex
@@ -77,7 +75,7 @@ export default function OscillatorSettings({
                 step={1}
                 max={100}
                 onChange={(e, newValue) => {
-                  midiPlayer.myTonejs?.setSynthSettingsOscillator(
+                  myMidiPlayer.myTonejs?.setSynthSettingsOscillator(
                     "spread",
                     newValue as number,
                     synthIndex
@@ -97,7 +95,7 @@ export default function OscillatorSettings({
                 step={0.1}
                 max={5}
                 onChange={(e, newValue) => {
-                  midiPlayer.myTonejs?.setSynthSettingsOscillator(
+                  myMidiPlayer.myTonejs?.setSynthSettingsOscillator(
                     "harmonicity",
                     newValue as number,
                     synthIndex

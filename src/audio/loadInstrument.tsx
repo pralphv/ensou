@@ -28,6 +28,10 @@ interface ISamplerOptions {
   sampleMap?: SamplerOptions["urls"];
 }
 
+interface IInstrumentsEvents {
+  [key: string]: Function;
+}
+
 export class Instruments {
   samplers: Sampler[];
   polySynths: PolySynth[];
@@ -40,15 +44,15 @@ export class Instruments {
   _effectChains: types.AvailableEffects[];
   _effectChainsNames: types.AvailableEffectsNames[];
   _extraConnections: types.IExtraConnection[];
-  _setPlayerStatus: (status: string) => void;
+  // _setPlayerStatus: (status: string) => void;
   _effectsActivated: boolean;
   _delays: number[];
   _microphone: UserMedia | null;
   publishingChanges: boolean;
+  eventListeners: IInstrumentsEvents;
 
   constructor(
     useSample: boolean,
-    setPlayerStatus: (status: string) => void,
     synthOptions?: ISynthOptions,
     samplerOptions?: ISamplerOptions
   ) {
@@ -72,9 +76,10 @@ export class Instruments {
 
     this.polySynths = [];
     this._effectChains = [];
+    this.eventListeners = {};
     this._effectChainsNames = localStorageUtils.getEffectChainNames() || [];
     this._extraConnections = localStorageUtils.getExtraConnections() || [];
-    this._setPlayerStatus = setPlayerStatus;
+    // this._setPlayerStatus = setPlayerStatus;
     this.addInstrument = this.addInstrument.bind(this);
     this.removeInstrument = this.removeInstrument.bind(this);
     this.downloadSamplers = this.downloadSamplers.bind(this);
@@ -109,8 +114,12 @@ export class Instruments {
     }
   }
 
+  on(event: string, callback: Function) {
+    this.eventListeners[event] = callback;
+  }
+
   _activateMicrophone() {
-    console.log("Activating microphone...")
+    console.log("Activating microphone...");
     if (this._microphone) {
       this.closeMicrophone();
     }
@@ -120,19 +129,21 @@ export class Instruments {
   }
 
   openMicrophone() {
-    console.log("Opening microphone...")
+    console.log("Opening microphone...");
     if (!this._microphone) {
       this._activateMicrophone();
     }
     this._microphone?.open();
+    this.eventListeners.actioned();
   }
 
   closeMicrophone() {
-    console.log("Closing Microphone...")
+    console.log("Closing Microphone...");
     this._microphone?.close();
     this._microphone?.disconnect();
     this._microphone?.dispose();
     this._microphone = null;
+    this.eventListeners?.actioned();
   }
 
   isMicrophoneOn() {
@@ -206,10 +217,10 @@ export class Instruments {
           attack: 0.01,
         });
         savedVolume && this.changeVolume(savedVolume, [sampler]);
-        this._setPlayerStatus("");
+        // this._setPlayerStatus("");
         return sampler;
       } else {
-        this._setPlayerStatus("");
+        // this._setPlayerStatus("");
         throw new Error("CRITICAL: no sample map provided.");
       }
     } else {
@@ -220,7 +231,7 @@ export class Instruments {
         synthIndex
       );
       savedVolume && this.changeVolume(savedVolume, undefined, [polySynth]);
-      this._setPlayerStatus("");
+      // this._setPlayerStatus("");
       return polySynth;
     }
   }
@@ -237,7 +248,7 @@ export class Instruments {
       const sampler = await getSamples(
         this._samplerOptions.instrument,
         this._samplerOptions.sample,
-        this._setPlayerStatus
+        this.eventListeners?.downloadingSamples
       );
       return sampler;
     }
@@ -471,6 +482,9 @@ export class Instruments {
     }
     this.metronome.volume.value = volume - 5;
     localStorageUtils.setVolume(volume);
+    if (this.eventListeners.actioned) {
+      this.eventListeners.actioned();
+    }
   }
 
   getSynthSettings(synthIndex: number): types.ISynthSettings | null {

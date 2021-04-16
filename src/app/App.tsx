@@ -4,8 +4,8 @@ import { ReactReduxFirebaseProvider } from "react-redux-firebase";
 
 import { ThemeProvider } from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
-import { SnackbarProvider } from 'notistack';
-import { createFirestoreInstance } from 'redux-firestore'
+import { SnackbarProvider } from "notistack";
+import { createFirestoreInstance } from "redux-firestore";
 
 import "./App.css";
 import MainLayout from "../layouts/mainLayout";
@@ -21,7 +21,7 @@ const rrfProps = {
   firebase,
   config: rrfConfig,
   dispatch: store.dispatch,
-  createFirestoreInstance 
+  createFirestoreInstance,
 };
 
 export default function App() {
@@ -30,8 +30,7 @@ export default function App() {
       <ThemeProvider theme={THEME}>
         <CssBaseline />
         <SnackbarProvider maxSnack={3}>
-          
-        <MainLayout />
+          <MainLayout />
         </SnackbarProvider>
       </ThemeProvider>
     </ReactReduxFirebaseProvider>

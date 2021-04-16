@@ -4,17 +4,15 @@ import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
 
-import MyMidiPlayer from "audio/midiPlayer";
+import myMidiPlayer from "audio";
 import * as types from "types";
 
 interface ISynthesizerSettingsProps {
-  midiPlayer: MyMidiPlayer;
   forceLocalRender: types.forceLocalRender;
   synthIndex: number;
 }
 
 export default function SynthesizerSettings({
-  midiPlayer,
   forceLocalRender,
   synthIndex,
 }: ISynthesizerSettingsProps) {
@@ -22,9 +20,9 @@ export default function SynthesizerSettings({
     <div>
       <InputLabel>Synthesizer</InputLabel>
       <Select
-        value={midiPlayer.myTonejs?.getSynthName(synthIndex)}
+        value={myMidiPlayer.myTonejs?.getSynthName(synthIndex)}
         onChange={(e: any) => {
-          midiPlayer.myTonejs?.setSynthName(e.target.value, synthIndex);
+          myMidiPlayer.myTonejs?.setSynthName(e.target.value, synthIndex);
           setTimeout(forceLocalRender, 500);
         }}
       >

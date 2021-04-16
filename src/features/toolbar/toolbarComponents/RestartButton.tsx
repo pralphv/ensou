@@ -1,17 +1,12 @@
 import React from "react";
 
 import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
-import { useHotkeys } from "react-hotkeys-hook";
 import CustomButton from "./cutomButton/CustomButton";
-interface RestartButton {
-  restart: () => void;
-}
+import myMidiPlayer from "audio";
 
-export default function RestartButton({ restart }: RestartButton): JSX.Element {
-  // useHotkeys("home", restart);
-
+export default function RestartButton(): JSX.Element {
   return (
-    <CustomButton onClick={restart} size="small">
+    <CustomButton onClick={myMidiPlayer.restart} size="small">
       <SkipPreviousIcon />
     </CustomButton>
   );

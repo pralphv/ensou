@@ -60,15 +60,19 @@ export default function NavigationBar() {
       <div className={classes.grow}>
         <AppBar position="static" color="inherit">
           <Toolbar variant="dense">
-            <div
-              onClick={() => handleOnClick(Pages.Home)}
+            <a
+              href={Pages.Home}
+              onClick={(e) => {
+                e.preventDefault();
+                handleOnClick(Pages.Home)}
+              }
               className={classes.pointer}
             >
               <Typography variant="h6" noWrap>
                 <img src="/ensou.png" height={18} style={{ marginRight: 8 }} />
                 Ensou
               </Typography>
-            </div>
+            </a>
             <div className={classes.grow} />
             <div>
               <IconButton aria-label="publish" onClick={handleOpenDialog}>

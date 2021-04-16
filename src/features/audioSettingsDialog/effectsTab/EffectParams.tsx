@@ -7,7 +7,7 @@ import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
 
 import * as types from "types";
-import MyMidiPlayer from "audio/midiPlayer";
+import myMidiPlayer from "audio";
 
 interface IRange {
   min: number;
@@ -103,7 +103,6 @@ interface IEffectParams {
   effectName: types.AvailableEffectsNames;
   fx: types.AvailableEffects;
   fxIndex: number;
-  midiPlayer: MyMidiPlayer;
   forceLocalRender: types.forceLocalRender;
 }
 
@@ -112,7 +111,6 @@ export default function EffectParams({
   fx,
   fxIndex,
   forceLocalRender,
-  midiPlayer,
 }: IEffectParams): JSX.Element {
   return (
     <div>
@@ -138,7 +136,7 @@ export default function EffectParams({
                 <CustomSelect
                   value={value}
                   onChange={(e) => {
-                    midiPlayer.myTonejs?.changeFxSettings(
+                    myMidiPlayer.myTonejs?.changeFxSettings(
                       fxIndex,
                       param,
                       e.target.value
@@ -162,7 +160,7 @@ export default function EffectParams({
                   // }
                   valueLabelFormat={(x) => x.toFixed(2)}
                   onChange={(e, newValue) => {
-                    midiPlayer.myTonejs?.changeFxSettings(
+                    myMidiPlayer.myTonejs?.changeFxSettings(
                       fxIndex,
                       param,
                       newValue

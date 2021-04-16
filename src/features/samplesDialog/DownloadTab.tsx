@@ -13,20 +13,13 @@ import { storageRef } from "firebaseApi/firebase";
 import * as types from "types";
 import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
 import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
-import MyMidiPlayer from "audio/midiPlayer";
+import myMidiPlayer from "audio";
 
 interface IDownloadTabProps {
-  open: boolean;
   setOpen: (bool: boolean) => void;
-  forceRerender: types.forceRerender;
-  midiPlayer: MyMidiPlayer;
 }
 
-export default function DownloadTab({
-  setOpen,
-  midiPlayer,
-  forceRerender,
-}: IDownloadTabProps) {
+export default function DownloadTab({ setOpen }: IDownloadTabProps) {
   console.log("RERENDERED DOWNLOAD TAB");
   const [samples, setSamples] = useState<string[]>([]);
   const [downloadedSamples, setDownloadedSamples] = useState<Set<string>>(
@@ -60,11 +53,10 @@ export default function DownloadTab({
   }
 
   function handleOnSubmit() {
-    midiPlayer.setSampleName(chosenSample);
-    midiPlayer.setSamplerSource(types.SamplerSourceEnum.server);
+    myMidiPlayer.setSampleName(chosenSample);
+    myMidiPlayer.setSamplerSource(types.SamplerSourceEnum.server);
     localStorageUtils.setSampleName(chosenSample);
     setOpen(false);
-    forceRerender(); // to start downloading
   }
   // http://ivyaudio.com/Piano-in-162
   return (

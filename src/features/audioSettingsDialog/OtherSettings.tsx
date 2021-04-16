@@ -4,21 +4,19 @@ import { Typography } from "@material-ui/core";
 import InputLabel from "@material-ui/core/InputLabel";
 import Slider from "@material-ui/core/Slider";
 
-import MyMidiPlayer from "audio/midiPlayer";
+import myMidiPlayer from "audio";
 import * as types from "types";
 
 interface IOtherSettingsProps {
-  midiPlayer: MyMidiPlayer;
   forceLocalRender: types.forceLocalRender;
   synthIndex: number;
 }
 
 export default function OtherSettings({
-  midiPlayer,
   forceLocalRender,
-  synthIndex
+  synthIndex,
 }: IOtherSettingsProps) {
-  const settings = midiPlayer.myTonejs?.getSynthSettings(synthIndex)?.others;
+  const settings = myMidiPlayer.myTonejs?.getSynthSettings(synthIndex)?.others;
 
   return (
     <div>
@@ -32,7 +30,11 @@ export default function OtherSettings({
             step={1}
             max={60}
             onChange={(e, newValue) => {
-              midiPlayer.myTonejs?.setSynthSettingsOther("detune", newValue, synthIndex);
+              myMidiPlayer.myTonejs?.setSynthSettingsOther(
+                "detune",
+                newValue,
+                synthIndex
+              );
               forceLocalRender();
             }}
             valueLabelDisplay="auto"
@@ -44,7 +46,11 @@ export default function OtherSettings({
             step={1}
             max={30}
             onChange={(e, newValue) => {
-              midiPlayer.myTonejs?.setSynthSettingsOther("volume", newValue, synthIndex);
+              myMidiPlayer.myTonejs?.setSynthSettingsOther(
+                "volume",
+                newValue,
+                synthIndex
+              );
               forceLocalRender();
             }}
             valueLabelDisplay="auto"
