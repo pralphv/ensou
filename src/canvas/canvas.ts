@@ -6,14 +6,12 @@ import FallingNotes from "./fallingNotes/fallingNotes";
 import FlashingBottomTiles from "./flashingBottomTiles/flashingBottomTiles";
 import FlashingLightsBottomTiles from "./flashingLightsBottomTiles/flashingLightsBottomTiles";
 import Highlighter from "./highlighter/highlighter";
+import Particles from "./particles/particles";
 import * as types from "./types";
 import * as audioTypes from "audio/types";
 import myMidiPlayer from "audio";
 import progressBar from "progressBar";
-import {
-  convertMidiTickToCanvasHeight,
-  convertCanvasHeightToMidiTick,
-} from "./utils";
+import { convertCanvasHeightToMidiTick } from "./utils";
 
 class MyCanvas {
   pixiCanvas?: HTMLDivElement;
@@ -25,6 +23,7 @@ class MyCanvas {
   flashingBottomTiles!: FlashingBottomTiles;
   flashingLightsBottomTiles!: FlashingLightsBottomTiles;
   highlighter: Highlighter;
+  particles: Particles;
   config: types.IMyCanvasConfig;
   isShift: boolean;
   lastClickedTick: number;
@@ -61,6 +60,13 @@ class MyCanvas {
     this.setIsHorizontal = this.setIsHorizontal.bind(this);
     this.background = new Background(this.app);
     this.highlighter = new Highlighter(this.app, this.config);
+    this.particles = new Particles(
+      this.app,
+      this.config,
+      this.background.bottomTiles.leftPadding,
+      this.background.bottomTiles.whiteKeyWidth,
+      this.background.bottomTiles.blackKeyWidth
+    );
   }
 
   connectHTML(htmlRef: HTMLDivElement) {
@@ -114,6 +120,7 @@ class MyCanvas {
     this.on("pointerdown", (e: PIXI.InteractionEvent) => {
       if (myMidiPlayer.getIsPlaying()) {
         myMidiPlayer.pause();
+        this.particles.stop();
         return;
       }
 
@@ -198,6 +205,9 @@ class MyCanvas {
   }
 
   render() {
+    if (this.particles.emitter.emit === false) {
+      this.particles.start();
+    }
     this.fallingNotes.draw();
     this.flashingColumns.draw();
     this.flashingBottomTiles.draw();
