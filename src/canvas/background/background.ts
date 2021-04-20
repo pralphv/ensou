@@ -10,8 +10,8 @@ export default class Background {
 
   constructor(app: PIXI.Application) {
     this._app = app;
-    this.drawGuidingLines();
     this.bottomTiles = new BottomTiles(this._app);
+    this.drawGuidingLines();
     this._container = new PIXI.Container();
   }
 
@@ -26,7 +26,7 @@ export default class Background {
 
     let x: number = 0;
     let lastI: number; // to prevent duplicate notes from b and #
-    const whiteKeyWidth = this._app.screen.width / 52;
+    const whiteKeyWidth = this.bottomTiles.whiteKeyWidth;
 
     Object.entries(PIANO_TUNING).forEach(([key, i]: [string, number]) => {
       if (i !== lastI) {
