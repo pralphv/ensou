@@ -9,6 +9,7 @@ import { convertArrayBufferToAudioContext } from "utils/helper";
 import { Instruments } from "./loadInstrument";
 import { storageRef } from "firebaseApi/firebase";
 import myCanvas from "canvas";
+import myMidiPlayer from "audio";
 import * as constants from "./constants";
 
 const BEAT_BUFFER = 0.02;
@@ -50,7 +51,7 @@ export default class MyMidiPlayer {
   // _forceCanvasRerender: () => void;
   sampleName?: string; //etc piano-in-162
   eventListeners: IMyMidiPlayerEvents;
-  playingNotes: Set<number>;
+  playingNotes!: Set<number>;
   practiceMode: boolean;
   pressedKeys: Set<string>;
 
@@ -83,7 +84,7 @@ export default class MyMidiPlayer {
         : cachedSampler; // force rerender in useInstrument and getLocalSampler;
     this.sampleName = localStorageUtils.getSampleName() as string;
     this.eventListeners = {};
-    this.playingNotes = new Set();
+    this.resetPlayingNotes();
     this.pressedKeys = new Set();
 
     // init should be here but its await so it cant
@@ -92,6 +93,7 @@ export default class MyMidiPlayer {
     this._handleOnPlaying = this._handleOnPlaying.bind(this);
     this._handleFileLoaded = this._handleFileLoaded.bind(this);
     this._handleOnMidiEvent = this._handleOnMidiEvent.bind(this);
+    this.resetPlayingNotes = this.resetPlayingNotes.bind(this);
     this.play = this.play.bind(this);
     this.pause = this.pause.bind(this);
     this.restart = this.restart.bind(this);
@@ -112,7 +114,7 @@ export default class MyMidiPlayer {
     this.disablePracticeMode = this.disablePracticeMode.bind(this);
     this.handleOnKeyDown = this.handleOnKeyDown.bind(this);
     this.handleOnKeyUp = this.handleOnKeyUp.bind(this);
-    
+
     const midiPlayer = new MidiPlayer.Player() as MidiPlayer.Player &
       MidiPlayer.Event &
       MidiPlayer.Track;
@@ -189,13 +191,15 @@ export default class MyMidiPlayer {
         }
       }
     }
-    const playingNotes: Set<number> = new Set();
-    this.groupedNotes.forEach((note) => {
-      if (currentTick.tick >= note.on && currentTick.tick <= note.off) {
-        playingNotes.add(note.x);
-      }
-    });
-    this.playingNotes = playingNotes;
+    if (!this.practiceMode) {
+      const playingNotes: Set<number> = new Set();
+      this.groupedNotes.forEach((note) => {
+        if (currentTick.tick >= note.on && currentTick.tick <= note.off) {
+          playingNotes.add(note.x);
+        }
+      });
+      this.playingNotes = playingNotes;
+    }
 
     callback();
   }
@@ -218,7 +222,11 @@ export default class MyMidiPlayer {
       this.songTempo = this.midiPlayer.tempo; //this.midiPlayer.tempo?
       // const customizedTempo = this.midiPlayer.tempo * this.tempoPercent;
       this.setTempo(this.midiPlayer.tempo * this.tempoPercent);
-    } else if (midiEvent.velocity !== 0 && midiEvent.name === "Note on") {
+    } else if (
+      midiEvent.velocity !== 0 &&
+      midiEvent.name === "Note on" &&
+      !myMidiPlayer.practiceMode
+    ) {
       // some stupid midi can have note on but 0 velocity to represent note off
       this.myTonejs?.triggerAttack(
         midiEvent.noteName,
@@ -462,6 +470,9 @@ export default class MyMidiPlayer {
 
   enablePracticeMode() {
     this.practiceMode = true;
+    myCanvas.flashingColumns.unFlashAll();
+    myCanvas.flashingBottomTiles.unFlashAll();
+    this.resetPlayingNotes();
     window.addEventListener("keydown", this.handleOnKeyDown);
     window.addEventListener("keyup", this.handleOnKeyUp);
   }
@@ -492,6 +503,10 @@ export default class MyMidiPlayer {
       this.playingNotes.delete(constants.PIANO_TUNING[note]);
       myCanvas.render();
     }
+  }
+
+  resetPlayingNotes() {
+    this.playingNotes = new Set();
   }
 
   cleanup() {

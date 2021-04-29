@@ -35,7 +35,7 @@ class MyCanvas {
 
   constructor(width: number, height: number) {
     this.config = {
-      canvasSlowDownFactor: 10,
+      canvasNoteScale: 10,
       bottomTileHeight: 50,
     };
 
@@ -181,8 +181,6 @@ class MyCanvas {
       this.background.bottomTiles.blackKeyWidth
     );
     this.beatLines = new BeatLines(this.app, this.config);
-    // should draw beatline when midi is loaded, where there would be ticksPerBeat
-    // beatLines.draw(app.current, currentTick, midiPlayer.ticksPerBeat * 4); // to init container, + 1 zIndex
   }
 
   destroy() {
@@ -223,14 +221,6 @@ class MyCanvas {
       this.isShift = false;
     }
   }
-
-  // increaseSlowDownFactor() {
-  //   this.canvasSlowDownFactor++;
-  // }
-
-  // decreaseSlowDownFactor() {
-  //   this.canvasSlowDownFactor--;
-  // }
 
   handleWheel(e: WheelEvent) {
     if (!this.isHovering) {

@@ -67,6 +67,12 @@ export default class FlashingBottomTiles {
     }
   }
 
+  unFlashAll() {
+    for (let i = 0; i < this._columns.length - 1; i++) {
+      this._columns[i].visible = false;
+    }
+  }
+
   destroy() {
     console.log("Destroying flashing bottom tiles");
     this._container.destroy({

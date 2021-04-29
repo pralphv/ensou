@@ -1,4 +1,4 @@
 export interface IMyCanvasConfig {
-  canvasSlowDownFactor: number;
+  canvasNoteScale: number;
   bottomTileHeight: number;
 }

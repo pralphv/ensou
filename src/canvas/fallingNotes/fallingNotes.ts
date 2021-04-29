@@ -33,8 +33,8 @@ export default class FallingNotes {
 
     const rectCached: RectCache = {};
     groupedNotes.forEach((note) => {
-      const on = note.on / this.config.canvasSlowDownFactor;
-      const off = note.off / this.config.canvasSlowDownFactor;
+      const on = note.on / this.config.canvasNoteScale;
+      const off = note.off / this.config.canvasNoteScale;
       const height = off - on;
       const x = pianoNoteXMap[note.noteName].x + leftPadding;
       const width = pianoNoteXMap[note.noteName].width;
@@ -61,14 +61,14 @@ export default class FallingNotes {
     for (let i = 0; i < this._fallingNotes.length; i++) {
       if (
         myMidiPlayer.getCurrentTick() >=
-          this._fallingNotes[i].on * this.config.canvasSlowDownFactor -
+          this._fallingNotes[i].on * this.config.canvasNoteScale -
             upperLimit &&
         myMidiPlayer.getCurrentTick() <=
-          this._fallingNotes[i].off * this.config.canvasSlowDownFactor
+          this._fallingNotes[i].off * this.config.canvasNoteScale
       ) {
         const on =
           this._fallingNotes[i].on -
-          myMidiPlayer.getCurrentTick() / this.config.canvasSlowDownFactor;
+          myMidiPlayer.getCurrentTick() / this.config.canvasNoteScale;
         this._fallingNotes[i].rectSprite.position.x = this._fallingNotes[i].x;
         this._fallingNotes[i].rectSprite.position.y =
           this._app.screen.height -
