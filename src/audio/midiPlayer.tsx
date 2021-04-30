@@ -397,7 +397,7 @@ export default class MyMidiPlayer {
     this.loadArrayBuffer(blob);
     console.log("Finished downloading");
     this.tempoPercent = 1;
-    myCanvas.buildNotes(this.groupedNotes);
+    myCanvas.buildNotes();
     this.eventListeners?.downloadedMidi();
   }
 
@@ -462,7 +462,7 @@ export default class MyMidiPlayer {
   async loadArrayBuffer(arrayBuffer: ArrayBuffer) {
     this.eventListeners?.import();
     await this.midiPlayer.loadArrayBuffer(arrayBuffer);
-    myCanvas.buildNotes(this.groupedNotes);
+    myCanvas.buildNotes();
     //@ts-ignore
     this.eventListeners?.imported();
     this.eventListeners.actioned();

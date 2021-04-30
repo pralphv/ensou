@@ -5,6 +5,8 @@ import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
 import Switch from "@material-ui/core/Switch";
 import GraphicEqIcon from "@material-ui/icons/GraphicEq";
+import AddIcon from "@material-ui/icons/Add";
+import RemoveIcon from "@material-ui/icons/Remove";
 
 import * as types from "types";
 import SamplesDialog from "features/samplesDialog/SamplesDialog";
@@ -131,11 +133,11 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
         <ListItem button>
           <ListItemText primary="Practice Mode" />
           <Switch
-            // color="secondary"
             checked={myMidiPlayer.practiceMode}
             onChange={() => {
-              myMidiPlayer.practiceMode? myMidiPlayer.disablePracticeMode():
-              myMidiPlayer.enablePracticeMode()
+              myMidiPlayer.practiceMode
+                ? myMidiPlayer.disablePracticeMode()
+                : myMidiPlayer.enablePracticeMode();
             }}
             disabled={myMidiPlayer.getIsPlaying()}
           />
@@ -143,7 +145,6 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
         <ListItem button>
           <ListItemText primary="Use Samples" />
           <Switch
-            // color="secondary"
             checked={myMidiPlayer.checkIfSampler()}
             onChange={handleOnChangeDialog}
             disabled={myMidiPlayer.getIsPlaying()}
@@ -152,7 +153,6 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
         <ListItem button>
           <ListItemText primary="Metronome" />
           <Switch
-            // color="secondary"
             checked={myMidiPlayer.getIsMetronome()}
             onChange={handleOnChangeMetronome}
           />
@@ -160,10 +160,14 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
         <ListItem button>
           <ListItemText primary="Loop" />
           <Switch
-            // color="secondary"
             checked={myMidiPlayer.getIsLoop()}
             onChange={handleOnChangeLoop}
           />
+        </ListItem>
+        <ListItem button>
+          <ListItemText primary="Zoom" />
+          <RemoveIcon onClick={myCanvas.increaseCanvasNoteScale} />
+          <AddIcon onClick={myCanvas.decreaseCanvasNoteScale} />
         </ListItem>
         <ListItem button onClick={() => setAudioSettingsDialogOpen(true)}>
           <ListItemText primary="Audio Settings" />

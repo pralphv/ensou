@@ -7,7 +7,6 @@ import FlashingBottomTiles from "./flashingBottomTiles/flashingBottomTiles";
 import FlashingLightsBottomTiles from "./flashingLightsBottomTiles/flashingLightsBottomTiles";
 import Highlighter from "./highlighter/highlighter";
 import * as types from "./types";
-import * as audioTypes from "audio/types";
 import myMidiPlayer from "audio";
 import progressBar from "progressBar";
 import {
@@ -59,17 +58,23 @@ class MyCanvas {
     this.handleKeyUpListener = this.handleKeyUpListener.bind(this);
     this.handleWheel = this.handleWheel.bind(this);
     this.setIsHorizontal = this.setIsHorizontal.bind(this);
+    this.increaseCanvasNoteScale = this.increaseCanvasNoteScale.bind(this);
+    this.decreaseCanvasNoteScale = this.decreaseCanvasNoteScale.bind(this);
+    this.buildComponents = this.buildComponents.bind(this);
     this.background = new Background(this.app);
     this.highlighter = new Highlighter(this.app, this.config);
   }
 
-  connectHTML(htmlRef: HTMLDivElement) {
-    if (this.pixiCanvas) {
-      return;
+  buildComponents() {
+    if (this.flashingColumns) {
+      this.flashingColumns.destroy();
     }
-    console.log("Attaching PIXI to HTML");
-    htmlRef.appendChild(this.app.view);
-    this.pixiCanvas = htmlRef;
+    if (this.flashingBottomTiles) {
+      this.flashingBottomTiles.destroy();
+    }
+    if (this.flashingLightsBottomTiles) {
+      this.flashingLightsBottomTiles.destroy();
+    }
     this.flashingColumns = new FlashingColumns(
       this.app,
       undefined,
@@ -92,6 +97,16 @@ class MyCanvas {
       this.background.bottomTiles.whiteKeyWidth,
       this.background.bottomTiles.blackKeyWidth
     );
+  }
+
+  connectHTML(htmlRef: HTMLDivElement) {
+    if (this.pixiCanvas) {
+      return;
+    }
+    console.log("Attaching PIXI to HTML");
+    htmlRef.appendChild(this.app.view);
+    this.pixiCanvas = htmlRef;
+    this.buildComponents();
     this.interaction = new PIXI.InteractionManager(this.app.renderer);
     window.addEventListener("keydown", this.handleKeyDownListener, false);
     window.addEventListener("keyup", this.handleKeyUpListener, false);
@@ -165,7 +180,7 @@ class MyCanvas {
     this.interaction.destroy();
   }
 
-  buildNotes(groupedNotes: audioTypes.GroupedNotes[]) {
+  buildNotes() {
     if (this.fallingNotes) {
       this.fallingNotes.destroy();
     }
@@ -174,7 +189,7 @@ class MyCanvas {
     }
     this.fallingNotes = new FallingNotes(
       this.app,
-      groupedNotes,
+      myMidiPlayer.groupedNotes,
       this.config,
       this.background.bottomTiles.leftPadding,
       this.background.bottomTiles.whiteKeyWidth,
@@ -263,6 +278,22 @@ class MyCanvas {
     //   this.background.bottomTiles.whiteKeyWidth,
     //   this.background.bottomTiles.blackKeyWidth
     // );
+  }
+
+  increaseCanvasNoteScale() {
+    this.config.canvasNoteScale++;
+    this.buildComponents();
+    this.buildNotes();
+    this.render();
+  }
+
+  decreaseCanvasNoteScale() {
+    if (this.config.canvasNoteScale > 1) {
+      this.config.canvasNoteScale--;
+      this.buildComponents();
+      this.buildNotes();
+      this.render();
+    }
   }
 }
 
