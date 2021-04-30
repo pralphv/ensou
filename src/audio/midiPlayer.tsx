@@ -233,7 +233,9 @@ export default class MyMidiPlayer {
         midiEvent.velocity / 100
       );
     } else if (midiEvent.velocity === 0 || midiEvent.name === "Note off") {
-      this.myTonejs?.triggerRelease(midiEvent.noteName);
+      if (!myMidiPlayer.practiceMode) {
+        this.myTonejs?.triggerRelease(midiEvent.noteName);
+      }
     }
   }
 
@@ -475,12 +477,14 @@ export default class MyMidiPlayer {
     this.resetPlayingNotes();
     window.addEventListener("keydown", this.handleOnKeyDown);
     window.addEventListener("keyup", this.handleOnKeyUp);
+    this.eventListeners.actioned();
   }
 
   disablePracticeMode() {
     this.practiceMode = false;
     window.removeEventListener("keydown", this.handleOnKeyDown);
     window.removeEventListener("keyup", this.handleOnKeyUp);
+    this.eventListeners.actioned();
   }
 
   handleOnKeyDown(e: KeyboardEvent) {
