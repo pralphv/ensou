@@ -472,6 +472,7 @@ export default class MyMidiPlayer {
 
   enablePracticeMode() {
     this.practiceMode = true;
+    myCanvas.background.bottomTiles.showText();
     myCanvas.flashingColumns.unFlashAll();
     myCanvas.flashingBottomTiles.unFlashAll();
     this.resetPlayingNotes();
@@ -482,6 +483,7 @@ export default class MyMidiPlayer {
 
   disablePracticeMode() {
     this.practiceMode = false;
+    myCanvas.background.bottomTiles.hideText();
     window.removeEventListener("keydown", this.handleOnKeyDown);
     window.removeEventListener("keyup", this.handleOnKeyUp);
     this.eventListeners.actioned();
@@ -490,7 +492,7 @@ export default class MyMidiPlayer {
   handleOnKeyDown(e: KeyboardEvent) {
     const code = e.code;
     if (constants.AVAILABLE_KEYS.has(code) && !this.pressedKeys.has(code)) {
-      const note = constants.KEY_NOTE_MAP[code];
+      const note = constants.KEY_NOTE_MAP[code].note;
       this.myTonejs?.triggerAttack(note, 1);
       this.pressedKeys.add(code);
       this.playingNotes.add(constants.PIANO_TUNING[note]);
@@ -502,7 +504,7 @@ export default class MyMidiPlayer {
     const code = e.code;
     this.pressedKeys.delete(code);
     if (constants.AVAILABLE_KEYS.has(code)) {
-      const note = constants.KEY_NOTE_MAP[code];
+      const note = constants.KEY_NOTE_MAP[code].note;
       this.myTonejs?.triggerRelease(note);
       this.playingNotes.delete(constants.PIANO_TUNING[note]);
       myCanvas.render();
