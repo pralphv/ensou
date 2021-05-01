@@ -61,7 +61,7 @@ class MyCanvas {
     this.increaseCanvasNoteScale = this.increaseCanvasNoteScale.bind(this);
     this.decreaseCanvasNoteScale = this.decreaseCanvasNoteScale.bind(this);
     this.buildComponents = this.buildComponents.bind(this);
-    this.background = new Background(this.app);
+    this.background = new Background(this.app, this.config);
     this.highlighter = new Highlighter(this.app, this.config);
   }
 
