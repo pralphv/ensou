@@ -2,17 +2,20 @@ import * as PIXI from "pixi.js";
 import { PIANO_TUNING } from "audio/constants";
 import { GUIDE_LINES_NOTE_NUMBER } from "./constants";
 import BottomTiles from "./bottomTiles";
+import * as types from "../types";
 
 export default class Background {
   _app: PIXI.Application;
   _container: PIXI.Container;
   bottomTiles: BottomTiles;
+  _config: types.IMyCanvasConfig;
 
-  constructor(app: PIXI.Application) {
+  constructor(app: PIXI.Application, config: types.IMyCanvasConfig) {
     this._app = app;
-    this.bottomTiles = new BottomTiles(this._app);
+    this.bottomTiles = new BottomTiles(this._app, config);
     this.drawGuidingLines();
     this._container = new PIXI.Container();
+    this._config = config;
   }
 
   drawGuidingLines() {
