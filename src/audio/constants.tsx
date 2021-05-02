@@ -199,8 +199,8 @@ export const KEY_NOTE_MAP: IKeyNoteMap = {
   KeyJ: { note: "F#6", label: "J" },
   KeyK: { note: "G6", label: "K" },
   KeyL: { note: "G#6", label: "L" },
-  Semicolon: { note: "A6", label: ";" },
-  Quote: { note: "A#6", label: "'" },
+  Semicolon: { note: "A6", label: " ;" },
+  Quote: { note: "A#6", label: " '" },
   Enter: { note: "B6", label: "Ent" },
 
   KeyZ: { note: "C7", label: "Z" },
@@ -210,9 +210,9 @@ export const KEY_NOTE_MAP: IKeyNoteMap = {
   KeyB: { note: "E7", label: "B" },
   KeyN: { note: "F7", label: "N" },
   KeyM: { note: "F#7", label: "M" },
-  Comma: { note: "G7", label: "," },
-  Period: { note: "G#7", label: "." },
-  Slash: { note: "A7", label: "/" },
+  Comma: { note: "G7", label: " ," },
+  Period: { note: "G#7", label: " ." },
+  Slash: { note: "A7", label: " /" },
   // Quote: "A#6",
   // Enter: "B6",
 };

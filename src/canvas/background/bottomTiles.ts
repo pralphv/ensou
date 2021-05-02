@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js";
 import { PIANO_TUNING, NOTE_KEYBOARD_LABEL } from "audio/constants";
-
+import { TEXT_CONFIG } from "./constants";
 import * as types from "../types";
 
 export default class BottomTiles {
@@ -52,36 +52,30 @@ export default class BottomTiles {
     const whiteKeyContainer = new PIXI.Container();
     const blackKeyContainer = new PIXI.Container();
     this.textContainer = new PIXI.Container();
+    const screenHeight = app.screen.height;
 
     Object.entries(PIANO_TUNING).forEach(([key, i]: [string, number]) => {
       if (i !== lastI) {
         lastI = i;
         const isBlackKey = key.includes("#") || key.includes("b");
         let sprite: PIXI.Sprite;
-        let text = new PIXI.Text(NOTE_KEYBOARD_LABEL[key], {
-          fontFamily: "Arial",
-          fontSize: 12,
-          fill: 0x7fdded,
-          align: "center",
-        });
+        const text = new PIXI.Text(NOTE_KEYBOARD_LABEL[key], TEXT_CONFIG);
         this.textContainer.addChild(text);
         if (isBlackKey) {
           sprite = new PIXI.Sprite(blackKeyTexture);
           blackKeyContainer.addChild(sprite);
           sprite.position.x = x - blackKeyWidth / 2;
           text.position.x = x - blackKeyWidth / 4;
-          text.position.y =
-            app.screen.height - this._config.bottomTileHeight * 0.66;
+          text.position.y = screenHeight - this._config.bottomTileHeight * 0.66;
         } else {
           sprite = new PIXI.Sprite(whiteKeyTexture);
           whiteKeyContainer.addChild(sprite);
           sprite.position.x = x;
           text.position.x = x + whiteKeyWidth / 3;
-          text.position.y = app.screen.height - 15;
+          text.position.y = screenHeight - TEXT_CONFIG.fontSize - 3;
           x += whiteKeyWidth;
         }
-        sprite.position.y =
-          app.screen.height - this._config.bottomTileHeight - 1;
+        sprite.position.y = screenHeight - this._config.bottomTileHeight - 1;
       }
     });
     this._container.addChild(whiteKeyContainer);
