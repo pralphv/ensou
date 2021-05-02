@@ -21,4 +21,5 @@ export const TEXT_CONFIG = {
   fontSize: 12,
   fill: 0x7fdded,
   align: "center",
+  cacheAsBitmap: true,
 };

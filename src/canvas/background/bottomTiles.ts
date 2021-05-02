@@ -10,7 +10,7 @@ export default class BottomTiles {
   whiteKeyWidth: number;
   blackKeyWidth: number;
   _config: types.IMyCanvasConfig;
-  textContainer: PIXI.Container;
+  _textArray: PIXI.Text[];
 
   constructor(app: PIXI.Application, config: types.IMyCanvasConfig) {
     this._app = app;
@@ -23,6 +23,7 @@ export default class BottomTiles {
       this._app.stage.children.length - 1
     );
 
+    this._textArray = [];
     const whiteKeyWidth = Math.floor(this._app.screen.width / 52);
     const blackKeyWidth = Math.floor(whiteKeyWidth * 0.55);
 
@@ -51,8 +52,8 @@ export default class BottomTiles {
     let lastI: number; // to prevent duplicate notes from b and #
     const whiteKeyContainer = new PIXI.Container();
     const blackKeyContainer = new PIXI.Container();
-    this.textContainer = new PIXI.Container();
     const screenHeight = app.screen.height;
+    const tileHeight = this._config.bottomTileHeight;
 
     Object.entries(PIANO_TUNING).forEach(([key, i]: [string, number]) => {
       if (i !== lastI) {
@@ -60,27 +61,28 @@ export default class BottomTiles {
         const isBlackKey = key.includes("#") || key.includes("b");
         let sprite: PIXI.Sprite;
         const text = new PIXI.Text(NOTE_KEYBOARD_LABEL[key], TEXT_CONFIG);
-        this.textContainer.addChild(text);
+        this._textArray.push(text);
         if (isBlackKey) {
           sprite = new PIXI.Sprite(blackKeyTexture);
+          sprite.addChild(text);
           blackKeyContainer.addChild(sprite);
           sprite.position.x = x - blackKeyWidth / 2;
-          text.position.x = x - blackKeyWidth / 4;
-          text.position.y = screenHeight - this._config.bottomTileHeight * 0.66;
+          text.position.x = blackKeyWidth / 3;
+          text.position.y = tileHeight * 0.66 - TEXT_CONFIG.fontSize - 2;
         } else {
           sprite = new PIXI.Sprite(whiteKeyTexture);
+          sprite.addChild(text);
           whiteKeyContainer.addChild(sprite);
           sprite.position.x = x;
-          text.position.x = x + whiteKeyWidth / 3;
-          text.position.y = screenHeight - TEXT_CONFIG.fontSize - 3;
+          text.position.x = whiteKeyWidth / 3;
+          text.position.y = tileHeight - TEXT_CONFIG.fontSize - 2;
           x += whiteKeyWidth;
         }
-        sprite.position.y = screenHeight - this._config.bottomTileHeight - 1;
+        sprite.position.y = screenHeight - tileHeight - 1;
       }
     });
     this._container.addChild(whiteKeyContainer);
     this._container.addChild(blackKeyContainer);
-    this._container.addChild(this.textContainer);
 
     // black top overlay. should not be here
     const blackRect = initBlackColorOverlay(
@@ -95,15 +97,21 @@ export default class BottomTiles {
     this._container.addChild(sprite);
     whiteKey.destroy({ children: true, baseTexture: true, texture: true });
     blackKey.destroy({ children: true, baseTexture: true, texture: true });
+    console.log("JER")
+    console.log(this._container)
     this.hideText();
   }
 
   showText() {
-    this.textContainer.visible = true;
+    this._textArray.forEach(text => {
+      text.visible = true;
+    })
   }
 
   hideText() {
-    this.textContainer.visible = false;
+    this._textArray.forEach(text => {
+      text.visible = false;
+    })
   }
 
   destroy() {

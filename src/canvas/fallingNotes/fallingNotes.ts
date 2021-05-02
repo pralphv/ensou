@@ -33,6 +33,8 @@ export default class FallingNotes {
 
     const rectCached: RectCache = {};
     groupedNotes.forEach((note) => {
+      // build a texture for a note first, then cache
+      // if same height and width appears, use the same texture
       const on = note.on / this.config.canvasNoteScale;
       const off = note.off / this.config.canvasNoteScale;
       const height = off - on;
@@ -53,16 +55,16 @@ export default class FallingNotes {
     Object.values(rectCached).forEach((rect: PIXI.Graphics) => {
       rect.destroy({ children: true, texture: true, baseTexture: true });
     });
-    // setIsLoading(false);
   }
 
   draw() {
-    const upperLimit = myMidiPlayer.ticksPerBeat * 4 * 8; // assume 4 beats per bar, show 3 bars
+    // ticks per beat can change in the song so cannot be constant
     for (let i = 0; i < this._fallingNotes.length; i++) {
       if (
         myMidiPlayer.getCurrentTick() >=
           this._fallingNotes[i].on * this.config.canvasNoteScale -
-            upperLimit &&
+            // assume 4 beats per bar. ticks per beat can change in the song so cannot be constant
+            myMidiPlayer.ticksPerBeat * 4 * 8 &&
         myMidiPlayer.getCurrentTick() <=
           this._fallingNotes[i].off * this.config.canvasNoteScale
       ) {
