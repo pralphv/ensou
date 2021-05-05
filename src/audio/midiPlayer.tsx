@@ -10,6 +10,7 @@ import { Instruments } from "./loadInstrument";
 import { storageRef } from "firebaseApi/firebase";
 import myCanvas from "canvas";
 import myMidiPlayer from "audio";
+import game from "game";
 import * as constants from "./constants";
 
 const BEAT_BUFFER = 0.02;
@@ -112,8 +113,6 @@ export default class MyMidiPlayer {
     this.on = this.on.bind(this);
     this.enablePracticeMode = this.enablePracticeMode.bind(this);
     this.disablePracticeMode = this.disablePracticeMode.bind(this);
-    this.handleOnKeyDown = this.handleOnKeyDown.bind(this);
-    this.handleOnKeyUp = this.handleOnKeyUp.bind(this);
 
     const midiPlayer = new MidiPlayer.Player() as MidiPlayer.Player &
       MidiPlayer.Event &
@@ -258,6 +257,7 @@ export default class MyMidiPlayer {
     this.midiPlayer.play();
     this._isBlockMetronome = false;
     this.eventListeners.actioned();
+    game.resetGame();
   }
 
   stop() {
@@ -400,6 +400,7 @@ export default class MyMidiPlayer {
     console.log("Finished downloading");
     this.tempoPercent = 1;
     myCanvas.buildNotes();
+    game.buildPlayMap();
     this.eventListeners?.downloadedMidi();
   }
 
@@ -465,6 +466,7 @@ export default class MyMidiPlayer {
     this.eventListeners?.import();
     await this.midiPlayer.loadArrayBuffer(arrayBuffer);
     myCanvas.buildNotes();
+    game.buildPlayMap();
     //@ts-ignore
     this.eventListeners?.imported();
     this.eventListeners.actioned();
@@ -476,39 +478,15 @@ export default class MyMidiPlayer {
     myCanvas.flashingColumns.unFlashAll();
     myCanvas.flashingBottomTiles.unFlashAll();
     this.resetPlayingNotes();
-    window.addEventListener("keydown", this.handleOnKeyDown);
-    window.addEventListener("keyup", this.handleOnKeyUp);
+    game.enable();
     this.eventListeners.actioned();
   }
 
   disablePracticeMode() {
     this.practiceMode = false;
     myCanvas.background.bottomTiles.hideText();
-    window.removeEventListener("keydown", this.handleOnKeyDown);
-    window.removeEventListener("keyup", this.handleOnKeyUp);
+    game.disable();
     this.eventListeners.actioned();
-  }
-
-  handleOnKeyDown(e: KeyboardEvent) {
-    const code = e.code;
-    if (constants.AVAILABLE_KEYS.has(code) && !this.pressedKeys.has(code)) {
-      const note = constants.KEY_NOTE_MAP[code].note;
-      this.myTonejs?.triggerAttack(note, 1);
-      this.pressedKeys.add(code);
-      this.playingNotes.add(constants.PIANO_TUNING[note]);
-      myCanvas.render();
-    }
-  }
-
-  handleOnKeyUp(e: KeyboardEvent) {
-    const code = e.code;
-    this.pressedKeys.delete(code);
-    if (constants.AVAILABLE_KEYS.has(code)) {
-      const note = constants.KEY_NOTE_MAP[code].note;
-      this.myTonejs?.triggerRelease(note);
-      this.playingNotes.delete(constants.PIANO_TUNING[note]);
-      myCanvas.render();
-    }
   }
 
   resetPlayingNotes() {

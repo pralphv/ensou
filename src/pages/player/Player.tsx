@@ -11,6 +11,7 @@ import progressBar from "progressBar";
 import Toolbar from "features/toolbar/Toolbar";
 
 import myMidiPlayer from "audio";
+import game from "game";
 import { useParams } from "react-router";
 
 import { Helmet } from "react-helmet";
@@ -68,6 +69,10 @@ export default function Player(): JSX.Element {
       myMidiPlayer.on("playing", () => {
         myCanvas.render();
         progressBar.render();
+        if (myMidiPlayer.practiceMode) {
+          game.render();
+        }
+
       });
       myMidiPlayer.on("actioned", () => {
         forceRerenderRef.current();

@@ -6,6 +6,7 @@ import FallingNotes from "./fallingNotes/fallingNotes";
 import FlashingBottomTiles from "./flashingBottomTiles/flashingBottomTiles";
 import FlashingLightsBottomTiles from "./flashingLightsBottomTiles/flashingLightsBottomTiles";
 import Highlighter from "./highlighter/highlighter";
+import ComboDisplay from "./comboDisplay/comboDisplay";
 import * as types from "./types";
 import myMidiPlayer from "audio";
 import progressBar from "progressBar";
@@ -31,6 +32,7 @@ class MyCanvas {
   interaction!: PIXI.InteractionManager;
   isHovering: boolean;
   isHorizontal: boolean;
+  comboDisplay: ComboDisplay;
 
   constructor(width: number, height: number) {
     this.config = {
@@ -63,6 +65,7 @@ class MyCanvas {
     this.buildComponents = this.buildComponents.bind(this);
     this.background = new Background(this.app, this.config);
     this.highlighter = new Highlighter(this.app, this.config);
+    this.comboDisplay = new ComboDisplay(this.app);
   }
 
   buildComponents() {
