@@ -115,6 +115,7 @@ export default function Player(): JSX.Element {
       myCanvas.disconnectHTML();
       progressBar.disconnectHTML();
       midiPlayer.stop();
+      midiPlayer.disablePracticeMode();
     };
   }, []);
 
