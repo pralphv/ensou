@@ -8,7 +8,10 @@ export default class FallingNotes {
   _app: PIXI.Application;
   _container: PIXI.Container;
   _fallingNotes: IFallingNotes[];
+  _totalFallingNotes: number;
   config: IMyCanvasConfig;
+  _screenHeight: number;
+  _bottomTileHeight: number;
 
   constructor(
     app: PIXI.Application,
@@ -19,8 +22,11 @@ export default class FallingNotes {
     blackKeyWidth: number
   ) {
     this._app = app;
+    this._bottomTileHeight = config.bottomTileHeight;
+    this._screenHeight = app.screen.height;
     this._container = new PIXI.Container();
     this._fallingNotes = [];
+    this._totalFallingNotes = 0;
     this.config = config;
     console.log("Constructing new Falling Notes");
     // setIsLoading(true);
@@ -53,16 +59,17 @@ export default class FallingNotes {
     Object.values(rectCached).forEach((rect: PIXI.Graphics) => {
       rect.destroy({ children: true, texture: true, baseTexture: true });
     });
+    this._totalFallingNotes = this._fallingNotes.length;
+
     // setIsLoading(false);
   }
 
   draw() {
     const upperLimit = myMidiPlayer.ticksPerBeat * 4 * 8; // assume 4 beats per bar, show 3 bars
-    for (let i = 0; i < this._fallingNotes.length; i++) {
+    for (let i = 0; i < this._totalFallingNotes; i++) {
       if (
         myMidiPlayer.getCurrentTick() >=
-          this._fallingNotes[i].on * this.config.canvasNoteScale -
-            upperLimit &&
+          this._fallingNotes[i].on * this.config.canvasNoteScale - upperLimit &&
         myMidiPlayer.getCurrentTick() <=
           this._fallingNotes[i].off * this.config.canvasNoteScale
       ) {
@@ -71,11 +78,11 @@ export default class FallingNotes {
           myMidiPlayer.getCurrentTick() / this.config.canvasNoteScale;
         this._fallingNotes[i].rectSprite.position.x = this._fallingNotes[i].x;
         this._fallingNotes[i].rectSprite.position.y =
-          this._app.screen.height -
+          this._screenHeight -
           on -
           this._fallingNotes[i].height -
-          this.config.bottomTileHeight;
-        this._fallingNotes[i].rectSprite.visible = true;
+          this._bottomTileHeight;
+        this._fallingNotes[i].rectSprite.visible = true;  
       } else {
         this._fallingNotes[i].rectSprite.visible = false;
       }
