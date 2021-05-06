@@ -10,10 +10,7 @@ import ComboDisplay from "./comboDisplay/comboDisplay";
 import * as types from "./types";
 import myMidiPlayer from "audio";
 import progressBar from "progressBar";
-import {
-  convertMidiTickToCanvasHeight,
-  convertCanvasHeightToMidiTick,
-} from "./utils";
+import { convertCanvasHeightToMidiTick } from "./utils";
 
 class MyCanvas {
   pixiCanvas?: HTMLDivElement;
