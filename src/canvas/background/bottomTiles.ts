@@ -66,15 +66,18 @@ export default class BottomTiles {
           sprite = new PIXI.Sprite(blackKeyTexture);
           sprite.addChild(text);
           blackKeyContainer.addChild(sprite);
+          sprite.position.x = x;
           sprite.position.x = x - blackKeyWidth / 2;
-          text.position.x = blackKeyWidth / 3;
+          text.anchor.x = 0.5;
+          text.position.x = blackKeyWidth / 2;
           text.position.y = tileHeight * 0.66 - TEXT_CONFIG.fontSize - 2;
         } else {
           sprite = new PIXI.Sprite(whiteKeyTexture);
           sprite.addChild(text);
           whiteKeyContainer.addChild(sprite);
           sprite.position.x = x;
-          text.position.x = whiteKeyWidth / 3;
+          text.anchor.x = 0.5;
+          text.position.x = whiteKeyWidth / 2;
           text.position.y = tileHeight - TEXT_CONFIG.fontSize - 2;
           x += whiteKeyWidth;
         }
@@ -101,15 +104,15 @@ export default class BottomTiles {
   }
 
   showText() {
-    this._textArray.forEach(text => {
+    for (const text of this._textArray) {
       text.visible = true;
-    })
+    }
   }
 
   hideText() {
-    this._textArray.forEach(text => {
+    for (const text of this._textArray) {
       text.visible = false;
-    })
+    }
   }
 
   destroy() {

@@ -35,9 +35,9 @@ export default class BeatLines {
   }
 
   draw() {
-    const currentTick = myMidiPlayer.getCurrentTick();
     const ticksPerBar = myMidiPlayer.getTicksPerBeat() * 4;
-    const startTick = Math.ceil(currentTick / ticksPerBar) * ticksPerBar;
+    const startTick =
+      Math.ceil(myMidiPlayer.getCurrentTick() / ticksPerBar) * ticksPerBar;
     for (let i = 0; i < this._sprites.length; i++) {
       const y = convertMidiTickToCanvasHeight(startTick + ticksPerBar * i);
       this._sprites[i].position.y = y;
