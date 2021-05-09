@@ -128,8 +128,6 @@ class Game {
     // used in midiPlayer handleOnPlaying
     if (this.playMap[myMidiPlayer.getCurrentTick() - 1]) {
       for (const id of this.playMap[myMidiPlayer.getCurrentTick() - 1]) {
-        const currentTick = myMidiPlayer.getCurrentTick();
-        const off = this.notesToBePlayed[id].lastTick;
         if (
           this.notesToBePlayed[id].played === false &&  // not played
           myMidiPlayer.getCurrentTick() >= this.notesToBePlayed[id].lastTick  // passed timing 

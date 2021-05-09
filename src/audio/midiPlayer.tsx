@@ -11,7 +11,6 @@ import { storageRef } from "firebaseApi/firebase";
 import myCanvas from "canvas";
 import myMidiPlayer from "audio";
 import game from "game";
-import * as constants from "./constants";
 
 const BEAT_BUFFER = 0.02;
 

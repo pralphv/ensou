@@ -1,5 +1,4 @@
 import React from "react";
-import clsx from "clsx";
 import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup";
 
 import PlayButton from "./toolbarComponents/PlayButton";

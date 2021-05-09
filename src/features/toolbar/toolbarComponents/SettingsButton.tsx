@@ -5,7 +5,6 @@ import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 
 import CustomButton from "./cutomButton/CustomButton";
 import SettingsMenu from "./SettingsMenu";
-import * as types from "types";
 
 export default function SettingsButton(): JSX.Element {
   const [open, setOpen] = useState<boolean>(false);

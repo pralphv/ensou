@@ -64,12 +64,17 @@ export default function NavigationBar() {
               href={Pages.Home}
               onClick={(e) => {
                 e.preventDefault();
-                handleOnClick(Pages.Home)}
-              }
+                handleOnClick(Pages.Home);
+              }}
               className={classes.pointer}
             >
               <Typography variant="h6" noWrap>
-                <img src="/ensou.png" height={18} style={{ marginRight: 8 }} />
+                <img
+                  src="/ensou.png"
+                  height={18}
+                  style={{ marginRight: 8 }}
+                  alt="ensou.png"
+                />
                 Ensou
               </Typography>
             </a>
