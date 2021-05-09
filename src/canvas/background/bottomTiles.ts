@@ -1,5 +1,6 @@
 import * as PIXI from "pixi.js";
-import { PIANO_TUNING, NOTE_KEYBOARD_LABEL } from "audio/constants";
+import { PIANO_TUNING } from "audio/constants";
+import { NOTE_KEYBOARD_LABEL } from "game/constants";
 import { TEXT_CONFIG } from "./constants";
 import * as types from "../types";
 

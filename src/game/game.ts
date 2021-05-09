@@ -94,14 +94,14 @@ class Game {
   handleOnKeyDown(e: KeyboardEvent) {
     if (constants.AVAILABLE_KEYS.has(e.code) && !this.pressedKeys.has(e.code)) {
       const note = constants.KEY_NOTE_MAP[e.code];
-      myMidiPlayer.myTonejs?.triggerAttack(note, 1);
+      myMidiPlayer.myTonejs?.triggerAttack(note.note, 1);
       this.pressedKeys.add(e.code);
-      myMidiPlayer.playingNotes.add(PIANO_TUNING[note]);
+      myMidiPlayer.playingNotes.add(PIANO_TUNING[note.note]);
       myCanvas.render();
       if (this.playMap[myMidiPlayer.getCurrentTick()]) {
         for (const id of this.playMap[myMidiPlayer.getCurrentTick()]) {
           if (
-            this.notesToBePlayed[id].note === note &&
+            this.notesToBePlayed[id].note === note.note &&
             !this.notesToBePlayed[id].played
           ) {
             this.notesToBePlayed[id].played = true;
@@ -118,8 +118,8 @@ class Game {
     this.pressedKeys.delete(e.code);
     if (constants.AVAILABLE_KEYS.has(e.code)) {
       const note = constants.KEY_NOTE_MAP[e.code];
-      myMidiPlayer.myTonejs?.triggerRelease(note);
-      myMidiPlayer.playingNotes.delete(PIANO_TUNING[note]);
+      myMidiPlayer.myTonejs?.triggerRelease(note.note);
+      myMidiPlayer.playingNotes.delete(PIANO_TUNING[note.note]);
       myCanvas.render();
     }
   }
