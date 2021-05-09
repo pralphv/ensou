@@ -21,24 +21,32 @@ export default function ToolBar({
   isFullscreen,
   setIsFullscreen,
 }: ToolBarProps) {
+  const isMobile = window.innerWidth <= 700 || window.innerHeight <= 700;
+  const buttons = !(isMobile && isFullscreen)
+    ? [
+        <TempoButton key="tempo" />,
+        <FileReaderButton key="filereader" />,
+        <MusicNotesToggleButton key="musicnote" />,
+        <PracticeModeButton key="practiceMode" />,
+        <SettingsButton key="settings" />,
+      ]
+    : [];
+  buttons.push(
+    <FullScreenButton
+      isFullscreen={isFullscreen}
+      setIsFullscreen={setIsFullscreen}
+      key="fullScreen"
+    />
+  );
+
   return (
     <div className="toolbar">
       <ToggleButtonGroup>
         <RestartButton />
         <PlayButton />
-        {window.innerWidth >= 500 && <VolumeButton />}
+        {!isMobile && <VolumeButton />}
       </ToggleButtonGroup>
-      <ToggleButtonGroup>
-        <TempoButton />
-        <FileReaderButton />
-        <MusicNotesToggleButton />
-        <PracticeModeButton />
-        <SettingsButton />
-        <FullScreenButton
-          isFullscreen={isFullscreen}
-          setIsFullscreen={setIsFullscreen}
-        />
-      </ToggleButtonGroup>
+      <ToggleButtonGroup>{buttons.map((button) => button)}</ToggleButtonGroup>
     </div>
   );
 }
