@@ -8,6 +8,7 @@ import TempoButton from "./toolbarComponents/TempoButton";
 import RestartButton from "./toolbarComponents/RestartButton";
 import SettingsButton from "./toolbarComponents/SettingsButton";
 import FullScreenButton from "./toolbarComponents/FullScreenButton";
+import PracticeModeButton from "./toolbarComponents/PracticeModeButton";
 import MusicNotesToggleButton from "./toolbarComponents/MusicNotesToggleButton";
 import "./styles.css";
 
@@ -31,6 +32,7 @@ export default function ToolBar({
         <TempoButton />
         <FileReaderButton />
         <MusicNotesToggleButton />
+        <PracticeModeButton />
         <SettingsButton />
         <FullScreenButton
           isFullscreen={isFullscreen}

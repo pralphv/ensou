@@ -32,10 +32,6 @@ class MyCanvas {
   comboDisplay: ComboDisplay;
 
   constructor(width: number, height: number) {
-    this.config = {
-      canvasNoteScale: 10,
-      bottomTileHeight: 50,
-    };
 
     this.app = new PIXI.Application({
       width: width,
@@ -46,6 +42,11 @@ class MyCanvas {
       // backgroundColor: 0x353535,
       // resolution: 1
     });
+    this.config = {
+      canvasNoteScale: 10,
+      bottomTileHeight: this.app.screen.height * 0.08,
+    };
+
     this.app.start();
     this.isShift = false;
     this.isDragging = false;

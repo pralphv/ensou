@@ -49,7 +49,7 @@ export default class FlashingBottomTiles {
           sprite.position.x = x;
           x += whiteKeyWidth;
         }
-        sprite.position.y = app.screen.height - 51;
+        sprite.position.y = app.screen.height - config.bottomTileHeight;
         sprite.visible = false;
         this._container.addChild(sprite);
         this._columns.push(sprite);

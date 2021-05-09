@@ -16,10 +16,7 @@ export default function MusicNotesToggleButton(): JSX.Element {
   }
 
   return (
-    <CustomButton
-      onClick={handleOnClick}
-      size="small"
-    >
+    <CustomButton onClick={handleOnClick} size="small">
       <TextFieldsIcon />
     </CustomButton>
   );

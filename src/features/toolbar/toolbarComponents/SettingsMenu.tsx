@@ -131,18 +131,6 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
           />
         </ListItem> */}
         <ListItem button>
-          <ListItemText primary="Practice Mode" />
-          <Switch
-            checked={myMidiPlayer.practiceMode}
-            onChange={() => {
-              myMidiPlayer.practiceMode
-                ? myMidiPlayer.disablePracticeMode()
-                : myMidiPlayer.enablePracticeMode();
-            }}
-            disabled={myMidiPlayer.getIsPlaying()}
-          />
-        </ListItem>
-        <ListItem button>
           <ListItemText primary="Use Samples" />
           <Switch
             checked={myMidiPlayer.checkIfSampler()}
