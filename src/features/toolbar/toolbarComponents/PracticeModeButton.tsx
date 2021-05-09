@@ -15,7 +15,7 @@ export default function PracticeModeButton(): JSX.Element {
   }
 
   return (
-    <CustomButton onClick={handleOnClick} size="small">
+    <CustomButton onClick={handleOnClick} size="small" disabled={myMidiPlayer.getIsPlaying()}>
       <FitnessCenterIcon />
     </CustomButton>
   );
