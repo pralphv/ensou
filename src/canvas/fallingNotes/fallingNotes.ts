@@ -169,7 +169,9 @@ function initRectangle(
 ): PIXI.Graphics {
   const rect = new PIXI.Graphics();
   rect.beginTextureFill({ texture: gradient(color1, color2, height) });
-  rect.drawRoundedRect(0, 0, width, height, width / 2.5);
+  rect.alpha = 1;
+  rect.lineStyle(2, 0xffffff, 0.5);
+  rect.drawRect(0, 0, width, height);
   rect.endFill();
   return rect;
 }
