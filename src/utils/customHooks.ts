@@ -110,7 +110,6 @@ export function useLoadLocal(
   loadArrayBuffer: (blob: XMLHttpRequest["response"]) => void
 ): [(acceptedFiles: any) => void] {
   const { enqueueSnackbar } = useSnackbar();
-  const dispatch = useDispatch();
 
   const handleNotification = (message: string, variant: VariantType) => () => {
     // variant could be success, error, warning, info, or default
@@ -125,20 +124,20 @@ export function useLoadLocal(
       const data: any = r.target.result;
       if (data) {
         loadArrayBuffer(data);
-        dispatch(setisNotLoading());
       }
     };
     try {
       if (acceptedFiles[0]) {
-        dispatch(setisLoading());
         console.log(`Reading: ${acceptedFiles[0].name}`);
+        if (acceptedFiles[0].type !== "audio/mid") {
+          throw "Wrong file format";
+        }
         reader.readAsArrayBuffer(acceptedFiles[0]);
-        dispatch(setFileName(acceptedFiles[0].name));
+        handleNotification("SUCCESS", "success");
         console.log(`Successfully read: ${acceptedFiles[0].name}`);
       }
     } catch (error) {
       handleNotification(error, "error");
-      dispatch(setisNotLoading());
       console.log(error);
     }
   }, []);

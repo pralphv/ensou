@@ -8,7 +8,12 @@ export default class FallingNotes {
   _app: PIXI.Application;
   _container: PIXI.Container;
   _fallingNotes: IFallingNotes[];
-  config: IMyCanvasConfig;
+  _totalFallingNotes: number;
+  _screenHeight: number;
+  _bottomTileHeight: number;
+  _canvasNoteScale: number;
+  _textArray: PIXI.Text[];
+  isTextOn: boolean;
 
   constructor(
     app: PIXI.Application,
@@ -19,9 +24,15 @@ export default class FallingNotes {
     blackKeyWidth: number
   ) {
     this._app = app;
+    this._bottomTileHeight = config.bottomTileHeight;
+    this._canvasNoteScale = config.canvasNoteScale;
+    this._screenHeight = app.screen.height;
     this._container = new PIXI.Container();
+    this._textArray = [];
+    this.isTextOn = false;
+
     this._fallingNotes = [];
-    this.config = config;
+    this._totalFallingNotes = 0;
     console.log("Constructing new Falling Notes");
     // setIsLoading(true);
     const color1 = "#63F0FF";
@@ -33,10 +44,8 @@ export default class FallingNotes {
 
     const rectCached: RectCache = {};
     groupedNotes.forEach((note) => {
-      // build a texture for a note first, then cache
-      // if same height and width appears, use the same texture
-      const on = note.on / this.config.canvasNoteScale;
-      const off = note.off / this.config.canvasNoteScale;
+      const on = note.on / this._canvasNoteScale;
+      const off = note.off / this._canvasNoteScale;
       const height = off - on;
       const x = pianoNoteXMap[note.noteName].x + leftPadding;
       const width = pianoNoteXMap[note.noteName].width;
@@ -49,39 +58,63 @@ export default class FallingNotes {
       const texture = app.renderer.generateTexture(rectCached[cacheKey]);
       const rectSprite = new PIXI.Sprite(texture);
       rectSprite.visible = false;
+      const text = new PIXI.Text(note.noteName.slice(0, -1), {
+        fontFamily: "Helvetica",
+        fontSize: 12,
+        fill: 0x1f1d1d,
+        align: "center",
+      });
+      this._textArray.push(text);
+      rectSprite.addChild(text);
+      text.anchor.x = 0.5;
+      text.position.x = width / 2;
+      text.position.y = height - 12 - 5;
       this._container.addChild(rectSprite);
       this._fallingNotes.push({ rectSprite, on, off, height, x });
     });
     Object.values(rectCached).forEach((rect: PIXI.Graphics) => {
       rect.destroy({ children: true, texture: true, baseTexture: true });
     });
+    this._totalFallingNotes = this._fallingNotes.length;
+    this.hideText();
   }
 
   draw() {
-    // ticks per beat can change in the song so cannot be constant
-    for (let i = 0; i < this._fallingNotes.length; i++) {
+    const upperLimit = myMidiPlayer.ticksPerBeat * 4 * 8; // assume 4 beats per bar, show 3 bars
+    for (const note of this._fallingNotes) {
       if (
         myMidiPlayer.getCurrentTick() >=
-          this._fallingNotes[i].on * this.config.canvasNoteScale -
-            // assume 4 beats per bar. ticks per beat can change in the song so cannot be constant
-            myMidiPlayer.ticksPerBeat * 4 * 8 &&
-        myMidiPlayer.getCurrentTick() <=
-          this._fallingNotes[i].off * this.config.canvasNoteScale
+          note.on * this._canvasNoteScale - upperLimit &&
+        myMidiPlayer.getCurrentTick() <= note.off * this._canvasNoteScale
       ) {
         const on =
-          this._fallingNotes[i].on -
-          myMidiPlayer.getCurrentTick() / this.config.canvasNoteScale;
-        this._fallingNotes[i].rectSprite.position.x = this._fallingNotes[i].x;
-        this._fallingNotes[i].rectSprite.position.y =
-          this._app.screen.height -
-          on -
-          this._fallingNotes[i].height -
-          this.config.bottomTileHeight;
-        this._fallingNotes[i].rectSprite.visible = true;
+          note.on - myMidiPlayer.getCurrentTick() / this._canvasNoteScale;
+        note.rectSprite.position.x = note.x;
+        note.rectSprite.position.y =
+          this._screenHeight - on - note.height - this._bottomTileHeight;
+        note.rectSprite.visible = true;
       } else {
-        this._fallingNotes[i].rectSprite.visible = false;
+        note.rectSprite.visible = false;
       }
     }
+  }
+
+  showText() {
+    for (const text of this._textArray) {
+      text.visible = true;
+    }
+    this.isTextOn = true;
+  }
+
+  hideText() {
+    for (const text of this._textArray) {
+      text.visible = false;
+    }
+    this.isTextOn = false;
+  }
+
+  getIsTextOn() {
+    return this.isTextOn;
   }
 
   destroy() {
