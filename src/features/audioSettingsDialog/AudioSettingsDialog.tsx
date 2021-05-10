@@ -9,7 +9,7 @@ import SamplerTab from "./SamplerTab";
 import EffectsTab from "./effectsTab/EffectsTab";
 import myMidiPlayer from "audio";
 
-interface ISamplesDialog {
+interface IAudioSettingsDialog {
   open: boolean;
   setOpen: (bool: boolean) => void;
   forceLocalRender: () => void;
@@ -19,7 +19,7 @@ export default function AudioSettingsDialog({
   open,
   setOpen,
   forceLocalRender,
-}: ISamplesDialog) {
+}: IAudioSettingsDialog) {
   const [value, setValue] = React.useState(0);
 
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
