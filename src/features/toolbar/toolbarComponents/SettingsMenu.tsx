@@ -110,14 +110,13 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
         <ListItem button>
           <ListItemText primary="Open Microphone" />
           <Switch
-            checked={myMidiPlayer.myTonejs?.isMicrophoneOn()}
+            checked={myMidiPlayer.myTonejs?.isMicrophoneOn() || false}
             onChange={() => {
               if (myMidiPlayer.myTonejs?.isMicrophoneOn()) {
                 myMidiPlayer.myTonejs?.closeMicrophone();
               } else {
                 myMidiPlayer.myTonejs?.openMicrophone();
               }
-              // forceRerender();
             }}
           />
         </ListItem>

@@ -155,7 +155,6 @@ export default function Player(): JSX.Element {
           })}
           onMouseEnter={handleOnEnter}
           onMouseLeave={handleOnLeave}
-          // onMouseMove={throttleMemo}
         ></div>
       </div>
     ),
@@ -176,15 +175,11 @@ export default function Player(): JSX.Element {
           }}
           onMouseEnter={handleOnEnter}
           onMouseLeave={handleOnLeave}
-          // onMouseMove={throttleMemo}
         ></div>
       </div>
     ),
     [
-      // isLoading,
-      // forceRender,
       isFullscreen,
-      // isHorizontal,
     ]
   );
   const toolbarMemo = useMemo(() => {
