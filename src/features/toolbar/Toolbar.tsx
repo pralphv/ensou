@@ -10,6 +10,7 @@ import SettingsButton from "./toolbarComponents/SettingsButton";
 import FullScreenButton from "./toolbarComponents/FullScreenButton";
 import PracticeModeButton from "./toolbarComponents/PracticeModeButton";
 import MusicNotesToggleButton from "./toolbarComponents/MusicNotesToggleButton";
+import LoopButton from "./toolbarComponents/LoopButton";
 import "./styles.css";
 
 interface ToolBarProps {
@@ -28,6 +29,7 @@ export default function ToolBar({
         <FileReaderButton key="filereader" />,
         <MusicNotesToggleButton key="musicnote" />,
         <PracticeModeButton key="practiceMode" />,
+        <LoopButton />,
         <SettingsButton key="settings" />,
       ]
     : [];

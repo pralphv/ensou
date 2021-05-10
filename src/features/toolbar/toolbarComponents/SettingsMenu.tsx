@@ -145,13 +145,6 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
           />
         </ListItem>
         <ListItem button>
-          <ListItemText primary="Loop" />
-          <Switch
-            checked={myMidiPlayer.getIsLoop()}
-            onChange={handleOnChangeLoop}
-          />
-        </ListItem>
-        <ListItem button>
           <ListItemText primary="Zoom" />
           <RemoveIcon onClick={myCanvas.increaseCanvasNoteScale} />
           <AddIcon onClick={myCanvas.decreaseCanvasNoteScale} />
