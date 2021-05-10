@@ -5,6 +5,7 @@ import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
 import Switch from "@material-ui/core/Switch";
 import GraphicEqIcon from "@material-ui/icons/GraphicEq";
+import KeyboardIcon from "@material-ui/icons/Keyboard";
 import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
 
@@ -63,14 +64,6 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
     }
   }
 
-  function handleOnChangeLoop() {
-    if (myMidiPlayer.getIsLoop()) {
-      myMidiPlayer.setIsLoop(false);
-    } else {
-      myMidiPlayer.setIsLoop(true);
-    }
-  }
-
   const sampleDialogMemo = useMemo(
     () => (
       <SamplesDialog open={samplerDialogOpen} setOpen={setSamplerDialogOpen} />
@@ -93,8 +86,8 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
     ]
   );
 
-  return (
-    <div>
+  const toolbarListMemo = useMemo(
+    () => (
       <List
         component="nav"
         style={{
@@ -121,14 +114,14 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
           />
         </ListItem>
         {/* <ListItem button>
-          <ListItemText primary="Horizontal" />
-          <Switch
-            checked={myCanvas.isHorizontal}
-            onChange={() => {
-              myCanvas.setIsHorizontal(!myCanvas.isHorizontal);
-            }}
-          />
-        </ListItem> */}
+      <ListItemText primary="Horizontal" />
+      <Switch
+        checked={myCanvas.isHorizontal}
+        onChange={() => {
+          myCanvas.setIsHorizontal(!myCanvas.isHorizontal);
+        }}
+      />
+    </ListItem> */}
         <ListItem button>
           <ListItemText primary="Use Samples" />
           <Switch
@@ -153,7 +146,18 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
           <ListItemText primary="Audio Settings" />
           <GraphicEqIcon />
         </ListItem>
+        <ListItem button onClick={() => setAudioSettingsDialogOpen(true)}>
+          <ListItemText primary="Keyboard Settings" />
+          <KeyboardIcon />
+        </ListItem>
       </List>
+    ),
+    []
+  );
+
+  return (
+    <div>
+      {toolbarListMemo}
       {sampleDialogMemo}
       {audioSettingsDialogMemo}
     </div>
