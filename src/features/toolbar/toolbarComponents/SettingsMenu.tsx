@@ -54,6 +54,7 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
     } else {
       setSamplerDialogOpen(true);
     }
+    forceLocalRender();
   }
 
   function handleOnChangeMetronome() {
@@ -62,6 +63,7 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
     } else {
       myMidiPlayer.setIsMetronome(true);
     }
+    forceLocalRender();
   }
 
   const sampleDialogMemo = useMemo(
@@ -86,8 +88,8 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
     ]
   );
 
-  const toolbarListMemo = useMemo(
-    () => (
+  return (
+    <div>
       <List
         component="nav"
         style={{
@@ -142,7 +144,12 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
           <RemoveIcon onClick={myCanvas.increaseCanvasNoteScale} />
           <AddIcon onClick={myCanvas.decreaseCanvasNoteScale} />
         </ListItem>
-        <ListItem button onClick={() => setAudioSettingsDialogOpen(true)}>
+        <ListItem
+          button
+          onClick={() => {
+            setAudioSettingsDialogOpen(true);
+          }}
+        >
           <ListItemText primary="Audio Settings" />
           <GraphicEqIcon />
         </ListItem>
@@ -151,13 +158,8 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
           <KeyboardIcon />
         </ListItem>
       </List>
-    ),
-    []
-  );
 
-  return (
-    <div>
-      {toolbarListMemo}
+      {/* {toolbarListMemo} */}
       {sampleDialogMemo}
       {audioSettingsDialogMemo}
     </div>

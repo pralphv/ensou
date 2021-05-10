@@ -29,7 +29,7 @@ export default function ToolBar({
         <FileReaderButton key="filereader" />,
         <MusicNotesToggleButton key="musicnote" />,
         <PracticeModeButton key="practiceMode" />,
-        <LoopButton />,
+        <LoopButton key="loop" />,
         <SettingsButton key="settings" />,
       ]
     : [];

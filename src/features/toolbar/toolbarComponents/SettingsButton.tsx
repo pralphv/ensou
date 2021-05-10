@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 
 import SettingsIcon from "@material-ui/icons/Settings";
 import ClickAwayListener from "@material-ui/core/ClickAwayListener";
@@ -11,6 +11,9 @@ export default function SettingsButton(): JSX.Element {
   function handleOnClick() {
     setOpen(!open);
   }
+
+  const settingsMenuMemo = useMemo(() => <SettingsMenu open={open} />, [open]);
+
   // ClickAwayListener must have div as child
   return (
     <ClickAwayListener
@@ -19,7 +22,7 @@ export default function SettingsButton(): JSX.Element {
       }}
     >
       <div>
-        <SettingsMenu open={open} />
+        {settingsMenuMemo}
         <CustomButton onClick={handleOnClick} size="small">
           <SettingsIcon />
         </CustomButton>
