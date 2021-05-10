@@ -61,9 +61,12 @@ export default class BottomTiles {
         lastI = i;
         const isBlackKey = key.includes("#") || key.includes("b");
         let sprite: PIXI.Sprite;
-        const text = new PIXI.Text(NOTE_KEYBOARD_LABEL[key], TEXT_CONFIG);
-        this._textArray.push(text);
         if (isBlackKey) {
+          const text = new PIXI.Text(NOTE_KEYBOARD_LABEL[key], {
+            ...TEXT_CONFIG,
+            fontSize: Math.min(12, blackKeyWidth * 0.8),
+          });
+          this._textArray.push(text);
           sprite = new PIXI.Sprite(blackKeyTexture);
           sprite.addChild(text);
           blackKeyContainer.addChild(sprite);
@@ -71,15 +74,21 @@ export default class BottomTiles {
           sprite.position.x = x - blackKeyWidth / 2;
           text.anchor.x = 0.5;
           text.position.x = blackKeyWidth / 2;
-          text.position.y = tileHeight * 0.66 - TEXT_CONFIG.fontSize - 2;
+          text.position.y = tileHeight * 0.66 - text.style.fontSize - 2;
         } else {
+          const text = new PIXI.Text(NOTE_KEYBOARD_LABEL[key], {
+            ...TEXT_CONFIG,
+            fontSize: Math.min(12, whiteKeyWidth * 0.8),
+          });
+          this._textArray.push(text);
+
           sprite = new PIXI.Sprite(whiteKeyTexture);
           sprite.addChild(text);
           whiteKeyContainer.addChild(sprite);
           sprite.position.x = x;
           text.anchor.x = 0.5;
           text.position.x = whiteKeyWidth / 2;
-          text.position.y = tileHeight - TEXT_CONFIG.fontSize - 2;
+          text.position.y = tileHeight - text.style.fontSize - 2;
           x += whiteKeyWidth;
         }
         sprite.position.y = screenHeight - tileHeight - 1;

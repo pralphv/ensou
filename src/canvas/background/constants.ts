@@ -18,7 +18,6 @@ export const GUIDE_LINES_NOTE_NUMBER = [
 
 export const TEXT_CONFIG = {
   fontFamily: "Helvetica",
-  fontSize: 12,
   fill: 0x7fdded,
   align: "center",
   cacheAsBitmap: true,

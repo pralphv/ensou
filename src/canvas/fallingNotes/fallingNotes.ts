@@ -60,7 +60,7 @@ export default class FallingNotes {
       rectSprite.visible = false;
       const text = new PIXI.Text(note.noteName.slice(0, -1), {
         fontFamily: "Helvetica",
-        fontSize: 12,
+        fontSize: Math.min(width * 0.8, 12),
         fill: 0x1f1d1d,
         align: "center",
       });
