@@ -19,6 +19,7 @@ import { Helmet } from "react-helmet";
 import useFullscreenStatus from "./fullscreener";
 import "./styles.css";
 import midiPlayer from "audio";
+import { debounce } from "lodash";
 
 interface ISongMetaData {
   artist: string;
@@ -72,7 +73,6 @@ export default function Player(): JSX.Element {
         if (myMidiPlayer.practiceMode) {
           game.render();
         }
-
       });
       myMidiPlayer.on("actioned", () => {
         forceRerenderRef.current();
@@ -99,6 +99,13 @@ export default function Player(): JSX.Element {
       });
       await myMidiPlayer.init();
       myMidiPlayer.myTonejs?.on("actioned", () => forceRerenderRef.current());
+
+      myCanvas.on(
+        "pointermove",
+        debounce(() => {
+          setIsHovering(false);
+        }, 2000)
+      );
     }
     async function fetchSongDetails() {
       const ref = await firestore.collection("midi").doc(songId);
