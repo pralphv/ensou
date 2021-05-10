@@ -1,13 +1,6 @@
-interface INoteKeyBinding {
-  note: string;
-  label: string;
-}
+import * as types from "./types";
 
-interface IKeyNoteMap {
-  [key: string]: INoteKeyBinding;
-}
-
-export const KEY_NOTE_MAP: IKeyNoteMap = {
+export const DEFAULT_KEY_NOTE_MAP: types.IKeyNoteMap = {
   Digit1: { note: "C4", label: "1" },
   Digit2: { note: "C#4", label: "2" },
   Digit3: { note: "D4", label: "3" },
@@ -57,17 +50,4 @@ export const KEY_NOTE_MAP: IKeyNoteMap = {
   Comma: { note: "G7", label: " ," },
   Period: { note: "G#7", label: " ." },
   Slash: { note: "A7", label: " /" },
-  // Quote: "A#6",
-  // Enter: "B6",
 };
-
-export const AVAILABLE_KEYS = new Set(Object.keys(KEY_NOTE_MAP));
-
-interface INoteKeyboardLabel {
-  [key: string]: string;
-}
-export const NOTE_KEYBOARD_LABEL: INoteKeyboardLabel = {};
-
-Object.values(KEY_NOTE_MAP).forEach((obj) => {
-  NOTE_KEYBOARD_LABEL[obj.note] = obj.label;
-});

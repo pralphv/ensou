@@ -1,8 +1,8 @@
 import * as PIXI from "pixi.js";
 import { PIANO_TUNING } from "audio/constants";
-import { NOTE_KEYBOARD_LABEL } from "game/constants";
 import { TEXT_CONFIG } from "./constants";
 import * as types from "../types";
+import game from "game";
 
 export default class BottomTiles {
   _app: PIXI.Application;
@@ -62,7 +62,7 @@ export default class BottomTiles {
         const isBlackKey = key.includes("#") || key.includes("b");
         let sprite: PIXI.Sprite;
         if (isBlackKey) {
-          const text = new PIXI.Text(NOTE_KEYBOARD_LABEL[key], {
+          const text = new PIXI.Text(game.noteLabelMap[key], {
             ...TEXT_CONFIG,
             fontSize: Math.min(12, blackKeyWidth * 0.8),
           });
@@ -76,7 +76,7 @@ export default class BottomTiles {
           text.position.x = blackKeyWidth / 2;
           text.position.y = tileHeight * 0.66 - text.style.fontSize - 2;
         } else {
-          const text = new PIXI.Text(NOTE_KEYBOARD_LABEL[key], {
+          const text = new PIXI.Text(game.noteLabelMap[key], {
             ...TEXT_CONFIG,
             fontSize: Math.min(12, whiteKeyWidth * 0.8),
           });

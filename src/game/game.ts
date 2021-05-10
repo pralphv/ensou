@@ -2,7 +2,7 @@ import * as constants from "./constants";
 import myCanvas from "canvas";
 import { PIANO_TUNING } from "audio/constants";
 import myMidiPlayer from "audio";
-
+import * as types from "./types";
 interface IPlayMap {
   [key: number]: number[];
 }
@@ -23,6 +23,9 @@ class Game {
   playMap: IPlayMap;
   notesToBePlayed: INotesToBePlayed;
   originalNotesToBePlayed: INotesToBePlayed; // for resetting
+  keyNoteMap: types.IKeyNoteMap;
+  availableKeys!: Set<string>;
+  noteLabelMap!: types.INoteKeyboardLabel;
 
   constructor() {
     this.score = 0;
@@ -30,6 +33,7 @@ class Game {
     this.playMap = {};
     this.notesToBePlayed = {};
     this.originalNotesToBePlayed = {};
+    this.keyNoteMap = constants.DEFAULT_KEY_NOTE_MAP;
 
     this.addScore = this.addScore.bind(this);
     this.resetScore = this.resetScore.bind(this);
@@ -39,6 +43,18 @@ class Game {
     this.handleOnKeyDown = this.handleOnKeyDown.bind(this);
     this.handleOnKeyUp = this.handleOnKeyUp.bind(this);
     this.resetGame = this.resetGame.bind(this);
+    this.loadKeyNoteMap = this.loadKeyNoteMap.bind(this);
+    this.loadKeyNoteMap();
+  }
+
+  loadKeyNoteMap() {
+    this.availableKeys = new Set(Object.keys(this.keyNoteMap));
+
+    this.noteLabelMap = {};
+
+    Object.values(this.keyNoteMap).forEach((obj) => {
+      this.noteLabelMap[obj.note] = obj.label;
+    });
   }
 
   addScore() {
@@ -92,8 +108,8 @@ class Game {
   }
 
   handleOnKeyDown(e: KeyboardEvent) {
-    if (constants.AVAILABLE_KEYS.has(e.code) && !this.pressedKeys.has(e.code)) {
-      const note = constants.KEY_NOTE_MAP[e.code];
+    if (this.availableKeys.has(e.code) && !this.pressedKeys.has(e.code)) {
+      const note = this.keyNoteMap[e.code];
       myMidiPlayer.myTonejs?.triggerAttack(note.note, 1);
       this.pressedKeys.add(e.code);
       myMidiPlayer.playingNotes.add(PIANO_TUNING[note.note]);
@@ -116,8 +132,8 @@ class Game {
 
   handleOnKeyUp(e: KeyboardEvent) {
     this.pressedKeys.delete(e.code);
-    if (constants.AVAILABLE_KEYS.has(e.code)) {
-      const note = constants.KEY_NOTE_MAP[e.code];
+    if (this.availableKeys.has(e.code)) {
+      const note = this.keyNoteMap[e.code];
       myMidiPlayer.myTonejs?.triggerRelease(note.note);
       myMidiPlayer.playingNotes.delete(PIANO_TUNING[note.note]);
       myCanvas.render();
@@ -129,8 +145,8 @@ class Game {
     if (this.playMap[myMidiPlayer.getCurrentTick() - 1]) {
       for (const id of this.playMap[myMidiPlayer.getCurrentTick() - 1]) {
         if (
-          this.notesToBePlayed[id].played === false &&  // not played
-          myMidiPlayer.getCurrentTick() >= this.notesToBePlayed[id].lastTick  // passed timing 
+          this.notesToBePlayed[id].played === false && // not played
+          myMidiPlayer.getCurrentTick() >= this.notesToBePlayed[id].lastTick // passed timing
         ) {
           this.resetScore();
           myCanvas.comboDisplay.draw(this.score);
