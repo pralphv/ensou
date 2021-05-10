@@ -12,11 +12,14 @@ export default function MusicNotesToggleButton(): JSX.Element {
     } else {
       myCanvas.fallingNotes.showText();
     }
-    // forceRerender();
   }
 
   return (
-    <CustomButton onClick={handleOnClick} size="small">
+    <CustomButton
+      onClick={handleOnClick}
+      size="small"
+      selected={myCanvas.fallingNotes?.getIsTextOn()}
+    >
       <TextFieldsIcon />
     </CustomButton>
   );

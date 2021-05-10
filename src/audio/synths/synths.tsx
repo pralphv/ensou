@@ -23,9 +23,7 @@ export function initSynths(
     // doesnt work
     options = { ...options, ...others[synthIndex] };
   }
-  console.log({synth})
   const synthToUse = constants.SYNTH_MAP[synth];
-  console.log(synthToUse)
   //@ts-ignore
   const polysynth = new PolySynth(synthToUse, options);
   polysynth.maxPolyphony = 176;

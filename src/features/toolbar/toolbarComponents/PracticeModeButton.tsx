@@ -11,11 +11,14 @@ export default function PracticeModeButton(): JSX.Element {
     } else {
       myMidiPlayer.enablePracticeMode();
     }
-    // forceRerender();
   }
-
   return (
-    <CustomButton onClick={handleOnClick} size="small" disabled={myMidiPlayer.getIsPlaying()}>
+    <CustomButton
+      onClick={handleOnClick}
+      size="small"
+      disabled={myMidiPlayer.getIsPlaying()}
+      selected={myMidiPlayer.practiceMode}
+    >
       <FitnessCenterIcon />
     </CustomButton>
   );
