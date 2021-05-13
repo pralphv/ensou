@@ -3,6 +3,8 @@ import myCanvas from "canvas";
 import { PIANO_TUNING } from "audio/constants";
 import myMidiPlayer from "audio";
 import * as types from "./types";
+import { getKeyBindings } from "utils/localStorageUtils/localStorageUtils";
+
 interface IPlayMap {
   [key: number]: number[];
 }
@@ -23,7 +25,7 @@ class Game {
   playMap: IPlayMap;
   notesToBePlayed: INotesToBePlayed;
   originalNotesToBePlayed: INotesToBePlayed; // for resetting
-  keyNoteMap: types.IKeyNoteMap;
+  keyNoteMap!: types.IKeyNoteMap;
   availableKeys!: Set<string>;
   noteLabelMap!: types.INoteKeyboardLabel;
 
@@ -33,7 +35,6 @@ class Game {
     this.playMap = {};
     this.notesToBePlayed = {};
     this.originalNotesToBePlayed = {};
-    this.keyNoteMap = constants.DEFAULT_KEY_NOTE_MAP;
 
     this.addScore = this.addScore.bind(this);
     this.resetScore = this.resetScore.bind(this);
@@ -48,6 +49,7 @@ class Game {
   }
 
   loadKeyNoteMap() {
+    this.keyNoteMap = getKeyBindings() || constants.DEFAULT_KEY_NOTE_MAP;
     this.availableKeys = new Set(Object.keys(this.keyNoteMap));
 
     this.noteLabelMap = {};
@@ -55,6 +57,7 @@ class Game {
     Object.values(this.keyNoteMap).forEach((obj) => {
       this.noteLabelMap[obj.note] = obj.label;
     });
+    myCanvas?.background.resetBottomTiles(true);
   }
 
   addScore() {

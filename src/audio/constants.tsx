@@ -151,5 +151,3 @@ export const PIANO_TUNING: { [key: string]: number } = {
   B7: 86,
   C8: 87,
 };
-
-export const CURRENT_TICK_UPPER_LIMIT: number = 500;

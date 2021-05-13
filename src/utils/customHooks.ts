@@ -1,14 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import { VariantType, useSnackbar } from "notistack";
-
-import {
-  setFileName,
-  setisLoading,
-  setisNotLoading,
-} from "features/midiPlayerStatus/midiPlayerStatusSlice";
 
 // export function useWindow(): types.Window {
 //   const [width, setWidth] = useState<number>(window.innerHeight);

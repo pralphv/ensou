@@ -16,6 +16,17 @@ export default class Background {
     this.drawGuidingLines();
     this._container = new PIXI.Container();
     this._config = config;
+
+    this.resetBottomTiles = this.resetBottomTiles.bind(this);
+  }
+
+  resetBottomTiles(textOn: boolean = false) {
+    this.bottomTiles.destroy();
+    // recreate bottom tiles with latest key bindings
+    this.bottomTiles = new BottomTiles(this._app, this._config);
+    if (textOn) {
+      this.bottomTiles.showText();
+    }
   }
 
   drawGuidingLines() {

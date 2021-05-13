@@ -1,4 +1,5 @@
 import * as types from "types";
+import { IKeyNoteMap } from "game/types";
 
 enum LocalStorageKeys {
   volume = "volume",
@@ -14,6 +15,7 @@ enum LocalStorageKeys {
   oscillator = "oscillator",
   envelope = "envelope",
   others = "others",
+  keybindings = "keybindings",
   // delay = "delay",
 }
 
@@ -162,4 +164,16 @@ export function getDelay(): number[] | null {
 
 export function setDelay(delay: number[]) {
   setLocalStorage(LocalStorageKeys.delay, delay);
+}
+
+export function getKeyBindings(): IKeyNoteMap | null {
+  return getLocalStorage(LocalStorageKeys.keybindings);
+}
+
+export function setKeyBindings(rows: IKeyNoteMap) {
+  setLocalStorage(LocalStorageKeys.keybindings, rows);
+}
+
+export function deleteKeyBindings() {
+  deleteLocalStorage(LocalStorageKeys.keybindings);
 }

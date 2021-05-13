@@ -12,6 +12,7 @@ import RemoveIcon from "@material-ui/icons/Remove";
 import * as types from "types";
 import SamplesDialog from "features/samplesDialog/SamplesDialog";
 import AudioSettingsDialog from "features/audioSettingsDialog/AudioSettingsDialog";
+import KeyBindingsDialog from "../keyBindingsDialog/KeyBindingsDialog";
 import myMidiPlayer from "audio";
 import myCanvas from "canvas";
 
@@ -26,6 +27,9 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
     audioSettingsDialogOpen,
     setAudioSettingsDialogOpen,
   ] = useState<boolean>(false);
+  const [keySettingsDialogOpen, setKeySettingsDialogOpen] = useState<boolean>(
+    false
+  );
 
   /**
    * for rerendering settings because checking objects
@@ -88,6 +92,20 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
     ]
   );
 
+  const keySettingsDialogMemo = useMemo(
+    () => (
+      <KeyBindingsDialog
+        open={keySettingsDialogOpen}
+        setOpen={setKeySettingsDialogOpen}
+      />
+    ),
+    [
+      keySettingsDialogOpen,
+      // midiPlayer.myTonejs?.getSynthName(),
+      forceLocalRenderDummy,
+    ]
+  );
+
   return (
     <div>
       <List
@@ -102,7 +120,7 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
           opacity: 0.9,
         }}
       >
-        <ListItem button>
+        {/* <ListItem button>
           <ListItemText primary="Open Microphone" />
           <Switch
             checked={myMidiPlayer.myTonejs?.isMicrophoneOn() || false}
@@ -114,7 +132,7 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
               }
             }}
           />
-        </ListItem>
+        </ListItem> */}
         {/* <ListItem button>
       <ListItemText primary="Horizontal" />
       <Switch
@@ -153,15 +171,15 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
           <ListItemText primary="Audio Settings" />
           <GraphicEqIcon />
         </ListItem>
-        <ListItem button onClick={() => setAudioSettingsDialogOpen(true)}>
+        <ListItem button onClick={() => setKeySettingsDialogOpen(true)}>
           <ListItemText primary="Keyboard Settings" />
           <KeyboardIcon />
         </ListItem>
       </List>
 
-      {/* {toolbarListMemo} */}
       {sampleDialogMemo}
       {audioSettingsDialogMemo}
+      {keySettingsDialogMemo}
     </div>
   );
 }
