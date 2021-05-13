@@ -74,7 +74,7 @@ export default class BottomTiles {
           sprite.position.x = x - blackKeyWidth / 2;
           text.anchor.x = 0.5;
           text.position.x = blackKeyWidth / 2;
-          text.position.y = tileHeight * 0.66 - text.style.fontSize - 2;
+          text.position.y = tileHeight * 0.66 - text.style.fontSize - 5;
         } else {
           const text = new PIXI.Text(game.noteLabelMap[key], {
             ...TEXT_CONFIG,
@@ -88,7 +88,7 @@ export default class BottomTiles {
           sprite.position.x = x;
           text.anchor.x = 0.5;
           text.position.x = whiteKeyWidth / 2;
-          text.position.y = tileHeight - text.style.fontSize - 2;
+          text.position.y = tileHeight - text.style.fontSize - 5;
           x += whiteKeyWidth;
         }
         sprite.position.y = screenHeight - tileHeight - 1;
