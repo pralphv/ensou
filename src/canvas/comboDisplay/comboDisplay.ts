@@ -23,6 +23,7 @@ export default class ComboDisplay {
     this._container.position.y = this._container.height;
     this._text.anchor.set(0.5);
     this._app.stage.addChild(this._container);
+    this._container.zIndex = 1000;
     // this.draw(100)
   }
 
