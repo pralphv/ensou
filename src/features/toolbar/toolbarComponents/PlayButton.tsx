@@ -21,15 +21,13 @@ export default function PlayButton(): JSX.Element {
           <PauseIcon />
         </CustomButton>
       ) : (
-        // make arrow function to prevent event insterting into play()
         <CustomButton
           id="playButton"
-          onClick={() => {
-            start();
+          onClick={async () => {
+            await start();
             myMidiPlayer.play();
           }}
           size="small"
-          // style={{ width: BUTTON_WIDTH }}
         >
           <PlayArrowIcon />
         </CustomButton>
