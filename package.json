@@ -19,6 +19,7 @@
     "@types/react-helmet": "^6.1.0",
     "@types/react-redux": "^7.1.9",
     "@types/react-router-dom": "^5.1.5",
+    "@types/webmidi": "^2.0.4",
     "firebase": "^7.17.1",
     "idb-keyval": "^3.2.0",
     "lodash": "^4.17.20",

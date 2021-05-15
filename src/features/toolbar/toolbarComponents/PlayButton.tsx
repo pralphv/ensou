@@ -1,6 +1,6 @@
 import React from "react";
 
-import { start } from "tone";
+import { start, context } from "tone";
 import PauseIcon from "@material-ui/icons/Pause";
 import PlayArrowIcon from "@material-ui/icons/PlayArrow";
 
@@ -25,6 +25,7 @@ export default function PlayButton(): JSX.Element {
           id="playButton"
           onClick={async () => {
             await start();
+            await context.resume();
             myMidiPlayer.play();
           }}
           size="small"
