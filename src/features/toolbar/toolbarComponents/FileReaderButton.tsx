@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useDropzone } from "react-dropzone";
 
 import FolderIcon from "@material-ui/icons/Folder";
@@ -14,14 +14,17 @@ export default function FileReaderButton(): JSX.Element {
     onDrop: onLoadMidiFile,
     disabled: myMidiPlayer.getIsPlaying(),
   });
-
-  return (
-    <div {...getRootProps()}>
-      <input {...getInputProps()} />
-      {isDragActive && <UploadBackdrop />}
-      <CustomButton disabled={myMidiPlayer.getIsPlaying()} size="small">
-        <FolderIcon />
-      </CustomButton>
-    </div>
+  const fileReaderButtonMemo = useMemo(
+    () => (
+      <div {...getRootProps()}>
+        <input {...getInputProps()} />
+        {isDragActive && <UploadBackdrop />}
+        <CustomButton disabled={myMidiPlayer.getIsPlaying()} size="small">
+          <FolderIcon />
+        </CustomButton>
+      </div>
+    ),
+    [myMidiPlayer.getIsPlaying()]
   );
+  return fileReaderButtonMemo;
 }
