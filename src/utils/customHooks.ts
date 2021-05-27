@@ -54,7 +54,7 @@ export function useLoadLocal(
   const { enqueueSnackbar } = useSnackbar();
 
   const onDrop = useCallback(
-    (acceptedFiles) => {
+    async (acceptedFiles) => {
       const handleNotification = (message: string, variant: VariantType) => {
         // variant could be success, error, warning, info, or default
         enqueueSnackbar(message, { variant });
@@ -70,21 +70,60 @@ export function useLoadLocal(
         }
       };
       try {
-        if (acceptedFiles[0]) {
-          console.log(`Reading: ${acceptedFiles[0].name}`);
-          if (acceptedFiles[0].type !== "audio/mid") {
+        const file = acceptedFiles[0];
+        if (file) {
+          let readFile;
+          if (file.type.includes("image")) {
+            readFile = await convertImageToMidi(file);
+          } else if (file.type === "audio/mid") {
+            readFile = file;
+          } else {
             throw Error("Wrong file format");
           }
-          reader.readAsArrayBuffer(acceptedFiles[0]);
-          handleNotification("SUCCESS", "success");
-          console.log(`Successfully read: ${acceptedFiles[0].name}`);
+          reader.readAsArrayBuffer(readFile);
+          handleNotification(`Successfully read: ${file.name}`, "success");
         }
       } catch (error) {
         handleNotification(error.toString(), "error");
-        console.log(error);
+        console.error(error);
       }
     },
     [enqueueSnackbar, loadArrayBuffer]
   );
   return [onDrop];
+}
+
+async function convertImageToMidi(file: File): Promise<File> {
+  const encodedImage = await toBase64(file);
+  const body = {
+    encoded_image: encodedImage,
+  };
+  let resp;
+  try {
+    resp = await fetch(
+      "https://ie4owsmv42.execute-api.us-east-2.amazonaws.com/master",
+      { method: "POST", body: JSON.stringify(body) }
+    );
+  } catch (error) {
+    throw Error("Unable to convert image to MIDI. Try again later.");
+  }
+  const data = await resp.json();
+  const obj = JSON.parse(data.body);
+  const url = `data:audio/mid;base64,${obj.midi_file}`;
+  const fetchedFile = await (await fetch(url)).blob();
+  //@ts-ignore
+  return fetchedFile;
+}
+
+function toBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      let stringed = reader.result as string;
+      stringed = stringed.replace("data:image/png;base64,", "");
+      resolve(stringed);
+    };
+    reader.onerror = (error) => reject(error);
+  });
 }
