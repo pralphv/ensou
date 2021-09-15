@@ -52,9 +52,8 @@ export default function LocalSamplesTab({ setOpen }: ILocalSamplesTabProps) {
     }
     if (Object.keys(arrayBufferMap).length >= 1) {
       await indexedDbUtils.setLocalSamplerArrayBuffer(arrayBufferMap);
-      const sampleMap: SamplerOptions["urls"] = await convertArrayBufferToAudioContext(
-        arrayBufferMap
-      );
+      const sampleMap: SamplerOptions["urls"] =
+        await convertArrayBufferToAudioContext(arrayBufferMap);
       setSampleMap(sampleMap);
       enqueueSnackbar("Successfully loaded samples", { variant: "success" });
     } else {
@@ -75,17 +74,13 @@ export default function LocalSamplesTab({ setOpen }: ILocalSamplesTabProps) {
     }
   }
 
-  const {
-    acceptedFiles,
-    getRootProps,
-    getInputProps,
-    isDragActive,
-  } = useDropzone({
-    onDropAccepted: handleOnDropAccepted,
-    onDropRejected: handleOnDropRejected,
-    multiple: true,
-    accept: ".mp3",
-  });
+  const { acceptedFiles, getRootProps, getInputProps, isDragActive } =
+    useDropzone({
+      onDropAccepted: handleOnDropAccepted,
+      onDropRejected: handleOnDropRejected,
+      multiple: true,
+      accept: ".mp3",
+    });
 
   return (
     <div>
@@ -96,11 +91,12 @@ export default function LocalSamplesTab({ setOpen }: ILocalSamplesTabProps) {
         <DialogContentText>
           Notes that are not provided will be automatically repitched.
         </DialogContentText>
-        <DialogContentText>
+        <DialogContentText style={{ fontSize: "0.9em" }}>
           Using samples may affect performance.
         </DialogContentText>
 
-        <section className="container" style={{ marginLeft: 8 * 3 }}>
+        {/* <section className="container" style={{ marginLeft: 8 * 3 }}> */}
+        <section className="file-contaiener" >
           <input {...getInputProps()} />
           <div {...getRootProps({ className: "dropzone" })}>
             {acceptedFiles.length > 0 ? (

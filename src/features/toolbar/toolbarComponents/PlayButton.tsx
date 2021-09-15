@@ -17,6 +17,7 @@ export default function PlayButton(): JSX.Element {
           onClick={myMidiPlayer.pause}
           // style={{ width: BUTTON_WIDTH, height: BUTTON_HEIGHT }}
           size="small"
+          disabled={!myMidiPlayer.isReady}
         >
           <PauseIcon />
         </CustomButton>
@@ -29,6 +30,7 @@ export default function PlayButton(): JSX.Element {
             myMidiPlayer.play();
           }}
           size="small"
+          disabled={!myMidiPlayer.isReady}
         >
           <PlayArrowIcon />
         </CustomButton>

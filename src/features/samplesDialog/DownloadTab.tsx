@@ -37,7 +37,8 @@ export default function DownloadTab({ setOpen }: IDownloadTabProps) {
     }
 
     async function getDownloadedSamples() {
-      let downloadedSamples = await indexedDbUtils.getDownloadedServerSamplers();
+      let downloadedSamples =
+        await indexedDbUtils.getDownloadedServerSamplers();
       downloadedSamples = downloadedSamples.map(
         (sample: string) => sample.split("_")[1]
       );
@@ -65,7 +66,7 @@ export default function DownloadTab({ setOpen }: IDownloadTabProps) {
         <DialogContentText>
           Expected file size is around 10MB.
         </DialogContentText>
-        <DialogContentText>
+        <DialogContentText style={{ fontSize: "0.9em" }}>
           Using samples may affect performance.
         </DialogContentText>
         <form noValidate style={{ width: "fit-content" }}>

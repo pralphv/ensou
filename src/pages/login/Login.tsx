@@ -33,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
   },
   paper: {
     padding: theme.spacing(2),
-    marginTop: "20%"
+    marginTop: "20%",
   },
 }));
 
@@ -65,10 +65,10 @@ export default function Login({ history }: LoginProps) {
     setLoggingIn(true);
     try {
       await firebase.login({ email, password });
-      
+
       history.push(Pages.Home);
       window.location.reload();
-    //   clearLocalStorage();
+      //   clearLocalStorage();
     } catch (error) {
       const errorCode =
         error.code === "auth/wrong-password" ? "Wrong Password" : error.message;

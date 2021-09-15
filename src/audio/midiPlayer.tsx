@@ -32,6 +32,7 @@ export default class MyMidiPlayer {
   midiPlayer: MidiPlayer.Player & MidiPlayer.Event & MidiPlayer.Track;
   myTonejs?: Instruments; // not actually optional. will be set in init
   instrument: types.Instrument;
+  isReady: boolean;
   isMetronome: boolean;
   _isBlockMetronome: boolean;
   totalTicks: number;
@@ -63,6 +64,7 @@ export default class MyMidiPlayer {
     // this._setInstrumentLoading = setInstrumentLoading;
     // this._forceCanvasRerender = _forceCanvasRerender;
 
+    this.isReady = false; // for blocking play button. etc. no file loaded
     this.instrument = "piano";
     this.isMetronome = false;
     this.isPlaying = false;
@@ -206,13 +208,13 @@ export default class MyMidiPlayer {
     const allEvents: MidiPlayer.Event[] = this.midiPlayer.getEvents();
     this.isPlaying = false;
 
-    const groupedNotes: types.IGroupedNotes[] = processing.groupNotes(
-      allEvents
-    );
+    const groupedNotes: types.IGroupedNotes[] =
+      processing.groupNotes(allEvents);
     this.totalTicks = groupedNotes[groupedNotes.length - 1].off;
     this.groupedNotes = groupedNotes;
     // @ts-ignore
     this.ticksPerBeat = this.midiPlayer.getDivision().division;
+    this.isReady = true;
   }
 
   _handleOnMidiEvent(midiEvent: any) {
@@ -388,6 +390,7 @@ export default class MyMidiPlayer {
     xhr.onload = () => this.handleOnDownloaded(xhr);
     xhr.onerror = () => {
       // probably cors
+      this.eventListeners?.error();
     };
     xhr.open("GET", url);
     xhr.send();
@@ -450,7 +453,8 @@ export default class MyMidiPlayer {
   }
 
   async fetchLocalSampler() {
-    const localSampler: types.ArrayBufferMap = await indexedDbUtils.getLocalSamplerArrayBuffer();
+    const localSampler: types.ArrayBufferMap =
+      await indexedDbUtils.getLocalSamplerArrayBuffer();
     const userLastSampler = localStorageUtils.getSamplerSource();
     const wasUsingLocal =
       userLastSampler === types.SamplerSourceEnum.local ||

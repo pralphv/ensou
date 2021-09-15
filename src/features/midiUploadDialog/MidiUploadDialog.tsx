@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 
+import { useHistory } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "app/rootReducer";
 
@@ -15,6 +16,7 @@ import { useSnackbar } from "notistack";
 import { useFirestore } from "react-redux-firebase";
 
 import { storageRef } from "firebaseApi/firebase";
+import { Pages } from "layouts/constants";
 
 interface IMidiUploadDialogProps {
   open: boolean;
@@ -77,20 +79,25 @@ export default function MidiUploadDialog({
         return;
       }
     }
-    // need error handling
-    const resp = await firestore.collection("midi").add({
-      ...formData,
-      date: new Date(),
-      uploader: username,
-    });
-
-    await storageRef.child(`midi/${resp.id}.mid`).put(acceptedFiles[0]);
-    enqueueSnackbar("Upload successful", { variant: "success" });
+    try {
+      const resp = await firestore.collection("midi").add({
+        ...formData,
+        date: new Date(),
+        uploader: username,
+      });
+      await storageRef.child(`midi/${resp.id}.mid`).put(acceptedFiles[0]);
+      enqueueSnackbar("Upload successful", { variant: "success" });
+      history.push(`${Pages.Player}/${resp.id}`);
+    } catch (error) {
+      console.error({ error });
+      enqueueSnackbar(error.message, { variant: "error" });
+    }
 
     setOpen(false);
   }
   const firestore = useFirestore();
   const { enqueueSnackbar } = useSnackbar();
+  const history = useHistory();
   const username = useSelector(
     (state: RootState) => state.firebase.auth.displayName
   );
@@ -102,18 +109,14 @@ export default function MidiUploadDialog({
     transcribedBy: "",
   });
 
-  const {
-    acceptedFiles,
-    getRootProps,
-    getInputProps,
-    isDragActive,
-  } = useDropzone({
-    maxSize: 1 * 1000 * 1000,
-    onDropAccepted: handleOnDropAccepted,
-    onDropRejected: handleOnDropRejected,
-    multiple: false,
-    accept: "audio/mid",
-  });
+  const { acceptedFiles, getRootProps, getInputProps, isDragActive } =
+    useDropzone({
+      maxSize: 1 * 1000 * 1000,
+      onDropAccepted: handleOnDropAccepted,
+      onDropRejected: handleOnDropRejected,
+      multiple: false,
+      accept: "audio/mid",
+    });
 
   return (
     <Dialog open={open} onClose={() => setOpen(false)}>

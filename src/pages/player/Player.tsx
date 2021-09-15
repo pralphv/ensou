@@ -60,7 +60,11 @@ export default function Player(): JSX.Element {
         setMidiLoading(true);
       });
       myMidiPlayer.on("downloadedMidi", () => {
-        setPlayerStatus("Drawing notes...");
+        setPlayerStatus("");
+        setMidiLoading(false);
+      });
+      myMidiPlayer.on("error", () => {
+        alert("Unknown error: could not load song")
         setPlayerStatus("");
         setMidiLoading(false);
       });

@@ -29,9 +29,11 @@ export default function SamplesDialog({ open, setOpen }: ISamplesDialogProps) {
         >
           <Tab label="Local Samples" />
           <Tab label="Download Samples" />
+          <Tab label="Record Sample" />
         </Tabs>
         {value === 0 && <LocalSamplesTab setOpen={setOpen} />}
         {value === 1 && <DownloadTab setOpen={setOpen} />}
+        {value === 2 && <DownloadTab setOpen={setOpen} />}
       </Paper>
     </Dialog>
   );

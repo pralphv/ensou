@@ -2,7 +2,6 @@ import {
   ExtendedAuthInstance,
   ExtendedFirebaseInstance,
 } from "react-redux-firebase";
-import { EndPoints } from "./constants";
 import { config } from "./firebase";
 import * as types from "./types";
 
@@ -44,7 +43,7 @@ async function updateObject(
     await ref.update(obj);
     return true;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return false;
   }
 }
@@ -58,7 +57,7 @@ async function setObject(
     await ref.set(obj);
     return true;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return false;
   }
 }
@@ -69,7 +68,7 @@ async function deleteObject(firebase: ExtendedFirebaseInstance, path: string) {
     await ref.remove();
     return true;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return false;
   }
 }
@@ -83,7 +82,7 @@ export async function registerUser(
     await firebase.auth().createUserWithEmailAndPassword(email, password);
     return { status: "ok", message: "success" };
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return { status: "error", message: error };
   }
 }
@@ -93,10 +92,10 @@ export async function updateDisplayName(
   username: string
 ): Promise<types.Resp> {
   try {
-    await firebase.auth().currentUser?.updateProfile({displayName: username});
+    await firebase.auth().currentUser?.updateProfile({ displayName: username });
     return { status: "ok", message: "success" };
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return { status: "error", message: error };
   }
 }
@@ -118,7 +117,7 @@ export async function sendVerification(
       await user.sendEmailVerification(url);
       return { status: "ok", message: "success" };
     } catch (error) {
-      return { status: "error", message: error };
+      return { status: "error", message: error.message };
     }
   } else {
     return { status: "error", message: "User is not logged in" };
@@ -130,54 +129,3 @@ export async function logout(firebase: ExtendedAuthInstance) {
   // clearBackendResponse();
 }
 
-export async function renameSchema(
-  firebase: ExtendedFirebaseInstance,
-  userId: string,
-  schemeId: string,
-  newName: string
-) {
-  const path = `${EndPoints.Users}/${userId}/${schemeId}`;
-  console.log(`Renaming ${path}/name to ${newName}`);
-  updateObject(firebase, path, { name: newName });
-}
-
-export async function updateSchema(
-  firebase: ExtendedFirebaseInstance,
-  userId: string,
-  schemeId: string,
-  colorGradient: any
-) {
-  if (userId) {
-    const path = `${EndPoints.Users}/${userId}/${schemeId}/colorGradient`;
-    console.log(`Updating ${path}/`);
-    setObject(firebase, path, colorGradient);
-  }
-}
-
-export async function deleteScheme(
-  firebase: ExtendedFirebaseInstance,
-  userId: string,
-  schemeId: string
-) {
-  const path = `${EndPoints.Users}/${userId}/${schemeId}`;
-  console.log(`Deleting ${path}`);
-  try {
-    await deleteObject(firebase, path);
-    return { status: "ok", message: "success" };
-  } catch (error) {
-    return { status: "error", message: error };
-  }
-}
-
-export async function submitScheme(
-  firebase: ExtendedFirebaseInstance,
-  userId: string,
-  schemeId: string,
-  colorGradient: any
-) {
-  if (userId) {
-    const path = `${EndPoints.SubmittedSchemes}/${schemeId}`;
-    console.log(`Updating ${path}/`);
-    setObject(firebase, path, colorGradient);
-  }
-}

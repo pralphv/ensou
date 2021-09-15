@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 
 import { useHistory } from "react-router-dom";
-// import { ExtendedAuthInstance, useFirebase } from "react-redux-firebase";
 
 import { Typography } from "@material-ui/core";
 import IconButton from "@material-ui/core/IconButton";
