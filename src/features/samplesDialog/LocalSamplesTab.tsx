@@ -91,9 +91,6 @@ export default function LocalSamplesTab({ setOpen }: ILocalSamplesTabProps) {
         <DialogContentText>
           Notes that are not provided will be automatically repitched.
         </DialogContentText>
-        <DialogContentText style={{ fontSize: "0.9em" }}>
-          Using samples may affect performance.
-        </DialogContentText>
 
         {/* <section className="container" style={{ marginLeft: 8 * 3 }}> */}
         <section className="file-contaiener" >

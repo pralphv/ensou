@@ -66,9 +66,6 @@ export default function DownloadTab({ setOpen }: IDownloadTabProps) {
         <DialogContentText>
           Expected file size is around 10MB.
         </DialogContentText>
-        <DialogContentText style={{ fontSize: "0.9em" }}>
-          Using samples may affect performance.
-        </DialogContentText>
         <form noValidate style={{ width: "fit-content" }}>
           <FormControl style={{ minWidth: "120px" }}>
             <InputLabel>Piano Samples</InputLabel>
