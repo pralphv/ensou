@@ -34,13 +34,13 @@ class MyCanvas {
   constructor(width: number, height: number) {
 
     this.app = new PIXI.Application({
+      resolution: window.devicePixelRatio || 1,
+      // autoDensity: true,
       width: width,
       height: height,
       transparent: false,
       antialias: true,
       clearBeforeRender: true,
-      // backgroundColor: 0x353535,
-      // resolution: 1
     });
     this.config = {
       canvasNoteScale: 10,
