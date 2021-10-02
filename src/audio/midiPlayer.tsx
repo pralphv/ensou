@@ -192,13 +192,12 @@ export default class MyMidiPlayer {
       }
     }
     if (!this.practiceMode) {
-      const playingNotes: Set<number> = new Set();
+      this.playingNotes.clear();
       for (const note of this.groupedNotes) {
         if (currentTick.tick >= note.on && currentTick.tick <= note.off) {
-          playingNotes.add(note.x);
+          this.playingNotes.add(note.x);
         }
       }
-      this.playingNotes = playingNotes;
     }
 
     callback();
