@@ -22,7 +22,7 @@ export default function ToolBar({
   isFullscreen,
   setIsFullscreen,
 }: ToolBarProps) {
-  const isMobile = window.innerWidth <= 700 || window.innerHeight <= 700;
+  const isMobile = window.innerWidth <= 500 || window.innerHeight <= 500;
   const buttons = !(isMobile && isFullscreen)
     ? [
         <TempoButton key="tempo" />,
