@@ -31,10 +31,7 @@
 .vertical canvas {
   display: block;
   width: 80vw;
-  max-width: 142.22vh;
-  /* 80 * 16/9 = 142.22 */
-  height: 45vw;
-  /* height:width ratio = 9/16 = .5625  */
+  aspect-ratio: 16 / 9;
   max-height: 80vh;
   background-color: black;
   left: 0;
