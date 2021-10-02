@@ -57,7 +57,7 @@ export function useLoadLocal(
     async (acceptedFiles) => {
       const handleNotification = (message: string, variant: VariantType) => {
         // variant could be success, error, warning, info, or default
-        enqueueSnackbar(message, { variant });
+        enqueueSnackbar(message, { variant, autoHideDuration: 2000 });
       };
 
       const reader = new FileReader();
@@ -83,7 +83,7 @@ export function useLoadLocal(
           reader.readAsArrayBuffer(readFile);
           handleNotification(`Successfully read: ${file.name}`, "success");
         }
-      } catch (error) {
+      } catch (error: unknown) {
         handleNotification(error.toString(), "error");
         console.error(error);
       }
