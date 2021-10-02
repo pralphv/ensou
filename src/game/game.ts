@@ -139,8 +139,6 @@ class Game {
   }
 
   handleOnKeyDown(e: KeyboardEvent) {
-    console.log({ e });
-    console.log(e.code);
     if (this.availableKeys.has(e.code) && !this.pressedKeys.has(e.code)) {
       this.pressedKeys.add(e.code);
       const note = this.keyNoteMap[e.code];
