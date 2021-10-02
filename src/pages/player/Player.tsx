@@ -64,7 +64,7 @@ export default function Player(): JSX.Element {
         setMidiLoading(false);
       });
       myMidiPlayer.on("error", () => {
-        alert("Unknown error: could not load song")
+        alert("Unknown error: could not load song");
         setPlayerStatus("");
         setMidiLoading(false);
       });
@@ -182,9 +182,7 @@ export default function Player(): JSX.Element {
         ></div>
       </div>
     ),
-    [
-      isFullscreen,
-    ]
+    [isFullscreen]
   );
   const toolbarMemo = useMemo(() => {
     let opacity = myMidiPlayer.getIsPlaying() ? 0 : 1;
