@@ -1,7 +1,7 @@
 import React from "react";
 
-import IconButton from "@material-ui/core/IconButton";
-import AddCircleIcon from "@material-ui/icons/AddCircle";
+import IconButton from "@mui/material/IconButton";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
 
 import * as types from "types";
 

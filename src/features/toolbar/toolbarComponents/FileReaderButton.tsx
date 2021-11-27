@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { useDropzone } from "react-dropzone";
 
-import FolderIcon from "@material-ui/icons/Folder";
+import FolderIcon from "@mui/icons-material/Folder";
 
 import CustomButton from "./cutomButton/CustomButton";
 import { useLoadLocal } from "utils/customHooks";

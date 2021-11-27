@@ -113,13 +113,15 @@ export enum SamplerSourceEnum {
   local = "local",
   server = "server",
   cachedLocal = "cachedLocal",
+  recorded = "recorded"
 }
 
 export type SamplerSource =
   | SamplerSourceEnum.synth
   | SamplerSourceEnum.local
   | SamplerSourceEnum.server
-  | SamplerSourceEnum.cachedLocal;
+  | SamplerSourceEnum.cachedLocal
+  | SamplerSourceEnum.recorded;
 
 export interface ArrayBufferMap {
   [key: string]: ArrayBuffer;

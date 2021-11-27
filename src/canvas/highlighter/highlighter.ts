@@ -21,15 +21,17 @@ export default class Highlighter {
     rect.destroy({ children: true, texture: true, baseTexture: true });
   }
 
-  draw() {
+  draw(currentTick: number) {
     this._sprite.visible = true;
 
     // this.destroy();
     const startY = convertMidiTickToCanvasHeight(
-      myMidiPlayer.playRange.startTick || 0
+      myMidiPlayer.playRange.startTick || 0,
+      currentTick
     );
     const endY = convertMidiTickToCanvasHeight(
-      myMidiPlayer.playRange.endTick || 0
+      myMidiPlayer.playRange.endTick || 0,
+      currentTick
     );
     this._sprite.position.y = endY > startY ? startY : endY;
     this._sprite.height = Math.max(Math.abs(endY - startY), 2);

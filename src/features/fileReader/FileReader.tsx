@@ -2,12 +2,12 @@ import React, { useState, useCallback, useEffect } from "react";
 
 import { useDispatch } from "react-redux";
 import { useDropzone } from "react-dropzone";
-import { Typography } from "@material-ui/core";
-import Select from "@material-ui/core/Select";
-import MenuItem from "@material-ui/core/MenuItem";
+import { Typography } from "@mui/material";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
 import { storageRef } from "firebaseApi/firebase";
-import InputLabel from "@material-ui/core/InputLabel";
-import FormControl from "@material-ui/core/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import FormControl from "@mui/material/FormControl";
 import { VariantType, useSnackbar } from "notistack";
 import { Player } from "midi-player-js";
 

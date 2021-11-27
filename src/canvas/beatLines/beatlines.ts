@@ -9,6 +9,8 @@ export default class BeatLines {
   _container: PIXI.Container;
   _sprites: PIXI.Sprite[];
   _config: IMyCanvasConfig;
+  _noOfSprites: number;
+
   constructor(app: PIXI.Application, config: IMyCanvasConfig) {
     // probably should calculate how many beat lines there would be on the screen given a song
     this._app = app;
@@ -30,15 +32,16 @@ export default class BeatLines {
       sprite.position.y = -10; // move below canvas to hide
       this._container.addChild(sprite);
     });
+    this._noOfSprites = this._sprites.length;
     // sprites already built. delete texture
     line.destroy({ children: true, baseTexture: true, texture: true });
   }
 
-  draw() {
+  draw(currentTick: number) {
     const ticksPerBar = myMidiPlayer.getTicksPerBeat() * 4;
     const startTick =
-      Math.ceil(myMidiPlayer.getCurrentTick() / ticksPerBar) * ticksPerBar;
-    for (let i = 0; i < this._sprites.length; i++) {
+      Math.ceil(currentTick / ticksPerBar) * ticksPerBar;
+    for (let i = 0; i < this._noOfSprites; i++) {
       const y = convertMidiTickToCanvasHeight(startTick + ticksPerBar * i);
       this._sprites[i].position.y = y;
 

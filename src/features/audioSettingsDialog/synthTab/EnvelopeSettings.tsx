@@ -1,9 +1,9 @@
 import React from "react";
 
-import { Typography } from "@material-ui/core";
-import InputLabel from "@material-ui/core/InputLabel";
+import { Typography } from "@mui/material";
+import InputLabel from "@mui/material/InputLabel";
 import prettyMilliseconds from "pretty-ms";
-import Slider from "@material-ui/core/Slider";
+import Slider from "@mui/material/Slider";
 
 import myMidiPlayer from "audio";
 import * as types from "types";
@@ -17,8 +17,8 @@ export default function EnvelopeSettings({
   forceLocalRender,
   synthIndex,
 }: IEnvelopeSettingsProps) {
-  const settings = myMidiPlayer.myTonejs?.getSynthSettings(synthIndex)
-    ?.envelope;
+  const settings =
+    myMidiPlayer.myTonejs?.getSynthSettings(synthIndex)?.envelope;
 
   return (
     <div>
@@ -28,6 +28,7 @@ export default function EnvelopeSettings({
           <div key={key}>
             <InputLabel>{key}</InputLabel>
             <Slider
+              size="small"
               value={value as number}
               min={0.00001}
               step={0.001}

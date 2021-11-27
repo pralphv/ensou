@@ -1,6 +1,6 @@
 import React from "react";
 
-import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
+import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
 import CustomButton from "./cutomButton/CustomButton";
 import myMidiPlayer from "audio";
 

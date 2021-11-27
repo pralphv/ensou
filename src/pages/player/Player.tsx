@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import clsx from "clsx";
 
-import { Typography } from "@material-ui/core";
-import Divider from "@material-ui/core/Divider";
+import { Typography } from "@mui/material";
+import Divider from "@mui/material/Divider";
 import { useFirestore } from "react-redux-firebase";
 
 import LoadingScreen from "features/loadingScreen/LoadingScreen";
@@ -64,7 +64,7 @@ export default function Player(): JSX.Element {
         setMidiLoading(false);
       });
       myMidiPlayer.on("error", () => {
-        alert("Unknown error: could not load song");
+        // alert("Unknown error: could not load song");
         setPlayerStatus("");
         setMidiLoading(false);
       });

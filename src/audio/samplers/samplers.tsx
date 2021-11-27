@@ -2,8 +2,8 @@ import * as types from "types";
 import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
 import { storageRef } from "firebaseApi/firebase";
 import { convertArrayBufferToAudioContext } from "utils/helper";
-import { ICachedSounds, ISampleCache } from "../types";
-import { Sampler, SamplerOptions } from "tone";
+import { ISampleCache } from "../types";
+import { SamplerOptions } from "tone";
 
 let SAMPLE_CACH: ISampleCache = {};
 
@@ -32,6 +32,7 @@ async function fetchInstruments(
       .listAll();
     const total: number = items.items.length;
     let progress: number = 0;
+    // need error handling
     await Promise.all(
       items.items.map(async (item) => {
         const note = item.name.slice(0, item.name.length - 4);

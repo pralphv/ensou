@@ -1,8 +1,8 @@
 import React from "react";
 
-import DialogContent from "@material-ui/core/DialogContent";
-import grey from "@material-ui/core/colors/grey";
-import Grid from "@material-ui/core/Grid";
+import DialogContent from "@mui/material/DialogContent";
+import grey from "@mui/material/colors/grey";
+import Grid from "@mui/material/Grid";
 
 import * as types from "types";
 import ToMasterCheckbox from "./ToMasterCheckBox";
@@ -23,10 +23,10 @@ export default function EffectsTab({
 }: IEffectsTab): JSX.Element {
   const myTonejs = myMidiPlayer.myTonejs;
   return (
-    <div>
+    <React.Fragment>
       {myTonejs && (
         <DialogContent>
-          <div style={{ padding: 16 }}>
+          <React.Fragment>
             <ActivateSwitch
               checked={myTonejs.getEffectsActivated()}
               onChange={() => {
@@ -36,9 +36,9 @@ export default function EffectsTab({
             />
             <Grid
               container
-              spacing={2}
+              gap={2}
               direction="row"
-              justify="center"
+              justifyContent="center"
               alignItems="stretch"
             >
               {myTonejs.getEffectsChain().map((fx, fxIndex) => {
@@ -47,9 +47,7 @@ export default function EffectsTab({
                   <Grid
                     key={`${fxIndex}`}
                     item
-                    style={{
-                      background: grey[900],
-                      padding: 16,
+                    sx={{
                       width: "160px",
                     }}
                   >
@@ -109,9 +107,9 @@ export default function EffectsTab({
                 }}
               />
             </Grid>
-          </div>
+          </React.Fragment>
         </DialogContent>
       )}
-    </div>
+    </React.Fragment>
   );
 }

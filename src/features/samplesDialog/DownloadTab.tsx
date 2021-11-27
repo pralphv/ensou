@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 
-import Button from "@material-ui/core/Button";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
-import FormControl from "@material-ui/core/FormControl";
-import Select from "@material-ui/core/Select";
+import Button from "@mui/material/Button";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
 
 import { storageRef } from "firebaseApi/firebase";
 import * as types from "types";
@@ -49,8 +49,8 @@ export default function DownloadTab({ setOpen }: IDownloadTabProps) {
     getDownloadedSamples();
   }, []);
 
-  function handleChange(event: React.ChangeEvent<{ value: unknown }>) {
-    setChosenSample(event.target.value as string);
+  function handleChange(event: SelectChangeEvent<string>) {
+    setChosenSample(event.target.value);
   }
 
   function handleOnSubmit() {
@@ -67,7 +67,7 @@ export default function DownloadTab({ setOpen }: IDownloadTabProps) {
           Expected file size is around 10MB.
         </DialogContentText>
         <form noValidate style={{ width: "fit-content" }}>
-          <FormControl style={{ minWidth: "120px" }}>
+          <FormControl sx={{ minWidth: "150px" }}>
             <InputLabel>Piano Samples</InputLabel>
             <Select value={chosenSample} onChange={handleChange} autoFocus>
               {samples.map((sample) => (

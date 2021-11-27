@@ -1,119 +1,242 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
-import Button from "@material-ui/core/Button";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
-import { Typography } from "@material-ui/core";
+import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import FormControl from "@mui/material/FormControl";
+import IconButton from "@mui/material/IconButton";
+import StopIcon from "@mui/icons-material/Stop";
+import MenuItem from "@mui/material/MenuItem";
+import Button from "@mui/material/Button";
+import Grid from "@mui/material/Grid";
+
+import { SamplerOptions, Synth } from "tone";
 import { useSnackbar } from "notistack";
-import { useDropzone } from "react-dropzone";
 
-import * as types from "types";
 import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
-import { SamplerOptions } from "tone";
 import { convertArrayBufferToAudioContext } from "utils/helper";
+import { PIANO_TUNING } from "audio/constants";
 import myMidiPlayer from "audio";
+import * as types from "types";
 
-interface ILocalSamplesTabProps {
-  setOpen: (bool: boolean) => void;
+let audioCtx;
+const HAS_MEDIA_SUPPORT: boolean = !!navigator.mediaDevices.getUserMedia;
+
+interface IRecordSampleTabProps {
+  onCancel: () => void;
+  onOk: () => void;
 }
 
-function checkValidMusicNote(note: string) {
-  if (note.length >= 4) {
-    return false;
-  }
-  if (note.includes("#") || note.includes("b")) {
-    if (!/^([A-G]{1})(|b{1})([0-9]{1})$/.test(note)) {
-      return false;
-    }
-  } else {
-    if (!/^([A-G]{1})([0-9]{1})$/.test(note)) {
-      return false;
-    }
-  }
-  return true;
+export default function RecordSampleTab({
+  onCancel,
+  onOk,
+}: IRecordSampleTabProps): JSX.Element {
+  return (
+    <React.Fragment>
+      {HAS_MEDIA_SUPPORT ? (
+        <Supported onOk={onOk} onCancel={onCancel} />
+      ) : (
+        <NotSupported />
+      )}
+    </React.Fragment>
+  );
 }
 
-export default function LocalSamplesTab({ setOpen }: ILocalSamplesTabProps) {
-  const [sampleMap, setSampleMap] = useState<SamplerOptions["urls"]>();
-  const { enqueueSnackbar } = useSnackbar();
+interface IRecordButton {
+  recording: boolean;
+  onClick: () => void;
+}
 
-  async function handleOnDropAccepted(e: any) {
-    const arrayBufferMap: types.ArrayBufferMap = {}; // just for saving in indexdb
-    for (let i = 0; i < e.length; i++) {
-      const file = e[i];
-      const note: string = file.name.split(".")[0]; // expect A1 or A#1
-      if (!checkValidMusicNote(note)) {
-        continue;
-      }
-      // @ts-ignore
-      const arrayBuffer = await file.arrayBuffer();
-      arrayBufferMap[note] = arrayBuffer;
+function RecordButton({ recording, onClick }: IRecordButton): JSX.Element {
+  return (
+    <IconButton color="error" aria-label="publish" onClick={onClick}>
+      {recording ? <StopIcon /> : <FiberManualRecordIcon />}
+    </IconButton>
+  );
+}
+
+function NotSupported(): JSX.Element {
+  return (
+    <DialogContent>
+      <DialogContentText>
+        Your device does not support this feature
+      </DialogContentText>
+    </DialogContent>
+  );
+}
+
+class MyMediaRecorder {
+  chunks: Blob[];
+  mediaRecorder: MediaRecorder;
+  blob?: Blob;
+
+  constructor(stream: MediaStream) {
+    this.mediaRecorder = new MediaRecorder(stream);
+    this.chunks = [];
+    this.mediaRecorder.ondataavailable = (e: BlobEvent) => {
+      console.log(e.data)
+      this.chunks.push(e.data);
+    };
+    this.mediaRecorder.onstop = (e) => {
+      // when stopped, it goes to ondataavailable, then onstop
+      this.blob = new Blob(this.chunks, { type: "audio/ogg; codecs=opus" });
+      this.chunks = [];
+    };
+    this.start = this.start.bind(this);
+  }
+
+  start() {
+    this.chunks = [];
+    this.mediaRecorder.start();
+    console.log("Recording started");
+  }
+
+  stop() {
+    this.mediaRecorder.stop();
+    console.log("Recording stopped");
+  }
+}
+
+function Supported({ onCancel, onOk }: IRecordSampleTabProps): JSX.Element {
+  const [accepted, setAccepted] = useState<boolean>();
+  const mediaRecorderRef = useRef<MyMediaRecorder | null>(null);
+
+  function onSuccess(stream: MediaStream) {
+    setAccepted(true);
+    mediaRecorderRef.current = new MyMediaRecorder(stream);
+  }
+
+  function onError() {
+    setAccepted(false);
+  }
+
+  useEffect(() => {
+    async function askForPermission() {
+      navigator.mediaDevices
+        .getUserMedia({ audio: true })
+        .then(onSuccess, onError);
     }
-    if (Object.keys(arrayBufferMap).length >= 1) {
+    askForPermission();
+  }, []);
+
+  return accepted ? (
+    <Accepted
+      onCancel={onCancel}
+      onOk={onOk}
+      mediaRecorderRef={mediaRecorderRef}
+    />
+  ) : (
+    <Declined />
+  );
+}
+
+function Declined(): JSX.Element {
+  return (
+    <DialogContent>
+      <DialogContentText>
+        You have to grant audio permission for this feature
+      </DialogContentText>
+    </DialogContent>
+  );
+}
+
+interface IAcceptedProps {
+  onCancel: () => void;
+  onOk: () => void;
+  mediaRecorderRef: React.MutableRefObject<MyMediaRecorder | null>;
+}
+
+function Accepted({
+  onCancel,
+  onOk,
+  mediaRecorderRef,
+}: IAcceptedProps): JSX.Element {
+  const [recording, setRecording] = useState<boolean>(false);
+  const [chosenNote, setChosenNote] = useState<string>("A5");
+  const synth = new Synth().toDestination();
+
+  function handleChange(event: SelectChangeEvent<string>): void {
+    const note = event.target.value;
+    setChosenNote(note);
+    synth.triggerAttackRelease(note, "2n");
+  }
+
+  function handleRecordOnClick(): void {
+    if (recording) {
+      handleRecordOnStop();
+    } else {
+      handleRecordOnStart();
+    }
+  }
+
+  function handleRecordOnStart(): void {
+    setRecording(true);
+    mediaRecorderRef.current?.start();
+  }
+
+  function handleRecordOnStop(): void {
+    setRecording(false);
+    mediaRecorderRef.current?.stop();
+  }
+
+  async function handleOnApply() {
+    if (mediaRecorderRef.current?.blob) {
+      const arrayBuffer = await mediaRecorderRef.current.blob.arrayBuffer();
+      const arrayBufferMap = { [chosenNote]: arrayBuffer };
       await indexedDbUtils.setLocalSamplerArrayBuffer(arrayBufferMap);
       const sampleMap: SamplerOptions["urls"] =
-        await convertArrayBufferToAudioContext(arrayBufferMap);
-      setSampleMap(sampleMap);
-      enqueueSnackbar("Successfully loaded samples", { variant: "success" });
-    } else {
-      enqueueSnackbar("No valid samples were loaded", { variant: "warning" });
-    }
-  }
-
-  function handleOnDropRejected(e: any) {
-    const errorMsg: string = e[0].errors[0].message;
-    enqueueSnackbar(errorMsg, { variant: "error" });
-  }
-
-  function handleOnSubmit() {
-    if (sampleMap) {
+      await convertArrayBufferToAudioContext(arrayBufferMap);
+      console.log({arrayBufferMap, sampleMap})
       myMidiPlayer.setLocalSampler(sampleMap);
-      myMidiPlayer.setSamplerSource(types.SamplerSourceEnum.local);
-      setOpen(false);
+      myMidiPlayer.setSamplerSource(types.SamplerSourceEnum.recorded);
+      onOk();
     }
   }
-
-  const { acceptedFiles, getRootProps, getInputProps, isDragActive } =
-    useDropzone({
-      onDropAccepted: handleOnDropAccepted,
-      onDropRejected: handleOnDropRejected,
-      multiple: true,
-      accept: ".mp3",
-    });
 
   return (
-    <div>
+    <React.Fragment>
       <DialogContent>
-        <DialogContentText>
-          Name your files according to their notes, etc A1.mp3, A#1.mp3.
-        </DialogContentText>
-        <DialogContentText>
-          Notes that are not provided will be automatically repitched.
-        </DialogContentText>
-
-        {/* <section className="container" style={{ marginLeft: 8 * 3 }}> */}
-        <section className="file-contaiener" >
-          <input {...getInputProps()} />
-          <div {...getRootProps({ className: "dropzone" })}>
-            {acceptedFiles.length > 0 ? (
-              <Typography>{acceptedFiles[0].name}</Typography>
-            ) : isDragActive ? (
-              <Typography>Drag here</Typography>
-            ) : (
-              <Typography>Click to select files or Drag and Drop</Typography>
-            )}
-          </div>
-        </section>
+        <DialogContentText>Match your sound with this note</DialogContentText>
+        <Grid container gap={2} justifyContent="center" alignItems="center">
+          <Grid item xs={2}>
+            <NoteSelector chosenNote={chosenNote} onChange={handleChange} />
+          </Grid>
+          <Grid item xs={1}>
+            <RecordButton recording={recording} onClick={handleRecordOnClick} />
+          </Grid>
+        </Grid>
       </DialogContent>
       <DialogActions>
-        <Button onClick={() => setOpen(false)} color="primary">
-          Cancel
+        <Button onClick={() => onCancel()} color="primary">
+          Close
         </Button>
-        <Button onClick={handleOnSubmit} color="primary" variant="contained">
-          OK
+        <Button color="primary" variant="contained" onClick={handleOnApply}>
+          Apply
         </Button>
       </DialogActions>
-    </div>
+    </React.Fragment>
+  );
+}
+
+interface INoteSelector {
+  chosenNote: string;
+  onChange: (e: SelectChangeEvent<string>) => void;
+}
+
+function NoteSelector({ chosenNote, onChange }: INoteSelector) {
+  return (
+    <form noValidate style={{ width: "fit-content" }}>
+      <FormControl>
+        <Select value={chosenNote} onChange={onChange} autoFocus>
+          {Object.keys(PIANO_TUNING).map((note) => (
+            <MenuItem key={note} value={note}>
+              {note}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </form>
   );
 }

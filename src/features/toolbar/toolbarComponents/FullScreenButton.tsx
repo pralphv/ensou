@@ -1,8 +1,8 @@
 import React from "react";
 
 import CustomButton from "./cutomButton/CustomButton";
-import FullscreenExitIcon from "@material-ui/icons/FullscreenExit";
-import FullscreenIcon from "@material-ui/icons/Fullscreen";
+import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
 
 interface IFullScreenButton {
   isFullscreen: boolean;

@@ -5,13 +5,13 @@ import { useSelector } from "react-redux";
 import { RootState } from "app/rootReducer";
 
 import { useDropzone } from "react-dropzone";
-import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import { Typography } from "@material-ui/core";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
+import { Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import { useFirestore } from "react-redux-firebase";
 
@@ -69,7 +69,7 @@ export default function MidiUploadDialog({
     });
   }
 
-  async function handleOnSubmit(e: any) {
+  async function handleOnSubmit() {
     if (acceptedFiles.length === 0) {
       return;
     }
@@ -88,11 +88,10 @@ export default function MidiUploadDialog({
       await storageRef.child(`midi/${resp.id}.mid`).put(acceptedFiles[0]);
       enqueueSnackbar("Upload successful", { variant: "success" });
       history.push(`${Pages.Player}/${resp.id}`);
-    } catch (error) {
-      console.error({ error });
-      enqueueSnackbar(error.message, { variant: "error" });
+    } catch (e: any) {
+      console.error({ e });
+      enqueueSnackbar(e.message, { variant: "error" });
     }
-
     setOpen(false);
   }
   const firestore = useFirestore();
@@ -129,7 +128,7 @@ export default function MidiUploadDialog({
           ) : isDragActive ? (
             <Typography>Drag here</Typography>
           ) : (
-            <Typography>Click to select files or Drag and Drop</Typography>
+            <Typography>Click or Drag and Drop</Typography>
           )}
         </div>
       </section>
@@ -145,6 +144,7 @@ export default function MidiUploadDialog({
             onChange={handleOnChange}
             value={formData[obj.id as keyof IFormData]}
             autoComplete={"off"}
+            variant="standard"
           />
         ))}
       </DialogContent>

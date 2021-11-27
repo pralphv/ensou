@@ -61,12 +61,13 @@ export default class FallingNotes {
       const text = new PIXI.Text(note.noteName.slice(0, -1), {
         fontFamily: "Helvetica",
         fontSize: Math.min(width * 0.8, 12),
-        fill: 0x1f1d1d,
+        fill: "#2D353F",
         align: "center",
+        fontWeight: 600,
       });
       this._textArray.push(text);
       rectSprite.addChild(text);
-      text.anchor.x = 0.5;
+      // text.anchor.x = 0.5;
       text.position.x = width / 2;
       text.position.y = height - 12 - 5;
       this._container.addChild(rectSprite);
@@ -79,16 +80,16 @@ export default class FallingNotes {
     this.hideText();
   }
 
-  draw() {
+  draw(currentTick: number) {
     const upperLimit = myMidiPlayer.ticksPerBeat * 4 * 8; // assume 4 beats per bar, show 3 bars
     for (const note of this._fallingNotes) {
       if (
-        myMidiPlayer.getCurrentTick() >=
-          note.on * this._canvasNoteScale - upperLimit &&
-        myMidiPlayer.getCurrentTick() <= note.off * this._canvasNoteScale
+        currentTick >=
+        note.on * this._canvasNoteScale - upperLimit &&
+        currentTick <= note.off * this._canvasNoteScale
       ) {
         const on =
-          note.on - myMidiPlayer.getCurrentTick() / this._canvasNoteScale;
+          note.on - currentTick / this._canvasNoteScale;
         note.rectSprite.position.x = note.x;
         note.rectSprite.position.y =
           this._screenHeight - on - note.height - this._bottomTileHeight;

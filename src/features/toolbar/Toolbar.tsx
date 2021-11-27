@@ -1,5 +1,5 @@
 import React from "react";
-import ToggleButtonGroup from "@material-ui/lab/ToggleButtonGroup";
+import ToggleButtonGroup from "@mui/lab/ToggleButtonGroup";
 
 import PlayButton from "./toolbarComponents/PlayButton";
 import VolumeButton from "./toolbarComponents/VolumeButton";

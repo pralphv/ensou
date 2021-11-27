@@ -4,53 +4,32 @@ import { History } from "history";
 
 import { ExtendedAuthInstance, useFirebase } from "react-redux-firebase";
 
-import {
-  Grid,
-  Button,
-  makeStyles,
-  TextField,
-  Typography,
-  Paper,
-} from "@material-ui/core";
+import { Grid, Button, TextField, Typography, Paper } from "@mui/material";
 
 import LoadingSpinner from "features/loadingSpinner/LoadingSpinner";
 import BoldTitle from "features/boldTitle/BoldTitle";
 import { Pages } from "layouts/constants";
 
-const useStyles = makeStyles((theme) => ({
-  progress: {
-    margin: theme.spacing(2),
-  },
-  link: {
-    textDecoration: "none",
-  },
-  form: {
-    marginTop: 30,
-    marginBottom: 50,
-  },
-  fieldWidth: {
-    width: "100%",
-  },
-  paper: {
-    padding: theme.spacing(2),
-    marginTop: "20%",
-  },
-}));
+const LINK_STYLE = {
+  textDecoration: "none",
+};
+
+const FIELD_WIDTH = {
+  width: "100%",
+};
 
 const errorInitState = "";
 
-interface LoginProps {
+interface ILoginProps {
   history: History;
 }
 
-export default function Login({ history }: LoginProps) {
+export default function Login({ history }: ILoginProps) {
   const firebase: ExtendedAuthInstance = useFirebase();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loggingIn, setLoggingIn] = useState<boolean>(false);
   const [error, setError] = useState<string>(errorInitState);
-
-  const classes = useStyles();
 
   function resetErrorState() {
     setError(errorInitState);
@@ -69,7 +48,7 @@ export default function Login({ history }: LoginProps) {
       history.push(Pages.Home);
       window.location.reload();
       //   clearLocalStorage();
-    } catch (error) {
+    } catch (error: any) {
       const errorCode =
         error.code === "auth/wrong-password" ? "Wrong Password" : error.message;
       setError(errorCode);
@@ -78,12 +57,25 @@ export default function Login({ history }: LoginProps) {
   }
 
   return (
-    <Paper className={classes.paper}>
+    <Paper
+      sx={{
+        padding: 2,
+        marginTop: "20%",
+      }}
+    >
       {loggingIn && <LoadingSpinner />}
       <BoldTitle>Welcome</BoldTitle>
-      <form onSubmit={handleOnSubmit} noValidate className={classes.form}>
+      <form
+        onSubmit={handleOnSubmit}
+        noValidate
+        style={{
+          marginTop: 30,
+          marginBottom: 50,
+        }}
+      >
         <TextField
-          className={classes.fieldWidth}
+          variant="standard"
+          sx={FIELD_WIDTH}
           required
           label="Email"
           onChange={(e) => {
@@ -91,7 +83,8 @@ export default function Login({ history }: LoginProps) {
           }}
         />
         <TextField
-          className={classes.fieldWidth}
+          variant="standard"
+          sx={FIELD_WIDTH}
           required
           autoComplete="current-password"
           label="Password"
@@ -102,19 +95,19 @@ export default function Login({ history }: LoginProps) {
         />
         <br />
         <br />
-        <Grid container justify="center">
+        <Grid container justifyContent="center">
           <Button type="submit" color="primary" variant="contained">
             Submit
           </Button>
         </Grid>
       </form>
-      <Grid container justify="space-between">
-        <Link to={Pages.ForgotPassword} className={classes.link}>
+      <Grid container justifyContent="space-between">
+        <Link to={Pages.ForgotPassword} style={LINK_STYLE}>
           <Typography variant="caption" align="left" color="secondary">
             Forgot Password?
           </Typography>
         </Link>
-        <Link to={Pages.Register} className={classes.link}>
+        <Link to={Pages.Register} style={LINK_STYLE}>
           <Typography variant="caption" align="right" color="secondary">
             Register
           </Typography>

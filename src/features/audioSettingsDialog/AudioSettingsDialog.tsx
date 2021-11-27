@@ -1,8 +1,8 @@
 import React from "react";
 
-import Dialog from "@material-ui/core/Dialog";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
+import Dialog from "@mui/material/Dialog";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
 
 import SynthTab from "./synthTab/SynthTab";
 import SamplerTab from "./SamplerTab";

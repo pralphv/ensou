@@ -212,6 +212,8 @@ export class Instruments {
       const sampleMap = this._samplerOptions?.sampleMap
         ? this._samplerOptions?.sampleMap
         : await this.downloadSamplers();
+        console.log({sampleMap})
+        console.log(this._samplerOptions)
       if (sampleMap) {
         let sampler = new Sampler(sampleMap, {
           attack: 0.01,

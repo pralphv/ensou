@@ -1,6 +1,6 @@
 import React from "react";
 
-import Grid from "@material-ui/core/Grid";
+import Grid from "@mui/material/Grid";
 
 import NavigationBar from "features/navigationBar/NavigationBar";
 
@@ -14,10 +14,10 @@ export default function Navigation({ children }: NavigationProps): JSX.Element {
       <NavigationBar />
       <Grid
         container
-        spacing={0}
+        gap={0}
         direction="column"
         alignItems="center"
-        justify="center"
+        justifyContent="center"
       >
         {children}
       </Grid>

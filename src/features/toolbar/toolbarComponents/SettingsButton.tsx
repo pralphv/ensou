@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 
-import SettingsIcon from "@material-ui/icons/Settings";
-import ClickAwayListener from "@material-ui/core/ClickAwayListener";
+import SettingsIcon from "@mui/icons-material/Settings";
+import ClickAwayListener from "@mui/material/ClickAwayListener";
 
 import CustomButton from "./cutomButton/CustomButton";
 import SettingsMenu from "./SettingsMenu";

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 
-import Dialog from "@material-ui/core/Dialog";
-import { DataGrid, GridColumns, GridCellParams } from "@material-ui/data-grid";
-import DialogContent from "@material-ui/core/DialogContent";
-import Button from "@material-ui/core/Button";
+import Dialog from "@mui/material/Dialog";
+import { DataGrid, GridColumns, GridCellParams } from "@mui/x-data-grid";
+import DialogContent from "@mui/material/DialogContent";
+import Button from "@mui/material/Button";
 
 import game from "game";
 import { PIANO_TUNING } from "audio/constants";
@@ -112,7 +112,7 @@ export default function KeyBindingsDialog({
 
   return (
     <Dialog maxWidth={false} open={open} onClose={() => setOpen(false)}>
-      <DialogContent style={{ width: 300 }}>
+      <DialogContent sx={{ width: 310 }}>
         <DataGrid
           disableColumnMenu={true}
           disableColumnSelector={true}
@@ -126,7 +126,7 @@ export default function KeyBindingsDialog({
           onCellBlur={handleOnCellBlur}
         />
       </DialogContent>
-      <Button onClick={handleButtonOnClick} size="small">
+      <Button variant="contained" onClick={handleButtonOnClick} size="small">
         Reset to Default
       </Button>
     </Dialog>

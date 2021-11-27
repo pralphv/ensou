@@ -1,6 +1,6 @@
 import React from "react";
 
-import FitnessCenterIcon from "@material-ui/icons/FitnessCenter";
+import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import CustomButton from "./cutomButton/CustomButton";
 import myMidiPlayer from "audio";
 

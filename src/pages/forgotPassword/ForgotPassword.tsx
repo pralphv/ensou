@@ -3,14 +3,7 @@ import { History } from "history";
 
 import { ExtendedAuthInstance, useFirebase } from "react-redux-firebase";
 
-import {
-  makeStyles,
-  Grid,
-  Button,
-  Typography,
-  Paper,
-  TextField,
-} from "@material-ui/core";
+import { Grid, Button, Typography, Paper, TextField } from "@mui/material";
 import { useSnackbar } from "notistack";
 
 import LoadingSpinner from "features/loadingSpinner/LoadingSpinner";
@@ -20,21 +13,6 @@ import { sendPasswordResetEmail } from "firebaseApi/crud";
 // import { PADDING_SPACE, MAX_WIDTH } from "../styles";
 
 const errorInitState = "";
-
-const useStyles = makeStyles((theme) => ({
-  form: {
-    marginTop: 30,
-    marginBottom: 50,
-  },
-  paper: {
-    padding: theme.spacing(2),
-    // maxWidth: MAX_WIDTH,
-    marginTop: "20%",
-  },
-  fieldWidth: {
-    width: "100%",
-  },
-}));
 
 interface ForgotPasswordProps {
   history: History;
@@ -46,8 +24,6 @@ export default function ForgotPassword({ history }: ForgotPasswordProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(errorInitState);
   const { enqueueSnackbar } = useSnackbar();
-
-  const classes = useStyles();
 
   function resetErrorState() {
     setError(errorInitState);
@@ -70,20 +46,27 @@ export default function ForgotPassword({ history }: ForgotPasswordProps) {
       enqueueSnackbar("Email has been sent succesffully", {
         variant: "success",
       });
-    } catch (error) {
-      setError(error.message);
+    } catch (e: any) {
+      setError(e.message);
     }
     setSubmitting(false);
   }
 
   return (
-    <Paper className={classes.paper}>
+    <Paper
+      sx={{
+        padding: 2,
+        // maxWidth: MAX_WIDTH,
+        marginTop: "20%",
+      }}
+    >
       {submitting && <LoadingSpinner />}
       <BoldTitle>Reset Password</BoldTitle>
       <form onSubmit={handleOnSubmit} noValidate>
         <TextField
+          variant="standard"
           error={!!error}
-          className={classes.fieldWidth}
+          sx={{ width: "100%" }}
           required
           label="Email"
           onChange={(e) => {
@@ -92,7 +75,7 @@ export default function ForgotPassword({ history }: ForgotPasswordProps) {
         />
         <br />
         <br />
-        <Grid container justify="center">
+        <Grid container justifyContent="center">
           <Button type="submit" color="primary" variant="contained">
             Submit
           </Button>

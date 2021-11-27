@@ -115,27 +115,28 @@ class MyCanvas {
 
     this.on("pointermove", (e: PIXI.InteractionEvent) => {
       if (this.isDragging) {
+        const currentTick = myMidiPlayer.getCurrentTick();
         const y: number = e.data.global.y;
-        let tick: number = convertCanvasHeightToMidiTick(y);
+        let tick: number = convertCanvasHeightToMidiTick(y, currentTick);
         const newIsLarger: boolean = tick >= this.lastClickedTick;
         const startTick = newIsLarger ? this.lastClickedTick : tick;
         let endTick = newIsLarger ? tick : this.lastClickedTick;
         // prevent small ranges due to slow clicks
         endTick = endTick - startTick > 10 ? endTick : startTick;
         myMidiPlayer.setPlayRange(startTick, endTick);
-        this.highlighter.draw();
+        this.highlighter.draw(currentTick);
       }
     });
-    this.on("pointertap", () => {});
+    this.on("pointertap", () => { });
     this.on("pointerdown", (e: PIXI.InteractionEvent) => {
       if (myMidiPlayer.getIsPlaying()) {
         myMidiPlayer.pause();
         return;
       }
-
+      const currentTick = myMidiPlayer.getCurrentTick();
       this.isDragging = true;
       const y: number = e.data.global.y;
-      let tick: number = convertCanvasHeightToMidiTick(y);
+      let tick: number = convertCanvasHeightToMidiTick(y, currentTick);
 
       const startTick: number = this.isShift
         ? Math.min(this.lastClickedTick, tick)
@@ -147,9 +148,9 @@ class MyCanvas {
 
       if (!this.isShift) {
         // for multi shift clicking
-        this.lastClickedTick = convertCanvasHeightToMidiTick(y);
+        this.lastClickedTick = convertCanvasHeightToMidiTick(y, currentTick);
       }
-      this.highlighter.draw();
+      this.highlighter.draw(currentTick);
     });
     this.on("pointerup", () => {
       this.isDragging = false;
@@ -167,14 +168,14 @@ class MyCanvas {
 
   disconnectHTML() {
     myMidiPlayer.setPlayRange(0, 0);
-    this.highlighter.draw(); // just reseting the highlighter
+    this.highlighter.draw(myMidiPlayer.getCurrentTick()); // just reseting the highlighter
     this.pixiCanvas?.removeChild(this.app.view);
     this.pixiCanvas = undefined;
     this.flashingColumns.destroy();
     this.flashingBottomTiles.destroy();
     this.flashingLightsBottomTiles.destroy();
-    this.fallingNotes.destroy();
-    this.beatLines.destroy();
+    this.fallingNotes?.destroy();
+    this.beatLines?.destroy();
     window.removeEventListener("keydown", this.handleKeyDownListener, false);
     window.removeEventListener("keyup", this.handleKeyUpListener, false);
     window.removeEventListener("wheel", this.handleWheel, false);
@@ -212,12 +213,13 @@ class MyCanvas {
   }
 
   render() {
-    this.fallingNotes.draw();
+    const currentTick = myMidiPlayer.getCurrentTick();
+    this.fallingNotes?.draw(currentTick);
     this.flashingColumns.draw();
     this.flashingBottomTiles.draw();
     // this.flashingLightsBottomTiles.draw();
-    this.beatLines.draw();
-    this.highlighter.draw();
+    this.beatLines?.draw(currentTick);
+    this.highlighter.draw(currentTick);
   }
 
   on(event: string, callback: Function) {

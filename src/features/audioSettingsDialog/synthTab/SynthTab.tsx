@@ -1,8 +1,8 @@
 import React from "react";
 
-import grey from "@material-ui/core/colors/grey";
-import Grid from "@material-ui/core/Grid";
-import DialogContent from "@material-ui/core/DialogContent";
+import grey from "@mui/material/colors/grey";
+import Grid from "@mui/material/Grid";
+import DialogContent from "@mui/material/DialogContent";
 import * as types from "types";
 import DelaySlider from "../DelaySlider";
 import myMidiPlayer from "audio";
@@ -14,6 +14,7 @@ import SynthesizerSettings from "./SynthesizerSettings";
 import AddButton from "features/addButton/AddButton";
 import RemoveButton from "features/removeButton/RemoveButton";
 import { range } from "lodash";
+
 export interface ISynthTab {
   forceLocalRender: types.forceLocalRender;
 }
@@ -23,9 +24,9 @@ export default function SynthTab({ forceLocalRender }: ISynthTab) {
     <DialogContent>
       <Grid
         container
-        spacing={2}
+        gap={2}
         direction="row"
-        justify="center"
+        justifyContent="center"
         alignItems="stretch"
       >
         {myMidiPlayer.myTonejs &&
@@ -33,9 +34,7 @@ export default function SynthTab({ forceLocalRender }: ISynthTab) {
             <div key={i}>
               <Grid
                 item
-                style={{
-                  background: grey[900],
-                  padding: 16,
+                sx={{
                   width: "160px",
                 }}
               >

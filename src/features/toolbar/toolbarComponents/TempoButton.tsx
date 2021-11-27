@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
-import { Typography } from "@material-ui/core/";
-import Popover from "@material-ui/core/Popover";
+import { Typography } from "@mui/material/";
+import Popover from "@mui/material/Popover";
 
 import TempoChange from "features/tempoChange/TempoChange";
 import CustomButton from "./cutomButton/CustomButton";

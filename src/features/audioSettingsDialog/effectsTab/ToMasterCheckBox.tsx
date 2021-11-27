@@ -1,7 +1,7 @@
 import React from "react";
 
-import { Typography } from "@material-ui/core";
-import Checkbox from "@material-ui/core/Checkbox";
+import { Typography } from "@mui/material";
+import Checkbox from "@mui/material/Checkbox";
 
 interface IToMasterCheckboxProps {
   checked: boolean;

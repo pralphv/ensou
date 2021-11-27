@@ -1,6 +1,6 @@
 import React from "react";
 
-import TextFieldsIcon from "@material-ui/icons/TextFields";
+import TextFieldsIcon from "@mui/icons-material/TextFields";
 
 import CustomButton from "./cutomButton/CustomButton";
 import myCanvas from "canvas";

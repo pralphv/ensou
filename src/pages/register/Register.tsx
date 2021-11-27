@@ -3,8 +3,7 @@ import React, { useEffect, useState } from "react";
 import { History } from "history";
 import { ExtendedAuthInstance, useFirebase } from "react-redux-firebase";
 
-import { makeStyles } from "@material-ui/core/styles";
-import { Grid, Button, TextField, Typography, Paper } from "@material-ui/core";
+import { Grid, Button, TextField, Typography, Paper } from "@mui/material";
 import { useSnackbar } from "notistack";
 
 import LoadingSpinner from "features/loadingSpinner/LoadingSpinner";
@@ -17,19 +16,9 @@ import {
 import { Pages } from "layouts/constants";
 import { validateEmail } from "utils/helper";
 
-const useStyles = makeStyles((theme) => ({
-  form: {
-    marginTop: 30,
-    marginBottom: 50,
-  },
-  fieldWidth: {
-    width: "100%",
-  },
-  paper: {
-    padding: theme.spacing(2),
-    marginTop: "20%",
-  },
-}));
+const FIELD_WIDTH = {
+  width: "100%",
+} as const;
 
 const errorInitState = "";
 interface HistoryProps {
@@ -45,7 +34,6 @@ export default function Register({ history }: HistoryProps) {
   const [error, setError] = useState<string>(errorInitState);
   const { enqueueSnackbar } = useSnackbar();
 
-  const classes = useStyles();
   const firebase: ExtendedAuthInstance = useFirebase();
 
   function resetErrorState() {
@@ -83,55 +71,59 @@ export default function Register({ history }: HistoryProps) {
         variant: "success",
       });
       history.push(Pages.Home);
-    } catch (err) {
-      console.log(err);
-      setError(err.message);
+    } catch (e: any) {
+      console.error(e);
+      setError(e.message);
     }
     setRegistering(false);
   }
 
   return (
-    <Paper className={classes.paper}>
+    <Paper sx={{ padding: 2, marginTop: "5%" }}>
       {registering && <LoadingSpinner />}
       <BoldTitle>Register</BoldTitle>
-      <form onSubmit={handleOnSubmit} noValidate className={classes.form}>
+      <form onSubmit={handleOnSubmit} noValidate>
         <TextField
-          className={classes.fieldWidth}
+          sx={{ width: "100%" }}
           required
           label="Username"
           onChange={(e) => {
             setUsername(e.target.value);
           }}
+          variant="standard"
         />
         <TextField
-          className={classes.fieldWidth}
+          sx={FIELD_WIDTH}
           required
           label="Email"
           onChange={(e) => {
             setEmail(e.target.value);
           }}
+          variant="standard"
         />
         <TextField
-          className={classes.fieldWidth}
+          sx={FIELD_WIDTH}
           required
           label="Password"
           type="password"
           onChange={(e) => {
             setPassword(e.target.value);
           }}
+          variant="standard"
         />
         <TextField
-          className={classes.fieldWidth}
+          sx={FIELD_WIDTH}
           required
           label="Confirm Password"
           type="password"
           onChange={(e) => {
             setPassword2(e.target.value);
           }}
+          variant="standard"
         />
         <br />
         <br />
-        <Grid container justify="center">
+        <Grid container justifyContent="center">
           <Button
             type="submit"
             color="primary"

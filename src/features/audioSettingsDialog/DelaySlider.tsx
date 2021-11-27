@@ -1,10 +1,10 @@
 import React from "react";
 
-import InputLabel from "@material-ui/core/InputLabel";
-import Slider from "@material-ui/core/Slider";
+import InputLabel from "@mui/material/InputLabel";
+import Slider from "@mui/material/Slider";
 import * as types from "types";
 import prettyMilliseconds from "pretty-ms";
-import Tooltip from "@material-ui/core/Tooltip";
+import Tooltip from "@mui/material/Tooltip";
 import myMidiPlayer from "audio";
 
 interface IDelaySliderProps {
@@ -26,6 +26,7 @@ export default function DelaySlider({
       </Tooltip>
       {myMidiPlayer.myTonejs && (
         <Slider
+          size="small"
           value={myMidiPlayer.myTonejs.getDelay(synthIndex)}
           min={0.01}
           step={0.001}

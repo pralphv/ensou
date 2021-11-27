@@ -1,6 +1,6 @@
 import React from "react";
 
-import LoopIcon from "@material-ui/icons/Loop";
+import LoopIcon from "@mui/icons-material/Loop";
 
 import CustomButton from "./cutomButton/CustomButton";
 import myMidiPlayer from "audio";

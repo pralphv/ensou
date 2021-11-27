@@ -1,10 +1,10 @@
 import React from "react";
 
-import { Typography } from "@material-ui/core";
-import Slider from "@material-ui/core/Slider";
+import { Typography } from "@mui/material";
+import Slider from "@mui/material/Slider";
 import { Gain } from "tone";
-import Select from "@material-ui/core/Select";
-import MenuItem from "@material-ui/core/MenuItem";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
 
 import * as types from "types";
 import myMidiPlayer from "audio";
@@ -151,6 +151,7 @@ export default function EffectParams({
                   valueLabelDisplay="auto"
                   min={min}
                   step={step}
+                  size="small"
                   // scale={(x) =>
                   //   FIELD_MIN_MAX[param].noteScale ? 2 ** x : x
                   // }

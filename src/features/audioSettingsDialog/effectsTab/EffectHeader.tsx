@@ -1,8 +1,8 @@
 import React from "react";
 
-import IconButton from "@material-ui/core/IconButton";
-import DialogContentText from "@material-ui/core/DialogContentText";
-import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
+import IconButton from "@mui/material/IconButton";
+import DialogContentText from "@mui/material/DialogContentText";
+import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 
 interface IEffectHeader {
   trackIndex: number;

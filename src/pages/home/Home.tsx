@@ -1,39 +1,14 @@
 import React, { useState, useEffect } from "react";
 
-import { makeStyles, Theme, createStyles } from "@material-ui/core/styles";
-import { Paper } from "@material-ui/core";
-import InputBase from "@material-ui/core/InputBase";
 import { useFirestore } from "react-redux-firebase";
-import IconButton from "@material-ui/core/IconButton";
-import LoadingSpinner from "features/loadingSpinner/LoadingSpinner";
+import InputBase from "@mui/material/InputBase";
+import IconButton from "@mui/material/IconButton";
+import SearchIcon from "@mui/icons-material/Search";
+import Paper from "@mui/material/Paper";
+
 import SongTable from "features/songTable/SongTable";
-
-import SearchIcon from "@material-ui/icons/Search";
+import LoadingSpinner from "features/loadingSpinner/LoadingSpinner";
 import * as types from "features/songTable/types";
-
-const useStyles = makeStyles((theme: Theme) =>
-  createStyles({
-    root: {
-      padding: "2px 4px",
-      display: "flex",
-      alignItems: "center",
-      marginTop: theme.spacing(2),
-      marginBottom: theme.spacing(2),
-      // width: 400,
-    },
-    input: {
-      marginLeft: theme.spacing(1),
-      flex: 1,
-    },
-    iconButton: {
-      padding: 10,
-    },
-    divider: {
-      height: 28,
-      margin: 4,
-    },
-  })
-);
 
 export default function Home(): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -42,7 +17,6 @@ export default function Home(): JSX.Element {
   const [filteredTableRows, setFilteredTableRows] = useState<
     types.ISongTableData[]
   >([]);
-  const classes = useStyles();
   const firestore = useFirestore();
   useEffect(() => {
     async function fetchSongTable() {
@@ -72,24 +46,50 @@ export default function Home(): JSX.Element {
   }
 
   return (
-    <div>
+    <React.Fragment>
       {isLoading ? (
         <LoadingSpinner />
       ) : (
-        <div>
-          <Paper component="form" className={classes.root} variant="outlined">
-            <InputBase
-              className={classes.input}
-              placeholder="Search for a song"
-              onChange={handleOnChange}
-            />
-            <IconButton type="submit" className={classes.iconButton}>
-              <SearchIcon />
-            </IconButton>
-          </Paper>
+        <React.Fragment>
+          <SearchBar onChange={handleOnChange} />
           <SongTable tableRows={searchText ? filteredTableRows : tableRows} />
-        </div>
+        </React.Fragment>
       )}
-    </div>
+    </React.Fragment>
+  );
+}
+
+interface ISearchBarProps {
+  onChange:
+    | React.ChangeEventHandler<HTMLTextAreaElement | HTMLInputElement>
+    | undefined;
+}
+
+function SearchBar({ onChange }: ISearchBarProps) {
+  return (
+    <Paper
+      component="form"
+      sx={{
+        py: 0.5,
+        px: 1,
+        display: "flex",
+        alignItems: "center",
+        marginTop: 2,
+        marginBottom: 4,
+      }}
+      variant="outlined"
+    >
+      <InputBase
+        placeholder="Search for a song"
+        onChange={onChange}
+        sx={{
+          marginLeft: 1,
+          flex: 1,
+        }}
+      />
+      <IconButton>
+        <SearchIcon />
+      </IconButton>
+    </Paper>
   );
 }

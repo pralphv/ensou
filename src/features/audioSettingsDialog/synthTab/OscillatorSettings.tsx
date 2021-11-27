@@ -1,9 +1,9 @@
 import React from "react";
 
-import InputLabel from "@material-ui/core/InputLabel";
-import Select from "@material-ui/core/Select";
-import Slider from "@material-ui/core/Slider";
-import MenuItem from "@material-ui/core/MenuItem";
+import InputLabel from "@mui/material/InputLabel";
+import Select from "@mui/material/Select";
+import Slider from "@mui/material/Slider";
+import MenuItem from "@mui/material/MenuItem";
 
 import myMidiPlayer from "audio";
 import * as types from "types";
@@ -17,8 +17,8 @@ export default function OscillatorSettings({
   forceLocalRender,
   synthIndex,
 }: IOscillatorSettingsProps) {
-  const settings = myMidiPlayer.myTonejs?.getSynthSettings(synthIndex)
-    ?.oscillator;
+  const settings =
+    myMidiPlayer.myTonejs?.getSynthSettings(synthIndex)?.oscillator;
   const count = settings?.count;
   const spread = settings?.spread;
   const harmonicity = settings?.harmonicity;
@@ -50,6 +50,7 @@ export default function OscillatorSettings({
             <div>
               <InputLabel>Count</InputLabel>
               <Slider
+                size="small"
                 value={count}
                 min={1}
                 step={1}
@@ -70,6 +71,7 @@ export default function OscillatorSettings({
             <div>
               <InputLabel>Spread</InputLabel>
               <Slider
+                size="small"
                 value={spread}
                 min={1}
                 step={1}
@@ -90,6 +92,7 @@ export default function OscillatorSettings({
             <div>
               <InputLabel>Harmonicity</InputLabel>
               <Slider
+                size="small"
                 value={settings.harmonicity}
                 min={0.1}
                 step={0.1}

@@ -1,6 +1,6 @@
 import React from "react";
 
-import DialogContent from "@material-ui/core/DialogContent";
+import DialogContent from "@mui/material/DialogContent";
 import * as types from "types";
 import DelaySlider from "./DelaySlider";
 

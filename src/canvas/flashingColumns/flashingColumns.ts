@@ -22,9 +22,9 @@ export default class FlashingColumns {
     const height = isHorizontal
       ? this._app.screen.width
       : this._app.screen.height;
-    const width = isHorizontal
-      ? this._app.screen.height
-      : this._app.screen.width;
+    // const width = isHorizontal
+      // ? this._app.screen.height
+      // : this._app.screen.width;
     this._app.stage.addChild(this._container);
     this._app.stage.setChildIndex(this._container, 1);
 

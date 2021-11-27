@@ -1,6 +1,6 @@
 import React from "react";
 
-import Slider from "@material-ui/core/Slider";
+import Slider from "@mui/material/Slider";
 
 interface ITempoChange {
   value: number;
@@ -15,6 +15,7 @@ function TempoChange({ value, setValue }: ITempoChange) {
 
   return (
     <Slider
+      size="small"
       color="secondary"
       value={value}
       onChange={handleChange}

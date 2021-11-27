@@ -52,7 +52,7 @@ export default class MyMidiPlayer {
   // _forceCanvasRerender: () => void;
   sampleName?: string; //etc piano-in-162
   eventListeners: IMyMidiPlayerEvents;
-  playingNotes!: Set<number>;
+  playingNotes!: Set<number>; // might be worth to use list of bools instead
   practiceMode: boolean;
   pressedKeys: Set<string>;
 
@@ -80,11 +80,14 @@ export default class MyMidiPlayer {
     this.localSampler = undefined;
     const cachedSampler =
       localStorageUtils.getSamplerSource() || types.SamplerSourceEnum.synth;
-    this.samplerSource =
+      this.samplerSource =
       cachedSampler === types.SamplerSourceEnum.cachedLocal
-        ? types.SamplerSourceEnum.local
-        : cachedSampler; // force rerender in useInstrument and getLocalSampler;
-    this.sampleName = localStorageUtils.getSampleName() as string;
+      ? types.SamplerSourceEnum.local
+      : cachedSampler; // force rerender in useInstrument and getLocalSampler;
+      this.sampleName = localStorageUtils.getSampleName() as string;
+      console.log({cachedSampler})
+      console.log(this.sampleName);
+      console.log(this.samplerSource)
     this.eventListeners = {};
     this.resetPlayingNotes();
     this.pressedKeys = new Set();
@@ -193,9 +196,13 @@ export default class MyMidiPlayer {
     }
     if (!this.practiceMode) {
       this.playingNotes.clear();
-      for (const note of this.groupedNotes) {
-        if (currentTick.tick >= note.on && currentTick.tick <= note.off) {
-          this.playingNotes.add(note.x);
+      for (let i = 0; i < this.groupedNotes.length; i++) {
+        // use this.groupedNotes[i] for performance
+        if (
+          currentTick.tick >= this.groupedNotes[i].on &&
+          currentTick.tick <= this.groupedNotes[i].off
+        ) {
+          this.playingNotes.add(this.groupedNotes[i].x);
         }
       }
     }
@@ -362,6 +369,7 @@ export default class MyMidiPlayer {
         types.SamplerSourceEnum.cachedLocal,
         types.SamplerSourceEnum.local,
         types.SamplerSourceEnum.server,
+        types.SamplerSourceEnum.recorded,
       ].includes(this.samplerSource);
     } else {
       return false;
@@ -417,7 +425,8 @@ export default class MyMidiPlayer {
       });
     } else if (
       this.samplerSource === types.SamplerSourceEnum.local ||
-      this.samplerSource === types.SamplerSourceEnum.cachedLocal
+      this.samplerSource === types.SamplerSourceEnum.cachedLocal || 
+      this.samplerSource === types.SamplerSourceEnum.recorded
     ) {
       const sampleMap = this.localSampler;
       this.myTonejs = new Instruments(true, undefined, {
@@ -457,7 +466,9 @@ export default class MyMidiPlayer {
     const userLastSampler = localStorageUtils.getSamplerSource();
     const wasUsingLocal =
       userLastSampler === types.SamplerSourceEnum.local ||
-      userLastSampler === types.SamplerSourceEnum.cachedLocal;
+      userLastSampler === types.SamplerSourceEnum.cachedLocal ||
+      userLastSampler === types.SamplerSourceEnum.recorded
+      ;
     if (wasUsingLocal && localSampler) {
       this.localSampler = await convertArrayBufferToAudioContext(localSampler);
       this.setSamplerSource(types.SamplerSourceEnum.cachedLocal);

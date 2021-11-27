@@ -1,12 +1,8 @@
-import { createTheme } from "@material-ui/core/styles";
+import { createTheme } from "@mui/material/styles";
 
 export const THEME = createTheme({
   palette: {
-    type: "dark",
-    background: {
-      default: "#121212",
-      paper: "#1e1e1e",
-    },
+    mode: "dark",
     primary: {
       main: "#757575",
     },
@@ -14,5 +10,4 @@ export const THEME = createTheme({
       main: "#F6F6F6",
     },
   },
-  overrides: {},
 });

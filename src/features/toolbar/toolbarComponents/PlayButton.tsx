@@ -1,8 +1,8 @@
 import React from "react";
 
 import { start, context } from "tone";
-import PauseIcon from "@material-ui/icons/Pause";
-import PlayArrowIcon from "@material-ui/icons/PlayArrow";
+import PauseIcon from "@mui/icons-material/Pause";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 
 import CustomButton from "./cutomButton/CustomButton";
 import myMidiPlayer from "audio";

@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 
-import VolumeDownIcon from "@material-ui/icons/VolumeDown";
-import VolumeUpIcon from "@material-ui/icons/VolumeUp";
-import VolumeOffIcon from "@material-ui/icons/VolumeOff";
-import Slider from "@material-ui/core/Slider";
+import VolumeDownIcon from "@mui/icons-material/VolumeDown";
+import VolumeUpIcon from "@mui/icons-material/VolumeUp";
+import VolumeOffIcon from "@mui/icons-material/VolumeOff";
+import Slider from "@mui/material/Slider";
 
 import { BUTTON_WIDTH, BUTTON_HEIGHT } from "../constants";
 import CustomButton from "./cutomButton/CustomButton";
@@ -48,6 +48,7 @@ export default function VolumeButton(): JSX.Element {
       >
         <Slider
           value={volume}
+          size="small"
           color="secondary"
           onChange={(event: any, newValue: number | number[]) => {
             myMidiPlayer?.myTonejs?.changeVolume(newValue as number);

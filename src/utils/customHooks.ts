@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useSelector } from "react-redux";
 
-import useMediaQuery from "@material-ui/core/useMediaQuery";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import { VariantType, useSnackbar } from "notistack";
 
 // export function useWindow(): types.Window {

@@ -1,18 +1,17 @@
 import React from "react";
-import { makeStyles, CircularProgress } from "@material-ui/core";
-
-const useStyles = makeStyles((theme) => ({
-  loading: {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    marginLeft: -25,
-    marginTop: -25,
-  },
-}));
+import { CircularProgress } from "@mui/material";
 
 export default function LoadingSpinner() {
-  const classes = useStyles();
   console.log("LoadingSpinner Rerender");
-  return <CircularProgress className={classes.loading} />;
+  return (
+    <CircularProgress
+      sx={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        marginLeft: -25,
+        marginTop: -25,
+      }}
+    />
+  );
 }

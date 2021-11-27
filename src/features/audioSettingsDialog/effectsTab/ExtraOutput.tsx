@@ -1,9 +1,9 @@
 import React from "react";
 
-import { Typography } from "@material-ui/core";
-import MenuItem from "@material-ui/core/MenuItem";
+import { Typography } from "@mui/material";
+import MenuItem from "@mui/material/MenuItem";
 import { range } from "lodash";
-import Select from "@material-ui/core/Select";
+import Select from "@mui/material/Select";
 
 interface IExtraOutput {
   fxIndex: number;

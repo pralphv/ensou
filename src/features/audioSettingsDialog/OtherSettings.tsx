@@ -1,8 +1,8 @@
 import React from "react";
 
-import { Typography } from "@material-ui/core";
-import InputLabel from "@material-ui/core/InputLabel";
-import Slider from "@material-ui/core/Slider";
+import { Typography } from "@mui/material";
+import InputLabel from "@mui/material/InputLabel";
+import Slider from "@mui/material/Slider";
 
 import myMidiPlayer from "audio";
 import * as types from "types";
@@ -25,6 +25,7 @@ export default function OtherSettings({
         <div>
           <InputLabel>Detune</InputLabel>
           <Slider
+            size="small"
             value={settings.detune}
             min={-60}
             step={1}
@@ -41,6 +42,7 @@ export default function OtherSettings({
           />
           <InputLabel>Volume</InputLabel>
           <Slider
+            size="small"
             value={settings.volume}
             min={-30}
             step={1}

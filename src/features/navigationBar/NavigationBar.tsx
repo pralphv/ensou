@@ -2,13 +2,12 @@ import React, { useState } from "react";
 
 import { useHistory } from "react-router-dom";
 
-import { Typography } from "@material-ui/core";
-import IconButton from "@material-ui/core/IconButton";
-import AccountBoxIcon from "@material-ui/icons/AccountBox";
-import AppBar from "@material-ui/core/AppBar";
-import Toolbar from "@material-ui/core/Toolbar";
-import PublishIcon from "@material-ui/icons/Publish";
-import { makeStyles, Theme, createStyles } from "@material-ui/core/styles";
+import { Typography } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import AccountBoxIcon from "@mui/icons-material/AccountBox";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import PublishIcon from "@mui/icons-material/Publish";
 
 import { useUserId, useIsVerified } from "utils/customHooks";
 import { Pages } from "layouts/constants";
@@ -16,20 +15,8 @@ import MidiUploadDialog from "features/midiUploadDialog/MidiUploadDialog";
 import { logout } from "firebaseApi/crud";
 import { ExtendedAuthInstance, useFirebase } from "react-redux-firebase";
 
-const useStyles = makeStyles((theme: Theme) =>
-  createStyles({
-    pointer: {
-      cursor: "pointer",
-    },
-    grow: {
-      flexGrow: 1,
-    },
-  })
-);
-
 export default function NavigationBar() {
   console.log("Navbar rerender");
-  const classes = useStyles();
   const history = useHistory();
   const [open, setOpen] = useState<boolean>(false);
   const isVerified = useIsVerified();
@@ -55,9 +42,9 @@ export default function NavigationBar() {
   }
 
   return (
-    <div>
-      <div className={classes.grow}>
-        <AppBar position="static" color="inherit">
+    <React.Fragment >
+      <React.Fragment>
+        <AppBar position="static" color="inherit" >
           <Toolbar variant="dense">
             <a
               href={Pages.Home}
@@ -65,7 +52,7 @@ export default function NavigationBar() {
                 e.preventDefault();
                 handleOnClick(Pages.Home);
               }}
-              className={classes.pointer}
+              style={{ cursor: "pointer" }}
             >
               <Typography variant="h6" noWrap>
                 <img
@@ -77,8 +64,8 @@ export default function NavigationBar() {
                 Ensou
               </Typography>
             </a>
-            <div className={classes.grow} />
-            <div>
+            <div style={{ flexGrow: 1 }} />
+            <React.Fragment>
               <IconButton aria-label="publish" onClick={handleOpenDialog}>
                 <PublishIcon />
               </IconButton>
@@ -89,12 +76,11 @@ export default function NavigationBar() {
                 <AccountBoxIcon />
                 <Typography>{uid ? "LOG OUT" : "SIGN IN"}</Typography>
               </IconButton>
-            </div>
+            </React.Fragment>
           </Toolbar>
         </AppBar>
-      </div>
-
+      </React.Fragment>
       <MidiUploadDialog open={open} setOpen={setOpen} />
-    </div>
+    </React.Fragment>
   );
 }

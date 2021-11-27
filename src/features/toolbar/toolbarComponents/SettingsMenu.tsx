@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from "react";
 
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import Switch from "@material-ui/core/Switch";
-import GraphicEqIcon from "@material-ui/icons/GraphicEq";
-import KeyboardIcon from "@material-ui/icons/Keyboard";
-import AddIcon from "@material-ui/icons/Add";
-import RemoveIcon from "@material-ui/icons/Remove";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemText from "@mui/material/ListItemText";
+import Switch from "@mui/material/Switch";
+import GraphicEqIcon from "@mui/icons-material/GraphicEq";
+import KeyboardIcon from "@mui/icons-material/Keyboard";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
 
 import * as types from "types";
 import SamplesDialog from "features/samplesDialog/SamplesDialog";
@@ -107,7 +107,7 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
   );
 
   return (
-    <div>
+    <React.Fragment>
       <List
         component="nav"
         style={{
@@ -180,6 +180,6 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
       {sampleDialogMemo}
       {audioSettingsDialogMemo}
       {keySettingsDialogMemo}
-    </div>
+    </React.Fragment>
   );
 }

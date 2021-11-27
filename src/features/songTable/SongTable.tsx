@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 
-import { makeStyles } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
+import Paper from "@mui/material/Paper";
 
 import OneRowCard from "./OneRowCard";
 import * as types from "./types";
@@ -22,26 +21,26 @@ function convertDateToYYYYMMDD(d: Date): string {
     .toISOString()
     .slice(0, 10);
 }
-const useStyles = makeStyles((theme) => ({
-  root: {
-    width: "60vw",
-    [theme.breakpoints.down("sm")]: {
-      width: "95vw",
-    },
-  },
-}));
 
 interface ISongTableProps {
   tableRows: types.ISongTableData[];
 }
 
 export default function SongTable({ tableRows }: ISongTableProps) {
-  const classes = useStyles();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   return (
-    <Paper className={classes.root}>
+    <Paper
+      sx={{
+        width: {
+          xs: "95vw",
+          md: "80vw",
+          lg: "70vw",
+          xl: "60vw",
+        },
+      }}
+    >
       {tableRows
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
         .map((row: types.ISongTableData, i: number) => (

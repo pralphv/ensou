@@ -1,19 +1,18 @@
 import myCanvas from "canvas";
-import myMidiPlayer from "audio";
 
-export function convertMidiTickToCanvasHeight(targetTick: number): number {
+export function convertMidiTickToCanvasHeight(targetTick: number, currentTick: number): number {
   return (
     myCanvas.app.screen.height -
-    (targetTick - myMidiPlayer.getCurrentTick()) /
-      myCanvas.config.canvasNoteScale -
+    (targetTick - currentTick) /
+    myCanvas.config.canvasNoteScale -
     myCanvas.config.bottomTileHeight
   );
 }
 
-export function convertCanvasHeightToMidiTick(y: number): number {
+export function convertCanvasHeightToMidiTick(y: number, currentTick: number): number {
   return (
     (myCanvas.app.screen.height - myCanvas.config.bottomTileHeight - y) *
-      myCanvas.config.canvasNoteScale +
-    myMidiPlayer.getCurrentTick()
+    myCanvas.config.canvasNoteScale +
+    currentTick
   );
 }

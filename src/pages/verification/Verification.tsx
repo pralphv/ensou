@@ -3,7 +3,7 @@ import { History } from "history";
 
 import { ExtendedAuthInstance, useFirebase } from "react-redux-firebase";
 
-import { Button } from "@material-ui/core";
+import { Button } from "@mui/material";
 import { useSnackbar } from "notistack";
 
 import { sendVerification } from "firebaseApi/crud";
