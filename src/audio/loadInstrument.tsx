@@ -6,6 +6,8 @@ import {
   context,
   Destination,
   UserMedia,
+  now,
+  Transport
 } from "tone";
 import StartAudioContext from "startaudiocontext";
 
@@ -97,6 +99,7 @@ export class Instruments {
     this.setSynthSettingsOscillator = this.setSynthSettingsOscillator.bind(
       this
     );
+    this.stopPlaying = this.stopPlaying.bind(this);
     StartAudioContext(context, "#playButton").then(function () {
       //started
     });
@@ -212,8 +215,6 @@ export class Instruments {
       const sampleMap = this._samplerOptions?.sampleMap
         ? this._samplerOptions?.sampleMap
         : await this.downloadSamplers();
-        console.log({sampleMap})
-        console.log(this._samplerOptions)
       if (sampleMap) {
         let sampler = new Sampler(sampleMap, {
           attack: 0.01,
@@ -254,6 +255,27 @@ export class Instruments {
       );
       return sampler;
     }
+  }
+
+  start() {
+    Transport.start();
+  }
+
+  stopPlaying() {
+    Transport.stop();
+  }
+
+  triggerAttackRelease(note: string, velocity: number, time: number, duration: number) {
+    const toneJsNow = now() + 0.5;
+    const instruments = this._useSampler ? this.samplers : this.polySynths;
+    instruments.forEach(instrument => {
+      instrument.triggerAttackRelease(
+        note,
+        duration,
+        time + toneJsNow,
+        velocity
+      )
+    })
   }
 
   triggerAttack(note: string, velocity: number) {

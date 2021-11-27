@@ -11,6 +11,7 @@ import { storageRef } from "firebaseApi/firebase";
 import myCanvas from "canvas";
 import myMidiPlayer from "audio";
 import game from "game";
+import { Midi } from "@tonejs/midi";
 
 const BEAT_BUFFER = 0.02;
 
@@ -55,6 +56,7 @@ export default class MyMidiPlayer {
   playingNotes!: Set<number>; // might be worth to use list of bools instead
   practiceMode: boolean;
   pressedKeys: Set<string>;
+  midi: Midi;
 
   constructor() {
     // _forceCanvasRerender: () => void // ) => void, //   groupedNotes: types.IGroupedNotes[] //   ticksPerBeat: number, //   currentTick: number, // onPlaying: ( // setInstrumentLoading: (loading: boolean) => void, // setPlayerStatus: (status: string) => void,
@@ -80,17 +82,15 @@ export default class MyMidiPlayer {
     this.localSampler = undefined;
     const cachedSampler =
       localStorageUtils.getSamplerSource() || types.SamplerSourceEnum.synth;
-      this.samplerSource =
+    this.samplerSource =
       cachedSampler === types.SamplerSourceEnum.cachedLocal
-      ? types.SamplerSourceEnum.local
-      : cachedSampler; // force rerender in useInstrument and getLocalSampler;
-      this.sampleName = localStorageUtils.getSampleName() as string;
-      console.log({cachedSampler})
-      console.log(this.sampleName);
-      console.log(this.samplerSource)
+        ? types.SamplerSourceEnum.local
+        : cachedSampler; // force rerender in useInstrument and getLocalSampler;
+    this.sampleName = localStorageUtils.getSampleName() as string;
     this.eventListeners = {};
     this.resetPlayingNotes();
     this.pressedKeys = new Set();
+    this.midi = new Midi();
 
     // init should be here but its await so it cant
     // should be safe to say string because when useSample is chosen it would save to local storage
@@ -117,6 +117,7 @@ export default class MyMidiPlayer {
     this.on = this.on.bind(this);
     this.enablePracticeMode = this.enablePracticeMode.bind(this);
     this.disablePracticeMode = this.disablePracticeMode.bind(this);
+    this._scheduleNotesToPlay = this._scheduleNotesToPlay.bind(this);
 
     const midiPlayer = new MidiPlayer.Player() as MidiPlayer.Player &
       MidiPlayer.Event &
@@ -151,71 +152,91 @@ export default class MyMidiPlayer {
   ) {
     // this._forceCanvasRerender();
     // @ts-ignore
-    const ticksPerBeat_ = this.midiPlayer.getDivision().division;
+    // const ticksPerBeat_ = this.midiPlayer.getDivision().division;
 
-    /**
-     const remainder = currentTick.tick % ticksPerBeat_;
-     const progressToOneBeat = currentTick.tick % ticksPerBeat_ / (ticksPerBeat_ * 4); // 1 is on the beat
-     const fourthBeat = progressToOneBeat <= 0.0 + BEAT_BUFFER;
-     if (this.isMetronome && fourthBeat) {
-    */
-    if (
-      this.isMetronome &&
-      (currentTick.tick % ticksPerBeat_) / (ticksPerBeat_ * 4) <=
-        0.0 + BEAT_BUFFER
-    ) {
-      // dont play if played once already
-      if (!this._isBlockMetronome) {
-        this.myTonejs?.playMetronome();
-      }
-      this._isBlockMetronome = true;
-    } else {
-      this._isBlockMetronome = false;
-    }
+    // /**
+    //  const remainder = currentTick.tick % ticksPerBeat_;
+    //  const progressToOneBeat = currentTick.tick % ticksPerBeat_ / (ticksPerBeat_ * 4); // 1 is on the beat
+    //  const fourthBeat = progressToOneBeat <= 0.0 + BEAT_BUFFER;
+    //  if (this.isMetronome && fourthBeat) {
+    // */
+    // if (
+    //   this.isMetronome &&
+    //   (currentTick.tick % ticksPerBeat_) / (ticksPerBeat_ * 4) <=
+    //     0.0 + BEAT_BUFFER
+    // ) {
+    //   // dont play if played once already
+    //   if (!this._isBlockMetronome) {
+    //     this.myTonejs?.playMetronome();
+    //   }
+    //   this._isBlockMetronome = true;
+    // } else {
+    //   this._isBlockMetronome = false;
+    // }
 
-    // handle song loop
-    // if isPlaying && (songEnded || (hasPlayRange && playRangeReached))
-    if (
-      this.isPlaying &&
-      (currentTick.tick >= this.totalTicks ||
-        (this.playRange.startTick !== this.playRange.endTick &&
-          currentTick.tick >= this.playRange.endTick))
-    ) {
-      this.myTonejs?.clearPlayingNotes();
-      if (this.isLoop) {
-        this.midiPlayer.skipToTick(this.playRange.startTick);
-        this.play();
-      } else {
-        this.isPlaying = false;
-        if (this.playRange.startTick) {
-          this.midiPlayer.skipToTick(this.playRange.startTick);
-        } else {
-          this.restart();
-        }
-      }
-    }
-    if (!this.practiceMode) {
-      this.playingNotes.clear();
-      for (let i = 0; i < this.groupedNotes.length; i++) {
-        // use this.groupedNotes[i] for performance
-        if (
-          currentTick.tick >= this.groupedNotes[i].on &&
-          currentTick.tick <= this.groupedNotes[i].off
-        ) {
-          this.playingNotes.add(this.groupedNotes[i].x);
-        }
-      }
-    }
+    // // handle song loop
+    // // if isPlaying && (songEnded || (hasPlayRange && playRangeReached))
+    // if (
+    //   this.isPlaying &&
+    //   (currentTick.tick >= this.totalTicks ||
+    //     (this.playRange.startTick !== this.playRange.endTick &&
+    //       currentTick.tick >= this.playRange.endTick))
+    // ) {
+    //   this.myTonejs?.clearPlayingNotes();
+    //   if (this.isLoop) {
+    //     this.midiPlayer.skipToTick(this.playRange.startTick);
+    //     this.play();
+    //   } else {
+    //     this.isPlaying = false;
+    //     if (this.playRange.startTick) {
+    //       this.midiPlayer.skipToTick(this.playRange.startTick);
+    //     } else {
+    //       this.restart();
+    //     }
+    //   }
+    // }
+    // if (!this.practiceMode) {
+    //   this.playingNotes.clear();
+    //   for (let i = 0; i < this.groupedNotes.length; i++) {
+    //     // use this.groupedNotes[i] for performance
+    //     if (
+    //       currentTick.tick >= this.groupedNotes[i].on &&
+    //       currentTick.tick <= this.groupedNotes[i].off
+    //     ) {
+    //       this.playingNotes.add(this.groupedNotes[i].x);
+    //     }
+    //   }
+    // }
 
     callback();
   }
 
+  _scheduleNotesToPlay() {
+    const currentTick = this.getCurrentTick();
+    console.log("JER")
+    console.log(this.midi)
+    this.midi.tracks.forEach((track) => {
+      //schedule all of the events
+      console.log({track})
+      track.notes.forEach((note) => {
+        this.myTonejs?.triggerAttackRelease(
+          note.name,
+          note.duration,
+          note.time,
+          note.velocity
+        );
+      });
+    });
+  }
+
   _handleFileLoaded() {
     const allEvents: MidiPlayer.Event[] = this.midiPlayer.getEvents();
+    console.log({ allEvents });
     this.isPlaying = false;
 
     const groupedNotes: types.IGroupedNotes[] =
       processing.groupNotes(allEvents);
+    console.log({ groupedNotes });
     this.totalTicks = groupedNotes[groupedNotes.length - 1].off;
     this.groupedNotes = groupedNotes;
     // @ts-ignore
@@ -234,13 +255,13 @@ export default class MyMidiPlayer {
       !myMidiPlayer.practiceMode
     ) {
       // some stupid midi can have note on but 0 velocity to represent note off
-      this.myTonejs?.triggerAttack(
-        midiEvent.noteName,
-        midiEvent.velocity / 100
-      );
+      // this.myTonejs?.triggerAttack(
+      //   midiEvent.noteName,
+      //   midiEvent.velocity / 100
+      // );
     } else if (midiEvent.velocity === 0 || midiEvent.name === "Note off") {
       if (!myMidiPlayer.practiceMode) {
-        this.myTonejs?.triggerRelease(midiEvent.noteName);
+        // this.myTonejs?.triggerRelease(midiEvent.noteName);
       }
     }
   }
@@ -255,6 +276,8 @@ export default class MyMidiPlayer {
 
   play(noSkip = false, skipDispatch = false) {
     this.myTonejs?.clearPlayingNotes();
+    this._scheduleNotesToPlay();
+    this.myTonejs?.start();
     if (!noSkip && this.playRange.startTick !== 0) {
       this.midiPlayer.skipToTick(this.playRange.startTick);
     }
@@ -263,6 +286,7 @@ export default class MyMidiPlayer {
     }
     this.midiPlayer.play();
     this._isBlockMetronome = false;
+    // baby
     this.eventListeners.actioned();
     game.resetGame();
   }
@@ -276,6 +300,7 @@ export default class MyMidiPlayer {
 
   pause() {
     this.myTonejs?.clearPlayingNotes();
+    this.myTonejs?.stopPlaying();
     this.isPlaying = false;
     this.midiPlayer.pause();
     this.eventListeners.actioned();
@@ -425,7 +450,7 @@ export default class MyMidiPlayer {
       });
     } else if (
       this.samplerSource === types.SamplerSourceEnum.local ||
-      this.samplerSource === types.SamplerSourceEnum.cachedLocal || 
+      this.samplerSource === types.SamplerSourceEnum.cachedLocal ||
       this.samplerSource === types.SamplerSourceEnum.recorded
     ) {
       const sampleMap = this.localSampler;
@@ -467,8 +492,7 @@ export default class MyMidiPlayer {
     const wasUsingLocal =
       userLastSampler === types.SamplerSourceEnum.local ||
       userLastSampler === types.SamplerSourceEnum.cachedLocal ||
-      userLastSampler === types.SamplerSourceEnum.recorded
-      ;
+      userLastSampler === types.SamplerSourceEnum.recorded;
     if (wasUsingLocal && localSampler) {
       this.localSampler = await convertArrayBufferToAudioContext(localSampler);
       this.setSamplerSource(types.SamplerSourceEnum.cachedLocal);
@@ -476,6 +500,7 @@ export default class MyMidiPlayer {
   }
 
   async loadArrayBuffer(arrayBuffer: ArrayBuffer) {
+    this.midi = new Midi(arrayBuffer);
     this.eventListeners?.import();
     await this.midiPlayer.loadArrayBuffer(arrayBuffer);
     myCanvas.buildNotes();

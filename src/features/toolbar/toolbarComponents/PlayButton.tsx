@@ -28,6 +28,7 @@ export default function PlayButton(): JSX.Element {
             await start();
             await context.resume();
             myMidiPlayer.play();
+            // myMidiPlayer._scheduleNotesToPlay();
           }}
           size="small"
           disabled={!myMidiPlayer.isReady}
