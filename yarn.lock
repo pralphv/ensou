@@ -8648,11 +8648,6 @@
   "resolved" "https://registry.npmjs.org/midi-file/-/midi-file-1.2.2.tgz"
   "version" "1.2.2"
 
-"midi-player-js@^2.0.13":
-  "integrity" "sha512-Y1yCRvvSjJjT5J4U8T4XTCDF1FLXtw8Otvq5BAmIob/2cj10aQUDrPDFByTWeuMRPu6/nLhusROc1DuTLCzRnw=="
-  "resolved" "https://registry.npmjs.org/midi-player-js/-/midi-player-js-2.0.16.tgz"
-  "version" "2.0.16"
-
 "miller-rabin@^4.0.0":
   "integrity" "sha512-115fLhvZVqWwHPbClyntxEVfVDfl9DLLTuJvq3g2O/Oxi8AiNouAHvDSzHS0viUJc+V5vm3eq91Xwqn9dp4jRA=="
   "resolved" "https://registry.npmjs.org/miller-rabin/-/miller-rabin-4.0.1.tgz"

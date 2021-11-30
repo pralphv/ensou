@@ -9,6 +9,7 @@ import {
   now,
   Transport
 } from "tone";
+import {  } from "@tonejs/midi";
 import StartAudioContext from "startaudiocontext";
 
 import * as types from "types";
@@ -99,7 +100,7 @@ export class Instruments {
     this.setSynthSettingsOscillator = this.setSynthSettingsOscillator.bind(
       this
     );
-    this.stopPlaying = this.stopPlaying.bind(this);
+    this._getInstruments = this._getInstruments.bind(this);
     StartAudioContext(context, "#playButton").then(function () {
       //started
     });
@@ -192,7 +193,7 @@ export class Instruments {
     if (this._effectChains.length === 0) {
       return;
     }
-    const instruments = this._useSampler ? this.samplers : this.polySynths;
+    const instruments = this._getInstruments();
     instruments.forEach((instrument: Instrument) => {
       instrument.disconnect();
       if (this._effectsActivated) {
@@ -257,30 +258,9 @@ export class Instruments {
     }
   }
 
-  start() {
-    Transport.start();
-  }
-
-  stopPlaying() {
-    Transport.stop();
-  }
-
-  triggerAttackRelease(note: string, velocity: number, time: number, duration: number) {
-    const toneJsNow = now() + 0.5;
-    const instruments = this._useSampler ? this.samplers : this.polySynths;
-    instruments.forEach(instrument => {
-      instrument.triggerAttackRelease(
-        note,
-        duration,
-        time + toneJsNow,
-        velocity
-      )
-    })
-  }
-
   triggerAttack(note: string, velocity: number) {
     if (!this.publishingChanges) {
-      const instruments = this._useSampler ? this.samplers : this.polySynths;
+      const instruments = this._getInstruments();
       for (let i = 0; i < instruments.length; i++) {
         if (!instruments[i].disposed) {
           try {
@@ -299,7 +279,7 @@ export class Instruments {
 
   triggerRelease(note: string) {
     if (!this.publishingChanges) {
-      const instruments = this._useSampler ? this.samplers : this.polySynths;
+      const instruments = this._getInstruments();
       for (let i = 0; i < instruments.length; i++) {
         if (!instruments[i].disposed) {
           instruments[i].triggerRelease(note, "+0.01");
@@ -449,7 +429,7 @@ export class Instruments {
   }
 
   clearPlayingNotes() {
-    const instruments = this._useSampler ? this.samplers : this.polySynths;
+    const instruments = this._getInstruments();
     setTimeout(() => {
       // wait till attacks are done etc. delayed
       instruments.forEach((instrument: Instrument) => {
@@ -458,10 +438,26 @@ export class Instruments {
     }, 100);
   }
 
+  scheduleNotesToPlay(notes) {
+    notes.forEach(note => {
+      const instruments = this._getInstruments();
+      instruments.forEach(intrument => {
+        intrument.unsync();  // remove the old schedule
+        intrument.sync();
+        intrument.triggerAttackRelease(
+          note.name,
+          note.duration,
+          note.time,
+          note.velocity
+        );
+      })
+      });
+  }
+
   _disposeTrack(trackIndex: number) {
     console.log(`Disposing track ${trackIndex}`);
     this.clearPlayingNotes();
-    const instruments = this._useSampler ? this.samplers : this.polySynths;
+    const instruments = this._getInstruments();
     instruments[trackIndex].unsync();
     instruments[trackIndex].dispose();
     // this._effectChains.forEach((chain) => {
@@ -485,7 +481,7 @@ export class Instruments {
   }
 
   getVolume() {
-    const instruments = this._useSampler ? this.samplers : this.polySynths;
+    const instruments = this._getInstruments();
     return instruments[0]?.volume.value;
   }
 
@@ -509,6 +505,10 @@ export class Instruments {
     if (this.eventListeners.actioned) {
       this.eventListeners.actioned();
     }
+  }
+
+  _getInstruments() {
+    return this._useSampler ? this.samplers : this.polySynths;
   }
 
   getSynthSettings(synthIndex: number): types.ISynthSettings | null {

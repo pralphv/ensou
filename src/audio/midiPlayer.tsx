@@ -1,5 +1,4 @@
-import MidiPlayer from "midi-player-js";
-import { SamplerOptions } from "tone";
+import { SamplerOptions, Transport } from "tone";
 
 import * as processing from "./processing";
 import * as types from "types";
@@ -30,7 +29,6 @@ interface IMyMidiPlayerEvents {
 }
 
 export default class MyMidiPlayer {
-  midiPlayer: MidiPlayer.Player & MidiPlayer.Event & MidiPlayer.Track;
   myTonejs?: Instruments; // not actually optional. will be set in init
   instrument: types.Instrument;
   isReady: boolean;
@@ -97,7 +95,6 @@ export default class MyMidiPlayer {
 
     this._handleOnPlaying = this._handleOnPlaying.bind(this);
     this._handleFileLoaded = this._handleFileLoaded.bind(this);
-    this._handleOnMidiEvent = this._handleOnMidiEvent.bind(this);
     this.resetPlayingNotes = this.resetPlayingNotes.bind(this);
     this.play = this.play.bind(this);
     this.pause = this.pause.bind(this);
@@ -118,25 +115,9 @@ export default class MyMidiPlayer {
     this.enablePracticeMode = this.enablePracticeMode.bind(this);
     this.disablePracticeMode = this.disablePracticeMode.bind(this);
     this._scheduleNotesToPlay = this._scheduleNotesToPlay.bind(this);
-
-    const midiPlayer = new MidiPlayer.Player() as MidiPlayer.Player &
-      MidiPlayer.Event &
-      MidiPlayer.Track;
-
-    // midiPlayer.on("playing", (currentTick: types.Tick) => {
-    //   this._handleOnPlaying(currentTick, onPlaying);
-    // });
-    midiPlayer.on("fileLoaded", this._handleFileLoaded);
-    midiPlayer.on("midiEvent", this._handleOnMidiEvent);
-    this.midiPlayer = midiPlayer;
   }
 
   on(event: string, callback: Function) {
-    if (event === "playing") {
-      this.midiPlayer.on("playing", (currentTick: types.Tick) => {
-        this._handleOnPlaying(currentTick, callback);
-      });
-    }
     this.eventListeners[event] = callback;
     // playing, willMount, mounted, willDownloadMidi, downloadedMidi, willImport, imported
   }
@@ -212,58 +193,18 @@ export default class MyMidiPlayer {
   }
 
   _scheduleNotesToPlay() {
-    const currentTick = this.getCurrentTick();
-    console.log("JER")
-    console.log(this.midi)
     this.midi.tracks.forEach((track) => {
-      //schedule all of the events
-      console.log({track})
-      track.notes.forEach((note) => {
-        this.myTonejs?.triggerAttackRelease(
-          note.name,
-          note.duration,
-          note.time,
-          note.velocity
-        );
-      });
+      track.notes
+
     });
   }
 
   _handleFileLoaded() {
-    const allEvents: MidiPlayer.Event[] = this.midiPlayer.getEvents();
-    console.log({ allEvents });
     this.isPlaying = false;
-
-    const groupedNotes: types.IGroupedNotes[] =
-      processing.groupNotes(allEvents);
-    console.log({ groupedNotes });
     this.totalTicks = groupedNotes[groupedNotes.length - 1].off;
-    this.groupedNotes = groupedNotes;
     // @ts-ignore
     this.ticksPerBeat = this.midiPlayer.getDivision().division;
     this.isReady = true;
-  }
-
-  _handleOnMidiEvent(midiEvent: any) {
-    if (midiEvent.name === "Set Tempo") {
-      this.songTempo = this.midiPlayer.tempo; //this.midiPlayer.tempo?
-      // const customizedTempo = this.midiPlayer.tempo * this.tempoPercent;
-      this.setTempo(this.midiPlayer.tempo * this.tempoPercent);
-    } else if (
-      midiEvent.velocity !== 0 &&
-      midiEvent.name === "Note on" &&
-      !myMidiPlayer.practiceMode
-    ) {
-      // some stupid midi can have note on but 0 velocity to represent note off
-      // this.myTonejs?.triggerAttack(
-      //   midiEvent.noteName,
-      //   midiEvent.velocity / 100
-      // );
-    } else if (midiEvent.velocity === 0 || midiEvent.name === "Note off") {
-      if (!myMidiPlayer.practiceMode) {
-        // this.myTonejs?.triggerRelease(midiEvent.noteName);
-      }
-    }
   }
 
   setLocalSampler(sampler: SamplerOptions["urls"]) {
@@ -276,7 +217,6 @@ export default class MyMidiPlayer {
 
   play(noSkip = false, skipDispatch = false) {
     this.myTonejs?.clearPlayingNotes();
-    this._scheduleNotesToPlay();
     this.myTonejs?.start();
     if (!noSkip && this.playRange.startTick !== 0) {
       this.midiPlayer.skipToTick(this.playRange.startTick);
@@ -284,9 +224,8 @@ export default class MyMidiPlayer {
     if (!skipDispatch) {
       this.isPlaying = true;
     }
-    this.midiPlayer.play();
     this._isBlockMetronome = false;
-    // baby
+    Transport.start();
     this.eventListeners.actioned();
     game.resetGame();
   }
@@ -294,7 +233,7 @@ export default class MyMidiPlayer {
   stop() {
     this.myTonejs?.clearPlayingNotes();
     this.isPlaying = false;
-    this.midiPlayer.stop();
+    Transport.stop();
     this.eventListeners.actioned();
   }
 
@@ -302,7 +241,7 @@ export default class MyMidiPlayer {
     this.myTonejs?.clearPlayingNotes();
     this.myTonejs?.stopPlaying();
     this.isPlaying = false;
-    this.midiPlayer.pause();
+    Transport.pause();
     this.eventListeners.actioned();
   }
 
@@ -501,8 +440,8 @@ export default class MyMidiPlayer {
 
   async loadArrayBuffer(arrayBuffer: ArrayBuffer) {
     this.midi = new Midi(arrayBuffer);
+    this._scheduleNotesToPlay();
     this.eventListeners?.import();
-    await this.midiPlayer.loadArrayBuffer(arrayBuffer);
     myCanvas.buildNotes();
     game.buildPlayMap();
     //@ts-ignore
@@ -533,7 +472,7 @@ export default class MyMidiPlayer {
 
   cleanup() {
     this.stop();
-    this.midiPlayer.on("playing", () => {});
+    // this.midiPlayer.on("playing", () => {});
     this.myTonejs?.cleanUp();
     console.log("Cleaned Midi Player");
   }
