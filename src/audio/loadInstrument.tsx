@@ -9,7 +9,7 @@ import {
   now,
   Transport
 } from "tone";
-import {  } from "@tonejs/midi";
+import { Note } from "@tonejs/midi/dist/Note";
 import StartAudioContext from "startaudiocontext";
 
 import * as types from "types";
@@ -438,7 +438,7 @@ export class Instruments {
     }, 100);
   }
 
-  scheduleNotesToPlay(notes) {
+  scheduleNotesToPlay(notes: Note[]) {
     notes.forEach(note => {
       const instruments = this._getInstruments();
       instruments.forEach(intrument => {

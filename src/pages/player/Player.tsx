@@ -101,8 +101,8 @@ export default function Player(): JSX.Element {
       myMidiPlayer.on("downloadingSamples", (status: string) => {
         setPlayerStatus(status);
       });
-      await myMidiPlayer.init();
-      myMidiPlayer.myTonejs?.on("actioned", () => forceRerenderRef.current());
+      // await myMidiPlayer.init();
+      // myMidiPlayer.myTonejs?.on("actioned", () => forceRerenderRef.current());
 
       myCanvas.on(
         "pointermove",

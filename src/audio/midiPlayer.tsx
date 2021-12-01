@@ -5,12 +5,12 @@ import * as types from "types";
 import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
 import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
 import { convertArrayBufferToAudioContext } from "utils/helper";
-import { Instruments } from "./loadInstrument";
+import instruments from "./instruments";
 import { storageRef } from "firebaseApi/firebase";
 import myCanvas from "canvas";
 import myMidiPlayer from "audio";
 import game from "game";
-import { Midi } from "@tonejs/midi";
+import { Midi, Track } from "@tonejs/midi";
 
 const BEAT_BUFFER = 0.02;
 
@@ -29,7 +29,6 @@ interface IMyMidiPlayerEvents {
 }
 
 export default class MyMidiPlayer {
-  myTonejs?: Instruments; // not actually optional. will be set in init
   instrument: types.Instrument;
   isReady: boolean;
   isMetronome: boolean;
@@ -104,12 +103,10 @@ export default class MyMidiPlayer {
     this.getIsPlaying = this.getIsPlaying.bind(this);
     this.downloadMidiFromFirebase = this.downloadMidiFromFirebase.bind(this);
     this.loadArrayBuffer = this.loadArrayBuffer.bind(this);
-    this.skipToTick = this.skipToTick.bind(this);
     this.setTempoPercent = this.setTempoPercent.bind(this);
     this.checkIfSampler = this.checkIfSampler.bind(this);
     this.setSamplerSource = this.setSamplerSource.bind(this);
-    this._initToneJs = this._initToneJs.bind(this);
-    this.getCurrentTick = this.getCurrentTick.bind(this);
+    // this._initToneJs = this._initToneJs.bind(this);
     this.handleOnDownloaded = this.handleOnDownloaded.bind(this);
     this.on = this.on.bind(this);
     this.enablePracticeMode = this.enablePracticeMode.bind(this);
@@ -192,19 +189,19 @@ export default class MyMidiPlayer {
     callback();
   }
 
-  _scheduleNotesToPlay() {
-    this.midi.tracks.forEach((track) => {
-      track.notes
-
+  _scheduleNotesToPlay(tracks: Track[]) {
+    tracks.forEach((track) => {
+      instruments.scheduleNotesToPlay(track.notes);
     });
   }
 
   _handleFileLoaded() {
     this.isPlaying = false;
-    this.totalTicks = groupedNotes[groupedNotes.length - 1].off;
+    // this.totalTicks = groupedNotes[groupedNotes.length - 1].off;
     // @ts-ignore
-    this.ticksPerBeat = this.midiPlayer.getDivision().division;
+    // this.ticksPerBeat = this.midiPlayer.getDivision().division;
     this.isReady = true;
+    console.log("JER")
   }
 
   setLocalSampler(sampler: SamplerOptions["urls"]) {
@@ -215,75 +212,54 @@ export default class MyMidiPlayer {
     this.playRange = { startTick, endTick };
   }
 
-  play(noSkip = false, skipDispatch = false) {
-    this.myTonejs?.clearPlayingNotes();
-    this.myTonejs?.start();
-    if (!noSkip && this.playRange.startTick !== 0) {
-      this.midiPlayer.skipToTick(this.playRange.startTick);
-    }
-    if (!skipDispatch) {
-      this.isPlaying = true;
-    }
-    this._isBlockMetronome = false;
-    Transport.start();
+  play() {
+    instruments.play();
     this.eventListeners.actioned();
     game.resetGame();
   }
 
   stop() {
-    this.myTonejs?.clearPlayingNotes();
-    this.isPlaying = false;
-    Transport.stop();
+    instruments.stop();
     this.eventListeners.actioned();
   }
 
   pause() {
-    this.myTonejs?.clearPlayingNotes();
-    this.myTonejs?.stopPlaying();
-    this.isPlaying = false;
-    Transport.pause();
+    instruments.pause();
     this.eventListeners.actioned();
   }
 
   restart() {
-    this.myTonejs?.clearPlayingNotes();
     this.skipToPercent(0);
     this.setPlayRange(0, 0);
     this.eventListeners.actioned();
   }
 
   skipToPercent(percent: number) {
-    this.myTonejs?.clearPlayingNotes();
-    this.midiPlayer.skipToPercent(percent);
+    // instruments.skipToPercent(percent); // use transport here
     if (this.isPlaying) {
       // actioned included in play
-      this.play(true, true);
+      this.play();
     } else {
       this.eventListeners.actioned();
     }
   }
-
   skipToTick(tick: number) {
-    this.myTonejs?.clearPlayingNotes();
-    this.midiPlayer.skipToTick(tick);
+    Transport.ticks = tick;
     if (this.isPlaying) {
-      this.play(true, true);
+      this.play();
     } else {
       this.eventListeners.actioned();
     }
   }
-
   setTempo(tempo: number) {
-    // it is there stupid
-    // @ts-ignore
-    this.midiPlayer.setTempo(tempo);
+    // transport here
     this.eventListeners.actioned();
   }
 
   async setSamplerSource(source: types.SamplerSource) {
     this.samplerSource = source;
     localStorageUtils.setSamplerSource(source);
-    await this._initToneJs();
+    // await this._initToneJs();
     // after sample set
     this.eventListeners.actioned();
   }
@@ -349,7 +325,7 @@ export default class MyMidiPlayer {
   }
 
   getCurrentTick(): number {
-    return this.midiPlayer.getCurrentTick();
+    return Transport.ticks;
   }
 
   async downloadMidiFromFirebase(songId: string) {
@@ -377,52 +353,52 @@ export default class MyMidiPlayer {
     this.eventListeners?.downloadedMidi();
   }
 
-  async _initToneJs() {
-    this.eventListeners.willSetTone();
-    const pastEventListeners = this.myTonejs?.eventListeners;
-    this.myTonejs?.destroy();
-    if (this.samplerSource === types.SamplerSourceEnum.server) {
-      // if its useSample, then it must have this.sampleName
-      this.myTonejs = new Instruments(true, undefined, {
-        instrument: this.instrument,
-        sample: this.sampleName as string,
-      });
-    } else if (
-      this.samplerSource === types.SamplerSourceEnum.local ||
-      this.samplerSource === types.SamplerSourceEnum.cachedLocal ||
-      this.samplerSource === types.SamplerSourceEnum.recorded
-    ) {
-      const sampleMap = this.localSampler;
-      this.myTonejs = new Instruments(true, undefined, {
-        instrument: this.instrument,
-        sample: this.sampleName as string,
-        sampleMap,
-      });
-    } else {
-      this.myTonejs = new Instruments(false);
-    }
-    this.myTonejs.on(
-      "downloadingSamples",
-      this.eventListeners?.downloadingSamples
-    );
-    await this.myTonejs.init(); // must be here because construct cannot be async
-    if (pastEventListeners) {
-      Object.entries(pastEventListeners).forEach(([event, func]) => {
-        this.myTonejs?.on(event, func);
-      });
-    }
-    this.eventListeners.toneSet();
-  }
+  // async _initToneJs() {
+  //   this.eventListeners.willSetTone();
+  //   const pastEventListeners = this.myTonejs?.eventListeners;
+  //   this.myTonejs?.destroy();
+  //   if (this.samplerSource === types.SamplerSourceEnum.server) {
+  //     // if its useSample, then it must have this.sampleName
+  //     this.myTonejs = new Instruments(true, undefined, {
+  //       instrument: this.instrument,
+  //       sample: this.sampleName as string,
+  //     });
+  //   } else if (
+  //     this.samplerSource === types.SamplerSourceEnum.local ||
+  //     this.samplerSource === types.SamplerSourceEnum.cachedLocal ||
+  //     this.samplerSource === types.SamplerSourceEnum.recorded
+  //   ) {
+  //     const sampleMap = this.localSampler;
+  //     this.myTonejs = new Instruments(true, undefined, {
+  //       instrument: this.instrument,
+  //       sample: this.sampleName as string,
+  //       sampleMap,
+  //     });
+  //   } else {
+  //     this.myTonejs = new Instruments(false);
+  //   }
+  //   this.myTonejs.on(
+  //     "downloadingSamples",
+  //     this.eventListeners?.downloadingSamples
+  //   );
+  //   await this.myTonejs.init(); // must be here because construct cannot be async
+  //   if (pastEventListeners) {
+  //     Object.entries(pastEventListeners).forEach(([event, func]) => {
+  //       this.myTonejs?.on(event, func);
+  //     });
+  //   }
+  //   this.eventListeners.toneSet();
+  // }
 
-  async init() {
-    if (!this.myTonejs) {
-      await this.fetchLocalSampler();
-      console.log("Constructing My MidiPlayer");
-      this.eventListeners?.willMount();
-      await this._initToneJs();
-      this.eventListeners?.mounted();
-    }
-  }
+  // async init() {
+  //   if (!this.myTonejs) {
+  //     await this.fetchLocalSampler();
+  //     console.log("Constructing My MidiPlayer");
+  //     this.eventListeners?.willMount();
+  //     await this._initToneJs();
+  //     this.eventListeners?.mounted();
+  //   }
+  // }
 
   async fetchLocalSampler() {
     const localSampler: types.ArrayBufferMap =
@@ -440,8 +416,9 @@ export default class MyMidiPlayer {
 
   async loadArrayBuffer(arrayBuffer: ArrayBuffer) {
     this.midi = new Midi(arrayBuffer);
-    this._scheduleNotesToPlay();
+    this._scheduleNotesToPlay(this.midi.tracks);
     this.eventListeners?.import();
+    this.isReady = true;
     myCanvas.buildNotes();
     game.buildPlayMap();
     //@ts-ignore
@@ -473,7 +450,7 @@ export default class MyMidiPlayer {
   cleanup() {
     this.stop();
     // this.midiPlayer.on("playing", () => {});
-    this.myTonejs?.cleanUp();
+    // this.myTonejs?.cleanUp();
     console.log("Cleaned Midi Player");
   }
 }
