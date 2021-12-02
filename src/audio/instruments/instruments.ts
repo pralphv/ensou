@@ -28,13 +28,14 @@ export default class Instruments {
     this._useSampler = args.useSample || false;
     this.synth = initSynths("Synth"); // change this Synth to enum
     this.samplers = [];
-    this.polySynths = [];
+    this.polySynths = [initSynths("Synth")];
+    this.polySynths.forEach(polySynth => polySynth.toDestination());
   }
 
   scheduleNotesToPlay(notes: Note[]) {
     const instruments = this._getInstruments();
     instruments.forEach((intrument) => {
-      intrument.unsync(); // remove the old schedule
+      // intrument.unsync(); // NEED THIS TO BE WHEN NEW MIDI IS LOADED
       intrument.sync();
       notes.forEach((note) => {
         intrument.triggerAttackRelease(
@@ -52,8 +53,8 @@ export default class Instruments {
   }
   
   play() {
-    console.log("PLAY BABY")
     Transport.start();
+    console.log({Transport})
   }
 
   stop() {

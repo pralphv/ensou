@@ -5,6 +5,12 @@ export enum MidiStatus {
   MidiLoaded = "midiLoaded",
 }
 
+export enum PlaybackStateEnum { // from tone js
+  stopped = "stopped",
+  started = "started",
+  paused = "paused",
+}
+
 export const KALIMBA_STANDARD_TUNING_: { [key: string]: number } = {
   D6: 0,
   B5: 1,

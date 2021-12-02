@@ -11,6 +11,7 @@ import myCanvas from "canvas";
 import myMidiPlayer from "audio";
 import game from "game";
 import { Midi, Track } from "@tonejs/midi";
+import { PlaybackState } from "tone";
 
 const BEAT_BUFFER = 0.02;
 
@@ -112,6 +113,10 @@ export default class MyMidiPlayer {
     this.enablePracticeMode = this.enablePracticeMode.bind(this);
     this.disablePracticeMode = this.disablePracticeMode.bind(this);
     this._scheduleNotesToPlay = this._scheduleNotesToPlay.bind(this);
+  }
+
+  getState(): PlaybackState {
+    return Transport.state;
   }
 
   on(event: string, callback: Function) {
