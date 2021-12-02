@@ -32,18 +32,18 @@ export default class Instruments {
   }
 
   scheduleNotesToPlay(notes: Note[]) {
-    notes.forEach((note) => {
-      const instruments = this._getInstruments();
-      instruments.forEach((intrument) => {
-        intrument.unsync(); // remove the old schedule
-        intrument.sync();
+    const instruments = this._getInstruments();
+    instruments.forEach((intrument) => {
+      intrument.unsync(); // remove the old schedule
+      intrument.sync();
+      notes.forEach((note) => {
         intrument.triggerAttackRelease(
           note.name,
           note.duration,
           note.time,
           note.velocity
-        );
-      });
+        );  
+      });  
     });
   }
 
