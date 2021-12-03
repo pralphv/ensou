@@ -1,3 +1,5 @@
+import { Transport } from "tone";
+
 import * as constants from "./constants";
 import myCanvas from "canvas";
 import { PIANO_TUNING, NOTE_NUMBER_TO_NOTE } from "audio/constants";
@@ -86,7 +88,6 @@ class Game {
     window.addEventListener("keyup", this.handleOnKeyUp);
     const midiKeyboardEnabled = await midiKeyboard.enableMidiKeyboard();
     if (midiKeyboardEnabled) {
-
     }
     midiKeyboard.onClick(this.handleMidiPlayerOnClick);
   }
@@ -155,11 +156,11 @@ class Game {
   }
 
   triggerAttack(note: string, velocity: number = 1) {
-    myMidiPlayer.myTonejs?.triggerAttack(note, velocity);
+    // myMidiPlayer.myTonejs?.triggerAttack(note, velocity);
     myMidiPlayer.playingNotes.add(PIANO_TUNING[note]);
     myCanvas.render();
-    if (this.playMap[myMidiPlayer.getCurrentTick()]) {
-      for (const id of this.playMap[myMidiPlayer.getCurrentTick()]) {
+    if (this.playMap[Transport.ticks]) {
+      for (const id of this.playMap[Transport.ticks]) {
         if (
           this.notesToBePlayed[id].note === note &&
           !this.notesToBePlayed[id].played
@@ -174,18 +175,18 @@ class Game {
   }
 
   triggerRelease(note: string) {
-    myMidiPlayer.myTonejs?.triggerRelease(note);
+    // myMidiPlayer.myTonejs?.triggerRelease(note);
     myMidiPlayer.playingNotes.delete(PIANO_TUNING[note]);
     myCanvas.render();
   }
 
   render() {
     // used in midiPlayer handleOnPlaying
-    if (this.playMap[myMidiPlayer.getCurrentTick() - 1]) {
-      for (const id of this.playMap[myMidiPlayer.getCurrentTick() - 1]) {
+    if (this.playMap[Transport.ticks - 1]) {
+      for (const id of this.playMap[Transport.ticks - 1]) {
         if (
           this.notesToBePlayed[id].played === false && // not played
-          myMidiPlayer.getCurrentTick() >= this.notesToBePlayed[id].lastTick // passed timing
+          Transport.ticks >= this.notesToBePlayed[id].lastTick // passed timing
         ) {
           this.resetScore();
           myCanvas.comboDisplay.draw(this.score);

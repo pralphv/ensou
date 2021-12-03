@@ -4,11 +4,12 @@ import myMidiPlayer from "audio";
 import * as types from "../types";
 
 export default class FlashingColumns {
-  _app: PIXI.Application;
+  _app: PIXI.Renderer;
   _container: PIXI.Container;
   _columns: PIXI.Sprite[];
   constructor(
-    app: PIXI.Application,
+    app: PIXI.Renderer,
+    stage: PIXI.Container,
     isHorizontal: boolean = false,
     config: types.IMyCanvasConfig,
     leftPadding: number,
@@ -25,8 +26,8 @@ export default class FlashingColumns {
     // const width = isHorizontal
       // ? this._app.screen.height
       // : this._app.screen.width;
-    this._app.stage.addChild(this._container);
-    this._app.stage.setChildIndex(this._container, 1);
+    stage.addChild(this._container);
+    stage.setChildIndex(this._container, 1);
 
     const whiteKeyRect = initRectangle(whiteKeyWidth, height);
     const blackKeyRect = initRectangle(blackKeyWidth, height);

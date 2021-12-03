@@ -329,10 +329,6 @@ export default class MyMidiPlayer {
     this.sampleName = sampleName;
   }
 
-  getCurrentTick(): number {
-    return Transport.ticks;
-  }
-
   async downloadMidiFromFirebase(songId: string) {
     this.eventListeners?.willDownloadMidi();
     const midiRef = storageRef.child("midi").child(`${songId}.mid`);

@@ -1,4 +1,5 @@
 import * as PIXI from "pixi.js";
+import { Transport, Draw } from "tone";
 import BeatLines from "./beatLines/beatlines";
 import Background from "./background/background";
 import FlashingColumns from "./flashingColumns/flashingColumns";
@@ -14,7 +15,9 @@ import { convertCanvasHeightToMidiTick } from "./utils";
 
 class MyCanvas {
   pixiCanvas?: HTMLDivElement;
-  app: PIXI.Application;
+  app: PIXI.Renderer;
+  stage: PIXI.Container;
+  fps: number;
   beatLines!: BeatLines;
   background!: Background;
   flashingColumns!: FlashingColumns;
@@ -32,8 +35,7 @@ class MyCanvas {
   comboDisplay: ComboDisplay;
 
   constructor(width: number, height: number) {
-
-    this.app = new PIXI.Application({
+    this.app = new PIXI.Renderer({
       resolution: window.devicePixelRatio || 1,
       // autoDensity: true,
       width: width,
@@ -42,12 +44,13 @@ class MyCanvas {
       antialias: true,
       clearBeforeRender: true,
     });
+    this.stage = new PIXI.Container();
     this.config = {
       canvasNoteScale: 10,
       bottomTileHeight: this.app.screen.height * 0.08,
     };
 
-    this.app.start();
+    this.fps = 60;
     this.isShift = false;
     this.isDragging = false;
     this.isHovering = false;
@@ -61,9 +64,9 @@ class MyCanvas {
     this.increaseCanvasNoteScale = this.increaseCanvasNoteScale.bind(this);
     this.decreaseCanvasNoteScale = this.decreaseCanvasNoteScale.bind(this);
     this.buildComponents = this.buildComponents.bind(this);
-    this.background = new Background(this.app, this.config);
-    this.highlighter = new Highlighter(this.app, this.config);
-    this.comboDisplay = new ComboDisplay(this.app);
+    this.background = new Background(this.app, this.stage, this.config);
+    this.highlighter = new Highlighter(this.app, this.stage, this.config);
+    this.comboDisplay = new ComboDisplay(this.app, this.stage);
   }
 
   buildComponents() {
@@ -78,6 +81,7 @@ class MyCanvas {
     }
     this.flashingColumns = new FlashingColumns(
       this.app,
+      this.stage,
       undefined,
       this.config,
       this.background.bottomTiles.leftPadding,
@@ -86,6 +90,7 @@ class MyCanvas {
     );
     this.flashingBottomTiles = new FlashingBottomTiles(
       this.app,
+      this.stage,
       this.config,
       this.background.bottomTiles.leftPadding,
       this.background.bottomTiles.whiteKeyWidth,
@@ -93,6 +98,7 @@ class MyCanvas {
     );
     this.flashingLightsBottomTiles = new FlashingLightsBottomTiles(
       this.app,
+      this.stage,
       this.config,
       this.background.bottomTiles.leftPadding,
       this.background.bottomTiles.whiteKeyWidth,
@@ -108,35 +114,33 @@ class MyCanvas {
     htmlRef.appendChild(this.app.view);
     this.pixiCanvas = htmlRef;
     this.buildComponents();
-    this.interaction = new PIXI.InteractionManager(this.app.renderer);
+    this.interaction = new PIXI.InteractionManager(this.app);
     window.addEventListener("keydown", this.handleKeyDownListener, false);
     window.addEventListener("keyup", this.handleKeyUpListener, false);
     window.addEventListener("wheel", this.handleWheel, false);
 
     this.on("pointermove", (e: PIXI.InteractionEvent) => {
       if (this.isDragging) {
-        const currentTick = myMidiPlayer.getCurrentTick();
         const y: number = e.data.global.y;
-        let tick: number = convertCanvasHeightToMidiTick(y, currentTick);
+        let tick: number = convertCanvasHeightToMidiTick(y);
         const newIsLarger: boolean = tick >= this.lastClickedTick;
         const startTick = newIsLarger ? this.lastClickedTick : tick;
         let endTick = newIsLarger ? tick : this.lastClickedTick;
         // prevent small ranges due to slow clicks
         endTick = endTick - startTick > 10 ? endTick : startTick;
         myMidiPlayer.setPlayRange(startTick, endTick);
-        this.highlighter.draw(currentTick);
+        this.highlighter.draw();
       }
     });
-    this.on("pointertap", () => { });
+    this.on("pointertap", () => {});
     this.on("pointerdown", (e: PIXI.InteractionEvent) => {
       if (myMidiPlayer.getIsPlaying()) {
         myMidiPlayer.pause();
         return;
       }
-      const currentTick = myMidiPlayer.getCurrentTick();
       this.isDragging = true;
       const y: number = e.data.global.y;
-      let tick: number = convertCanvasHeightToMidiTick(y, currentTick);
+      let tick: number = convertCanvasHeightToMidiTick(y);
 
       const startTick: number = this.isShift
         ? Math.min(this.lastClickedTick, tick)
@@ -148,9 +152,9 @@ class MyCanvas {
 
       if (!this.isShift) {
         // for multi shift clicking
-        this.lastClickedTick = convertCanvasHeightToMidiTick(y, currentTick);
+        this.lastClickedTick = convertCanvasHeightToMidiTick(y);
       }
-      this.highlighter.draw(currentTick);
+      this.highlighter.draw();
     });
     this.on("pointerup", () => {
       this.isDragging = false;
@@ -164,11 +168,18 @@ class MyCanvas {
     this.on("mouseover", () => {
       this.isHovering = true;
     });
+    // use Draw for requestanimation TODO: need to cancel schedule
+    const scheduleId = Transport.scheduleRepeat((time) => {
+      Draw.schedule(() => {
+        // console.log(Tone.Transport.getSecondsAtTime());
+        // console.log(Tone.Transport.getTicksAtTime());
+      }, time);
+    }, 1 / this.fps);
   }
 
   disconnectHTML() {
     myMidiPlayer.setPlayRange(0, 0);
-    this.highlighter.draw(myMidiPlayer.getCurrentTick()); // just reseting the highlighter
+    this.highlighter.draw(); // just reseting the highlighter
     this.pixiCanvas?.removeChild(this.app.view);
     this.pixiCanvas = undefined;
     this.flashingColumns.destroy();
@@ -191,13 +202,14 @@ class MyCanvas {
     }
     this.fallingNotes = new FallingNotes(
       this.app,
+      this.stage,
       myMidiPlayer.groupedNotes,
       this.config,
       this.background.bottomTiles.leftPadding,
       this.background.bottomTiles.whiteKeyWidth,
       this.background.bottomTiles.blackKeyWidth
     );
-    this.beatLines = new BeatLines(this.app, this.config);
+    this.beatLines = new BeatLines(this.app, this.stage, this.config);
   }
 
   destroy() {
@@ -213,13 +225,12 @@ class MyCanvas {
   }
 
   render() {
-    const currentTick = myMidiPlayer.getCurrentTick();
-    this.fallingNotes?.draw(currentTick);
+    this.fallingNotes?.draw();
     this.flashingColumns.draw();
     this.flashingBottomTiles.draw();
     // this.flashingLightsBottomTiles.draw();
-    this.beatLines?.draw(currentTick);
-    this.highlighter.draw(currentTick);
+    this.beatLines?.draw();
+    this.highlighter.draw();
   }
 
   on(event: string, callback: Function) {
@@ -244,13 +255,12 @@ class MyCanvas {
     if (!this.isHovering) {
       return;
     }
-    const currentTick = myMidiPlayer.getCurrentTick();
     const totalTicks = myMidiPlayer.getTotalTicks();
     if (e.ctrlKey) {
       // maybe zoom in out
     }
-    if (currentTick && totalTicks) {
-      let newTick: number = currentTick + e.deltaY / 2;
+    if (Transport.ticks && totalTicks) {
+      let newTick: number = Transport.ticks + e.deltaY / 2;
       const SCROLL_BUFFER: number = 300;
       const withinUpperLimit = newTick + SCROLL_BUFFER < totalTicks;
       const withinLowerLimit = newTick > 0;
@@ -263,15 +273,15 @@ class MyCanvas {
   }
 
   setIsHorizontal(value: boolean) {
-    console.log(this.app.screen);
-    this.app.stage.setTransform(
-      this.app.screen.width / 2 + this.config.bottomTileHeight,
-      undefined,
-      0.7,
-      0.95,
-      1.5708
-    );
-    this.isHorizontal = value;
+    // console.log(this.app.screen);
+    // this.app.stage.setTransform(
+    //   this.app.screen.width / 2 + this.config.bottomTileHeight,
+    //   undefined,
+    //   0.7,
+    //   0.95,
+    //   1.5708
+    // );
+    // this.isHorizontal = value;
     // this.flashingColumns.destroy();
     // this.flashingColumns = new FlashingColumns(
     //   this.app,

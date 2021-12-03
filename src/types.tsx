@@ -24,7 +24,6 @@ export interface IMidiFunctions {
   skipToTick: (tick: number) => void;
   restart: () => void;
   getIsPlaying: () => boolean | undefined;
-  getCurrentTick: () => number | undefined;
   getTicksPerBeat: () => number | undefined;
   getTotalTicks: () => number | undefined;
   getSongPercentRemaining: () => number | undefined;

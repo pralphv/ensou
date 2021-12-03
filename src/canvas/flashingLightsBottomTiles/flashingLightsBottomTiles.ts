@@ -4,11 +4,12 @@ import myMidiPlayer from "audio";
 import * as types from "../types";
 
 export default class FlashingLightsBottomTiles {
-  _app: PIXI.Application;
+  _app: PIXI.Renderer;
   _container: PIXI.Container;
   _columns: PIXI.Sprite[][];
   constructor(
-    app: PIXI.Application,
+    app: PIXI.Renderer,
+    stage: PIXI.Container,
     config: types.IMyCanvasConfig,
     leftPadding: number,
     whiteKeyWidth: number,
@@ -19,8 +20,8 @@ export default class FlashingLightsBottomTiles {
     this._columns = [];
 
     console.log("Constructing new Flashing Lights Bottom Tiles");
-    this._app.stage.addChild(this._container);
-    this._app.stage.setChildIndex(this._container, 4);
+    stage.addChild(this._container);
+    stage.setChildIndex(this._container, 4);
 
     const circle0 = initCircle(whiteKeyWidth * 5, 0.7, this._app);
     const circle1 = initCircle(whiteKeyWidth * 5, 0.9, this._app);
@@ -102,7 +103,7 @@ function gradient(
 function initCircle(
   width: number,
   widthPercent: number,
-  app: PIXI.Application
+  app: PIXI.Renderer
 ): PIXI.Texture {
   const circle = new PIXI.Graphics();
   circle.beginTextureFill({

@@ -1,11 +1,12 @@
 import * as PIXI from "pixi.js";
+import { Transport } from "tone";
 import * as types from "audio/types";
 import { PIANO_TUNING } from "audio/constants";
 import { IMyCanvasConfig } from "../types";
 import myMidiPlayer from "audio";
 
 export default class FallingNotes {
-  _app: PIXI.Application;
+  _app: PIXI.Renderer;
   _container: PIXI.Container;
   _fallingNotes: IFallingNotes[];
   _totalFallingNotes: number;
@@ -16,7 +17,8 @@ export default class FallingNotes {
   isTextOn: boolean;
 
   constructor(
-    app: PIXI.Application,
+    app: PIXI.Renderer,
+    stage: PIXI.Container,
     groupedNotes: types.GroupedNotes[],
     config: IMyCanvasConfig,
     leftPadding: number,
@@ -38,8 +40,8 @@ export default class FallingNotes {
     const color1 = "#63F0FF";
     const color2 = "#35D1FC";
 
-    this._app.stage.addChild(this._container);
-    this._app.stage.setChildIndex(this._container, 2);
+    stage.addChild(this._container);
+    stage.setChildIndex(this._container, 2);
     const pianoNoteXMap = createPianoNoteXMap(whiteKeyWidth, blackKeyWidth);
 
     const rectCached: RectCache = {};
@@ -80,16 +82,14 @@ export default class FallingNotes {
     this.hideText();
   }
 
-  draw(currentTick: number) {
+  draw() {
     const upperLimit = myMidiPlayer.ticksPerBeat * 4 * 8; // assume 4 beats per bar, show 3 bars
     for (const note of this._fallingNotes) {
       if (
-        currentTick >=
-        note.on * this._canvasNoteScale - upperLimit &&
-        currentTick <= note.off * this._canvasNoteScale
+        Transport.ticks >= note.on * this._canvasNoteScale - upperLimit &&
+        Transport.ticks <= note.off * this._canvasNoteScale
       ) {
-        const on =
-          note.on - currentTick / this._canvasNoteScale;
+        const on = note.on - Transport.ticks / this._canvasNoteScale;
         note.rectSprite.position.x = note.x;
         note.rectSprite.position.y =
           this._screenHeight - on - note.height - this._bottomTileHeight;

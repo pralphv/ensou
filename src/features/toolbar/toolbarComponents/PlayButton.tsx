@@ -6,7 +6,7 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 
 import CustomButton from "./cutomButton/CustomButton";
 import myMidiPlayer from "audio";
-import {PlaybackStateEnum} from "audio/constants";
+import { PlaybackStateEnum } from "audio/constants";
 
 export default function PlayButton(): JSX.Element {
   const isPlaying = myMidiPlayer.getState() === PlaybackStateEnum.started;
@@ -28,7 +28,6 @@ export default function PlayButton(): JSX.Element {
             await start();
             await context.resume();
             myMidiPlayer.play();
-            // myMidiPlayer._scheduleNotesToPlay();
           }}
           size="small"
           disabled={!myMidiPlayer.isReady}

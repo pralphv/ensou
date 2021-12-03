@@ -1,24 +1,27 @@
 import * as PIXI from "pixi.js";
+import { Transport } from "tone";
+
 import myMidiPlayer from "audio";
 import myCanvas from "canvas";
 
 class ProgressBar {
   pixiCanvas?: HTMLDivElement;
-  app: PIXI.Application;
+  app: PIXI.Renderer;
+  stage: PIXI.Container;
   isDragging: boolean;
   interaction!: PIXI.InteractionManager;
   progressBar: PIXI.Sprite;
   container: PIXI.Container;
 
   constructor() {
-    this.app = new PIXI.Application({
+    this.app = new PIXI.Renderer({
       width: window.innerWidth,
       height: 8,
       transparent: false,
       antialias: true,
       clearBeforeRender: true,
     });
-    this.app.start();
+    this.stage = new PIXI.Container();
 
     const realProgressRect = initRectangle(this.app.screen.width, 8, 0x90eefe);
     const backgroundRect = initRectangle(this.app.screen.width, 8, 0x5c969f);
@@ -33,7 +36,7 @@ class ProgressBar {
     const background = new PIXI.Sprite(backgroundTexture);
     this.container.addChild(background);
     this.container.addChild(this.progressBar);
-    this.app.stage.addChild(this.container);
+    this.stage.addChild(this.container);
 
     this.isDragging = false;
     this.render = this.render.bind(this);
@@ -59,7 +62,7 @@ class ProgressBar {
     console.log("Attaching ProgressBar to HTML");
     htmlRef.appendChild(this.app.view);
     this.pixiCanvas = htmlRef;
-    this.interaction = new PIXI.InteractionManager(this.app.renderer);
+    this.interaction = new PIXI.InteractionManager(this.app);
     this.interaction.on("mousedown", this.handleOnClick);
     this.interaction.on("touchstart", this.handleOnClick);
     this.interaction.on("pointerup", () => {
@@ -97,7 +100,7 @@ class ProgressBar {
 
   render() {
     if (this.container.visible) {
-      const pct = myMidiPlayer.getCurrentTick() / myMidiPlayer.totalTicks;
+      const pct = Transport.ticks / myMidiPlayer.totalTicks;
       this.progressBar.width = this.app.screen.width * pct;
     }
   }

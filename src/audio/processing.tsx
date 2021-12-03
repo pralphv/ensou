@@ -1,4 +1,5 @@
 import { Event } from "midi-player-js";
+import { Transport } from "tone";
 
 import * as types from "./types";
 import * as constants from "./constants";
@@ -43,16 +44,15 @@ export function groupNotes(allEvents: Event[]): types.GroupedNotes[] {
 
 export function generateDataToDraw(
   groupedNotes: types.GroupedNotes[],
-  currentTick: number,
   ticksPerBeat: number
 ): types.DataToDraw {
   const notesToDraw: types.NotesToDraw[] = [];
-  const maxTick = currentTick + ticksPerBeat * 5;
+  const maxTick = Transport.ticks + ticksPerBeat * 5;
   for (let i = 0; i < groupedNotes.length - 1; i++) {
     const note = groupedNotes[i];
-    if (note.on < maxTick && note.off >= currentTick) {
-      const off: number = (note.off - currentTick) / 3;
-      const on: number = (note.on - currentTick) / 3;
+    if (note.on < maxTick && note.off >= Transport.ticks) {
+      const off: number = (note.off - Transport.ticks) / 3;
+      const on: number = (note.on - Transport.ticks) / 3;
       const oneNote: types.NotesToDraw = {
         y: on,
         height: off - on,

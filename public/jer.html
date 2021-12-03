@@ -197,18 +197,14 @@
               //}, 100000).start();
             });
             //Tone.Transport.set({loop: true});
-            Tone.Transport.setLoopPoints(0, 5);
-            Tone.Transport.loop = true;
-            Tone.Draw.schedule((e) => {
-              // do drawing or DOM manipulation here
-              console.log({ e });
-            });
+            // Tone.Transport.loop = true;
+            const fps = 60;
             Tone.Transport.scheduleRepeat((time) => {
               Tone.Draw.schedule(() => {
                 console.log(Tone.Transport.getSecondsAtTime());
                 console.log(Tone.Transport.getTicksAtTime());
               }, time);
-            }, 0.016666);
+            }, 1/fps);
             Tone.Transport.start();
           } else {
             //dispose the synth and make a new one

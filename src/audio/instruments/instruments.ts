@@ -13,9 +13,10 @@ import { Note } from "@tonejs/midi/dist/Note";
 import StartAudioContext from "startaudiocontext";
 import { initSynths } from "../synths/synths";
 import { AvailableSynths } from "types";
+import instruments from ".";
 
 interface IIntrumentsArgs {
-  useSample?:boolean;
+  useSample?: boolean;
 }
 
 export default class Instruments {
@@ -29,40 +30,44 @@ export default class Instruments {
     this.synth = initSynths("Synth"); // change this Synth to enum
     this.samplers = [];
     this.polySynths = [initSynths("Synth")];
-    this.polySynths.forEach(polySynth => polySynth.toDestination());
+    this.polySynths.forEach((polySynth) => polySynth.toDestination());
+    this.releaseAll = this.releaseAll.bind(this);
   }
 
   scheduleNotesToPlay(notes: Note[]) {
-    const instruments = this._getInstruments();
-    instruments.forEach((intrument) => {
+    this._getInstruments().forEach((instrument) => {
       // intrument.unsync(); // NEED THIS TO BE WHEN NEW MIDI IS LOADED
-      intrument.sync();
+      instrument.sync();
       notes.forEach((note) => {
-        intrument.triggerAttackRelease(
+        instrument.triggerAttackRelease(
           note.name,
           note.duration,
           note.time,
           note.velocity
-        );  
-      });  
+        );
+      });
     });
   }
 
   _getInstruments() {
     return this._useSampler ? this.samplers : this.polySynths;
   }
-  
+
   play() {
     Transport.start();
-    console.log({Transport})
   }
 
   stop() {
+    this.releaseAll();
     Transport.stop();
   }
 
   pause() {
+    this.releaseAll();
     Transport.pause();
   }
 
+  releaseAll() {
+    this._getInstruments().forEach((instrument) => instrument.releaseAll());
+  }
 }

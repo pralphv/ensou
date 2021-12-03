@@ -5,7 +5,7 @@ import * as types from "../types";
 import game from "game";
 
 export default class BottomTiles {
-  _app: PIXI.Application;
+  _app: PIXI.Renderer;
   _container: PIXI.Container;
   leftPadding: number;
   whiteKeyWidth: number;
@@ -13,15 +13,15 @@ export default class BottomTiles {
   _config: types.IMyCanvasConfig;
   _textArray: PIXI.Text[];
 
-  constructor(app: PIXI.Application, config: types.IMyCanvasConfig) {
+  constructor(app: PIXI.Renderer, stage: PIXI.Container, config: types.IMyCanvasConfig) {
     this._app = app;
     this._container = new PIXI.Container();
     this._config = config;
 
-    this._app.stage.addChild(this._container);
-    this._app.stage.setChildIndex(
+    stage.addChild(this._container);
+    stage.setChildIndex(
       this._container,
-      this._app.stage.children.length - 1
+      stage.children.length - 1
     );
 
     this._textArray = [];

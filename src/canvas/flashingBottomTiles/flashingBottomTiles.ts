@@ -4,25 +4,24 @@ import myMidiPlayer from "audio";
 import * as types from "../types";
 
 export default class FlashingBottomTiles {
-  _app: PIXI.Application;
   _container: PIXI.Container;
   _columns: PIXI.Sprite[];
   constructor(
-    app: PIXI.Application,
+    app: PIXI.Renderer,
+    stage: PIXI.Container,
     config: types.IMyCanvasConfig,
     leftPadding: number,
     whiteKeyWidth: number,
     blackKeyWidth: number
   ) {
-    this._app = app;
     this._container = new PIXI.Container();
     this._columns = [];
     console.log("Constructing new Flashing Bottom Tiles");
 
-    this._app.stage.addChild(this._container);
-    this._app.stage.setChildIndex(
+    stage.addChild(this._container);
+    stage.setChildIndex(
       this._container,
-      this._app.stage.children.length - 1
+      stage.children.length - 1
     );
 
     const whiteKey = initRectangle(whiteKeyWidth + 1, config.bottomTileHeight);
@@ -31,9 +30,9 @@ export default class FlashingBottomTiles {
       config.bottomTileHeight * 0.66
     );
     // @ts-ignore
-    const whiteKeyTexture = this._app.renderer.generateTexture(whiteKey);
+    const whiteKeyTexture = app.renderer.generateTexture(whiteKey);
     // @ts-ignore
-    const blackKeyTexture = this._app.renderer.generateTexture(blackKey);
+    const blackKeyTexture = app.renderer.generateTexture(blackKey);
     let x: number = leftPadding;
     let lastI: number; // to prevent duplicate notes from b and #
     Object.entries(PIANO_TUNING).forEach(([key, i]: [string, number]) => {
