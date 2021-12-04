@@ -117,7 +117,7 @@ function initCircle(
   circle.alpha = 0.6;
   circle.drawRect(0, 0, width, width);
   // @ts-ignore
-  const texture = app.renderer.generateTexture(circle);
+  const texture = app.generateTexture(circle);
   circle.destroy({ children: true, texture: true, baseTexture: true });
   return texture;
 }

@@ -9,7 +9,7 @@ import UploadBackdrop from "features/uploadBackdrop/UploadBackdrop";
 import myMidiPlayer from "audio";
 
 export default function FileReaderButton(): JSX.Element {
-  const [onLoadMidiFile] = useLoadLocal(myMidiPlayer.loadArrayBuffer);
+  const [onLoadMidiFile] = useLoadLocal(myMidiPlayer.readArrayBuffer);
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: onLoadMidiFile,
     disabled: myMidiPlayer.getIsPlaying(),

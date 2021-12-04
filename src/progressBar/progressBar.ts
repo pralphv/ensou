@@ -26,11 +26,11 @@ class ProgressBar {
     const realProgressRect = initRectangle(this.app.screen.width, 8, 0x90eefe);
     const backgroundRect = initRectangle(this.app.screen.width, 8, 0x5c969f);
     // @ts-ignore
-    const realProgressTexture = this.app.renderer.generateTexture(
+    const realProgressTexture = this.app.generateTexture(
       realProgressRect
-    );
+    );  
     // @ts-ignore
-    const backgroundTexture = this.app.renderer.generateTexture(backgroundRect);
+    const backgroundTexture = this.app.generateTexture(backgroundRect);
     this.container = new PIXI.Container();
     this.progressBar = new PIXI.Sprite(realProgressTexture);
     const background = new PIXI.Sprite(backgroundTexture);
@@ -100,8 +100,9 @@ class ProgressBar {
 
   render() {
     if (this.container.visible) {
-      const pct = Transport.ticks / myMidiPlayer.totalTicks;
+      const pct = Transport.ticks / myMidiPlayer.getTotalTicks();
       this.progressBar.width = this.app.screen.width * pct;
+      this.app.render(this.stage);
     }
   }
 

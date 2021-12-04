@@ -45,9 +45,9 @@ export default class BottomTiles {
     );
 
     // @ts-ignore
-    const whiteKeyTexture = this._app.renderer.generateTexture(whiteKey);
+    const whiteKeyTexture = this._app.generateTexture(whiteKey);
     // @ts-ignore
-    const blackKeyTexture = this._app.renderer.generateTexture(blackKey);
+    const blackKeyTexture = this._app.generateTexture(blackKey);
     let x: number = leftPadding;
 
     let lastI: number; // to prevent duplicate notes from b and #
@@ -94,6 +94,7 @@ export default class BottomTiles {
         sprite.position.y = screenHeight - tileHeight - 1;
       }
     });
+    console.log({whiteKeyContainer})
     this._container.addChild(whiteKeyContainer);
     this._container.addChild(blackKeyContainer);
 
@@ -103,7 +104,7 @@ export default class BottomTiles {
       app.screen.height * 0.3
     );
     // @ts-ignore
-    const blackTexture = app.renderer.generateTexture(blackRect);
+    const blackTexture = app.generateTexture(blackRect);
     const sprite = new PIXI.Sprite(blackTexture);
     sprite.position.x = 0;
     sprite.position.y = 0;

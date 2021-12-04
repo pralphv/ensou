@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import clsx from "clsx";
 
+import { Transport, Draw } from "tone";
 import { Typography } from "@mui/material";
 import Divider from "@mui/material/Divider";
 import { useFirestore } from "react-redux-firebase";
@@ -38,6 +39,7 @@ export default function Player(): JSX.Element {
   const [isHovering, setIsHovering] = useState<boolean>(false);
   const [isHorizontal, setIsHorizontal] = useState<boolean>(false);
   const [forceRender, setForceRender] = useState<number>(0); // for re-render on volume change
+  const [fps, setFps] = useState<number>(60);
   const maximizableElement = React.useRef(null);
   const [isFullscreen, setIsFullscreen, isError] = useFullscreenStatus(
     maximizableElement
@@ -110,6 +112,14 @@ export default function Player(): JSX.Element {
           setIsHovering(false);
         }, 2000)
       );
+    // use Draw for requestanimation TODO: need to cancel schedule
+      const scheduleId = Transport.scheduleRepeat((time) => {
+        Draw.schedule(() => {
+          myCanvas.render();
+          progressBar.render();
+        }, time);
+      }, 1 / fps);
+  
     }
     async function fetchSongDetails() {
       const ref = await firestore.collection("midi").doc(songId);

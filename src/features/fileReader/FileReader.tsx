@@ -15,7 +15,7 @@ import LoadingSpinner from "features/loadingSpinner/LoadingSpinner";
 import { setFileName } from "./fileReaderSlice";
 
 interface FileReaderProps {
-  loadArrayBuffer: (blob: XMLHttpRequest["response"]) => void;
+  readArrayBuffer: (blob: XMLHttpRequest["response"]) => void;
 }
 
 function useAvailableUserUploadedMidis(): string[] {
@@ -40,7 +40,7 @@ function useAvailableUserUploadedMidis(): string[] {
   return midiNames;
 }
 
-function useLoadLocal(loadArrayBuffer: (blob: XMLHttpRequest["response"]) => void): [string, any] {
+function useLoadLocal(readArrayBuffer: (blob: XMLHttpRequest["response"]) => void): [string, any] {
   const [fileName, setFileName] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { enqueueSnackbar } = useSnackbar();
@@ -56,7 +56,7 @@ function useLoadLocal(loadArrayBuffer: (blob: XMLHttpRequest["response"]) => voi
     reader.onload = (r: any) => {
       const data: any = r.target.result;
       if (data) {
-        loadArrayBuffer(data);
+        readArrayBuffer(data);
       }
     };
     try {
@@ -74,14 +74,14 @@ function useLoadLocal(loadArrayBuffer: (blob: XMLHttpRequest["response"]) => voi
   return [fileName, onDrop];
 }
 
-async function downloadMidi(loadArrayBuffer: (blob: XMLHttpRequest["response"]) => void, fileName: string) {
+async function downloadMidi(readArrayBuffer: (blob: XMLHttpRequest["response"]) => void, fileName: string) {
   const midiRef = storageRef.child("midi").child(fileName);
   const url = await midiRef.getDownloadURL();
   const xhr = new XMLHttpRequest();
   xhr.responseType = "arraybuffer";
   xhr.onload = () => {
     const blob = xhr.response;
-    loadArrayBuffer(blob);
+    readArrayBuffer(blob);
     console.log("File Loaded");
   };
   xhr.open("GET", url);
@@ -89,8 +89,8 @@ async function downloadMidi(loadArrayBuffer: (blob: XMLHttpRequest["response"]) 
   return true;
 }
 
-export default function FileReader_({ loadArrayBuffer }: FileReaderProps) {
-  const [fileName, onDrop] = useLoadLocal(loadArrayBuffer);
+export default function FileReader_({ readArrayBuffer }: FileReaderProps) {
+  const [fileName, onDrop] = useLoadLocal(readArrayBuffer);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const midiNames = useAvailableUserUploadedMidis();
@@ -102,7 +102,7 @@ export default function FileReader_({ loadArrayBuffer }: FileReaderProps) {
     if (value !== "upload") {
       try {
         setIsLoading(true);
-        await downloadMidi(loadArrayBuffer, value);
+        await downloadMidi(readArrayBuffer, value);
         setIsLoading(false);
         dispatch(setFileName(value));
       } catch (error) {

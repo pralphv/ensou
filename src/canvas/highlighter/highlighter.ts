@@ -18,7 +18,7 @@ export default class Highlighter {
     this._config = config;
     const rect = initRectangle(this._app.screen.width, this._app.screen.height);
     // @ts-ignore
-    this._texture = this._app.renderer.generateTexture(rect);
+    this._texture = this._app.generateTexture(rect);
     this._sprite = new PIXI.Sprite(this._texture);
     stage.addChild(this._sprite);
     this._sprite.visible = false;

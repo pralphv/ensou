@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import { Transport, Draw } from "tone";
+import { Transport } from "tone";
 import BeatLines from "./beatLines/beatlines";
 import Background from "./background/background";
 import FlashingColumns from "./flashingColumns/flashingColumns";
@@ -17,7 +17,6 @@ class MyCanvas {
   pixiCanvas?: HTMLDivElement;
   app: PIXI.Renderer;
   stage: PIXI.Container;
-  fps: number;
   beatLines!: BeatLines;
   background!: Background;
   flashingColumns!: FlashingColumns;
@@ -50,7 +49,6 @@ class MyCanvas {
       bottomTileHeight: this.app.screen.height * 0.08,
     };
 
-    this.fps = 60;
     this.isShift = false;
     this.isDragging = false;
     this.isHovering = false;
@@ -64,9 +62,11 @@ class MyCanvas {
     this.increaseCanvasNoteScale = this.increaseCanvasNoteScale.bind(this);
     this.decreaseCanvasNoteScale = this.decreaseCanvasNoteScale.bind(this);
     this.buildComponents = this.buildComponents.bind(this);
+    this.on = this.on.bind(this);
     this.background = new Background(this.app, this.stage, this.config);
     this.highlighter = new Highlighter(this.app, this.stage, this.config);
     this.comboDisplay = new ComboDisplay(this.app, this.stage);
+    console.log(this.stage);
   }
 
   buildComponents() {
@@ -113,8 +113,8 @@ class MyCanvas {
     console.log("Attaching PIXI to HTML");
     htmlRef.appendChild(this.app.view);
     this.pixiCanvas = htmlRef;
-    this.buildComponents();
     this.interaction = new PIXI.InteractionManager(this.app);
+    this.buildComponents();
     window.addEventListener("keydown", this.handleKeyDownListener, false);
     window.addEventListener("keyup", this.handleKeyUpListener, false);
     window.addEventListener("wheel", this.handleWheel, false);
@@ -168,13 +168,6 @@ class MyCanvas {
     this.on("mouseover", () => {
       this.isHovering = true;
     });
-    // use Draw for requestanimation TODO: need to cancel schedule
-    const scheduleId = Transport.scheduleRepeat((time) => {
-      Draw.schedule(() => {
-        // console.log(Tone.Transport.getSecondsAtTime());
-        // console.log(Tone.Transport.getTicksAtTime());
-      }, time);
-    }, 1 / this.fps);
   }
 
   disconnectHTML() {
@@ -231,6 +224,7 @@ class MyCanvas {
     // this.flashingLightsBottomTiles.draw();
     this.beatLines?.draw();
     this.highlighter.draw();
+    this.app.render(this.stage);
   }
 
   on(event: string, callback: Function) {

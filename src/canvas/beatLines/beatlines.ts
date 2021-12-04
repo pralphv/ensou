@@ -22,7 +22,7 @@ export default class BeatLines {
 
     const line = drawLine(app.screen.width);
     // @ts-ignore
-    const texture = app.renderer.generateTexture(line);
+    const texture = app.generateTexture(line);
     this._sprites = [];
 
     for (let i = 0; i < 20; i++) {

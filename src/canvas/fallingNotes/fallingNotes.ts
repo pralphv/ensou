@@ -43,24 +43,23 @@ export default class FallingNotes {
     stage.addChild(this._container);
     stage.setChildIndex(this._container, 2);
     const pianoNoteXMap = createPianoNoteXMap(whiteKeyWidth, blackKeyWidth);
-
     const rectCached: RectCache = {};
-    groupedNotes.forEach((note) => {
-      const on = note.on / this._canvasNoteScale;
-      const off = note.off / this._canvasNoteScale;
-      const height = off - on;
-      const x = pianoNoteXMap[note.noteName].x + leftPadding;
-      const width = pianoNoteXMap[note.noteName].width;
+    myMidiPlayer.notes.forEach((note) => {
+      const on = note.ticks / this._canvasNoteScale;
+      const off = (note.ticks + note.durationTicks) / this._canvasNoteScale;
+      const height = note.durationTicks / this._canvasNoteScale;
+      const x = pianoNoteXMap[note.name].x + leftPadding;
+      const width = pianoNoteXMap[note.name].width;
       const cacheKey = `${height}_${width}`;
       if (!rectCached[cacheKey]) {
         const rect = initRectangle(width + 1, height, color1, color2);
         rectCached[cacheKey] = rect;
       }
       // @ts-ignore
-      const texture = app.renderer.generateTexture(rectCached[cacheKey]);
+      const texture = app.generateTexture(rectCached[cacheKey]);
       const rectSprite = new PIXI.Sprite(texture);
       rectSprite.visible = false;
-      const text = new PIXI.Text(note.noteName.slice(0, -1), {
+      const text = new PIXI.Text(note.name.slice(0, -1), {
         fontFamily: "Helvetica",
         fontSize: Math.min(width * 0.8, 12),
         fill: "#2D353F",
@@ -83,7 +82,8 @@ export default class FallingNotes {
   }
 
   draw() {
-    const upperLimit = myMidiPlayer.ticksPerBeat * 4 * 8; // assume 4 beats per bar, show 3 bars
+    // const upperLimit = myMidiPlayer.ticksPerBeat * 4 * 8; // assume 4 beats per bar, show 3 bars
+    const upperLimit = 10000;
     for (const note of this._fallingNotes) {
       if (
         Transport.ticks >= note.on * this._canvasNoteScale - upperLimit &&
@@ -137,7 +137,7 @@ interface IFallingNotes {
 }
 
 interface IPianoNoteXMap {
-  [note: string]: IPianoNote;
+  [key: string]: IPianoNote;
 }
 
 interface IPianoNote {

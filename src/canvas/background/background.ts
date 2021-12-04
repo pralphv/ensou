@@ -42,7 +42,7 @@ export default class Background {
 
     const horizontalLine = drawLine(this._app.screen.height);
     // @ts-ignore
-    const texture = this._app.renderer.generateTexture(horizontalLine);
+    const texture = this._app.generateTexture(horizontalLine);
 
     let x: number = 0;
     let lastI: number; // to prevent duplicate notes from b and #

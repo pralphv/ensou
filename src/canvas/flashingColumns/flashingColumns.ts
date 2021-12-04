@@ -33,9 +33,9 @@ export default class FlashingColumns {
     const blackKeyRect = initRectangle(blackKeyWidth, height);
 
     // @ts-ignore
-    const whiteKeyTexture = this._app.renderer.generateTexture(whiteKeyRect);
+    const whiteKeyTexture = this._app.generateTexture(whiteKeyRect);
     // @ts-ignore
-    const blackKeyTexture = this._app.renderer.generateTexture(blackKeyRect);
+    const blackKeyTexture = this._app.generateTexture(blackKeyRect);
     let x: number = leftPadding;
     let lastI: number; // to prevent duplicate notes from b and #
 

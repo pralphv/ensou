@@ -12,6 +12,7 @@ import myMidiPlayer from "audio";
 import game from "game";
 import { Midi, Track } from "@tonejs/midi";
 import { PlaybackState } from "tone";
+import { Note } from "@tonejs/midi/dist/Note";
 
 const BEAT_BUFFER = 0.02;
 
@@ -55,6 +56,7 @@ export default class MyMidiPlayer {
   practiceMode: boolean;
   pressedKeys: Set<string>;
   midi: Midi;
+  notes: Note[];
 
   constructor() {
     // _forceCanvasRerender: () => void // ) => void, //   groupedNotes: types.IGroupedNotes[] //   ticksPerBeat: number, //   currentTick: number, // onPlaying: ( // setInstrumentLoading: (loading: boolean) => void, // setPlayerStatus: (status: string) => void,
@@ -89,6 +91,7 @@ export default class MyMidiPlayer {
     this.resetPlayingNotes();
     this.pressedKeys = new Set();
     this.midi = new Midi();
+    this.notes = [];
 
     // init should be here but its await so it cant
     // should be safe to say string because when useSample is chosen it would save to local storage
@@ -103,7 +106,7 @@ export default class MyMidiPlayer {
     this.setTempo = this.setTempo.bind(this);
     this.getIsPlaying = this.getIsPlaying.bind(this);
     this.downloadMidiFromFirebase = this.downloadMidiFromFirebase.bind(this);
-    this.loadArrayBuffer = this.loadArrayBuffer.bind(this);
+    this.readArrayBuffer = this.readArrayBuffer.bind(this);
     this.setTempoPercent = this.setTempoPercent.bind(this);
     this.checkIfSampler = this.checkIfSampler.bind(this);
     this.setSamplerSource = this.setSamplerSource.bind(this);
@@ -113,6 +116,7 @@ export default class MyMidiPlayer {
     this.enablePracticeMode = this.enablePracticeMode.bind(this);
     this.disablePracticeMode = this.disablePracticeMode.bind(this);
     this._scheduleNotesToPlay = this._scheduleNotesToPlay.bind(this);
+    this.getTotalTicks = this.getTotalTicks.bind(this);
   }
 
   getState(): PlaybackState {
@@ -209,6 +213,10 @@ export default class MyMidiPlayer {
     console.log("JER")
   }
 
+  getTotalTicks(): number {
+    return this.midi.durationTicks;
+  }
+
   setLocalSampler(sampler: SamplerOptions["urls"]) {
     this.localSampler = sampler;
   }
@@ -267,10 +275,6 @@ export default class MyMidiPlayer {
     // await this._initToneJs();
     // after sample set
     this.eventListeners.actioned();
-  }
-
-  getTotalTicks(): number {
-    return this.totalTicks;
   }
 
   getTicksPerBeat(): number {
@@ -346,7 +350,7 @@ export default class MyMidiPlayer {
 
   handleOnDownloaded(xhr: XMLHttpRequest) {
     const blob = xhr.response;
-    this.loadArrayBuffer(blob);
+    this.readArrayBuffer(blob);
     console.log("Finished downloading");
     this.tempoPercent = 1;
     myCanvas.buildNotes();
@@ -415,8 +419,9 @@ export default class MyMidiPlayer {
     }
   }
 
-  async loadArrayBuffer(arrayBuffer: ArrayBuffer) {
+  async readArrayBuffer(arrayBuffer: ArrayBuffer) {
     this.midi = new Midi(arrayBuffer);
+    this.notes = this.midi.tracks.map(track => track.notes).flat();
     this._scheduleNotesToPlay(this.midi.tracks);
     this.eventListeners?.import();
     this.isReady = true;

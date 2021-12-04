@@ -58,16 +58,19 @@ export default class Instruments {
   }
 
   stop() {
-    this.releaseAll();
     Transport.stop();
+    this.releaseAll();
   }
 
   pause() {
-    this.releaseAll();
     Transport.pause();
+    this.releaseAll();
   }
 
   releaseAll() {
-    this._getInstruments().forEach((instrument) => instrument.releaseAll());
+    setTimeout(() => {
+      // a buffer to make sure no attacks
+      this._getInstruments().forEach((instrument) => instrument.releaseAll());
+    }, 100);
   }
 }

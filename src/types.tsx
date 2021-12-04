@@ -27,7 +27,7 @@ export interface IMidiFunctions {
   getTicksPerBeat: () => number | undefined;
   getTotalTicks: () => number | undefined;
   getSongPercentRemaining: () => number | undefined;
-  loadArrayBuffer: (blob: XMLHttpRequest["response"]) => void;
+  readArrayBuffer: (blob: XMLHttpRequest["response"]) => void;
   changeVolume: (volume: number) => void;
   getVolumeDb: () => number | undefined;
   instrumentLoading: boolean;

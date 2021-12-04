@@ -30,9 +30,9 @@ export default class FlashingBottomTiles {
       config.bottomTileHeight * 0.66
     );
     // @ts-ignore
-    const whiteKeyTexture = app.renderer.generateTexture(whiteKey);
+    const whiteKeyTexture = app.generateTexture(whiteKey);
     // @ts-ignore
-    const blackKeyTexture = app.renderer.generateTexture(blackKey);
+    const blackKeyTexture = app.generateTexture(blackKey);
     let x: number = leftPadding;
     let lastI: number; // to prevent duplicate notes from b and #
     Object.entries(PIANO_TUNING).forEach(([key, i]: [string, number]) => {
