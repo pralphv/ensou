@@ -122,14 +122,14 @@ class MyCanvas {
     this.on("pointermove", (e: PIXI.InteractionEvent) => {
       if (this.isDragging) {
         const y: number = e.data.global.y;
-        let tick: number = convertCanvasHeightToMidiTick(y);
+        let tick: number = convertCanvasHeightToMidiTick(y, Transport.ticks);
         const newIsLarger: boolean = tick >= this.lastClickedTick;
         const startTick = newIsLarger ? this.lastClickedTick : tick;
         let endTick = newIsLarger ? tick : this.lastClickedTick;
         // prevent small ranges due to slow clicks
         endTick = endTick - startTick > 10 ? endTick : startTick;
         myMidiPlayer.setPlayRange(startTick, endTick);
-        this.highlighter.draw();
+        this.highlighter.draw(Transport.ticks);
       }
     });
     this.on("pointertap", () => {});
@@ -140,7 +140,7 @@ class MyCanvas {
       }
       this.isDragging = true;
       const y: number = e.data.global.y;
-      let tick: number = convertCanvasHeightToMidiTick(y);
+      let tick: number = convertCanvasHeightToMidiTick(y, Transport.ticks);
 
       const startTick: number = this.isShift
         ? Math.min(this.lastClickedTick, tick)
@@ -152,9 +152,9 @@ class MyCanvas {
 
       if (!this.isShift) {
         // for multi shift clicking
-        this.lastClickedTick = convertCanvasHeightToMidiTick(y);
+        this.lastClickedTick = convertCanvasHeightToMidiTick(y, Transport.ticks);
       }
-      this.highlighter.draw();
+      this.highlighter.draw(Transport.ticks);
     });
     this.on("pointerup", () => {
       this.isDragging = false;
@@ -172,7 +172,7 @@ class MyCanvas {
 
   disconnectHTML() {
     myMidiPlayer.setPlayRange(0, 0);
-    this.highlighter.draw(); // just reseting the highlighter
+    this.highlighter.draw(0); // just reseting the highlighter
     this.pixiCanvas?.removeChild(this.app.view);
     this.pixiCanvas = undefined;
     this.flashingColumns.destroy();
@@ -196,7 +196,6 @@ class MyCanvas {
     this.fallingNotes = new FallingNotes(
       this.app,
       this.stage,
-      myMidiPlayer.groupedNotes,
       this.config,
       this.background.bottomTiles.leftPadding,
       this.background.bottomTiles.whiteKeyWidth,
@@ -217,13 +216,11 @@ class MyCanvas {
     }
   }
 
-  render() {
-    this.fallingNotes?.draw();
-    this.flashingColumns.draw();
-    this.flashingBottomTiles.draw();
-    // this.flashingLightsBottomTiles.draw();
-    this.beatLines?.draw();
-    this.highlighter.draw();
+  render(tick: number) {
+    this.fallingNotes?.draw(tick);
+    // for flashes, see _scheduleCanvasEvents
+    this.beatLines?.draw(tick);
+    this.highlighter.draw(tick);
     this.app.render(this.stage);
   }
 
@@ -253,15 +250,16 @@ class MyCanvas {
     if (e.ctrlKey) {
       // maybe zoom in out
     }
-    if (Transport.ticks && totalTicks) {
+    if (totalTicks) {
+      // if (Transport.ticks && totalTicks) {
       let newTick: number = Transport.ticks + e.deltaY / 2;
       const SCROLL_BUFFER: number = 300;
       const withinUpperLimit = newTick + SCROLL_BUFFER < totalTicks;
       const withinLowerLimit = newTick > 0;
       if (withinUpperLimit && withinLowerLimit) {
         myMidiPlayer.skipToTick(newTick);
-        this.render();
-        progressBar.render();
+        this.render(newTick);
+        progressBar.render(newTick);
       }
     }
   }
@@ -291,7 +289,7 @@ class MyCanvas {
     this.config.canvasNoteScale++;
     this.buildComponents();
     this.buildNotes();
-    this.render();
+    this.render(Transport.ticks);
   }
 
   decreaseCanvasNoteScale() {
@@ -299,7 +297,7 @@ class MyCanvas {
       this.config.canvasNoteScale--;
       this.buildComponents();
       this.buildNotes();
-      this.render();
+      this.render(Transport.ticks);
     }
   }
 }

@@ -42,7 +42,7 @@ export default class Instruments {
         instrument.triggerAttackRelease(
           note.name,
           note.duration,
-          note.time,
+          `${note.ticks}i`,
           note.velocity
         );
       });

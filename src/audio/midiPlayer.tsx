@@ -1,6 +1,5 @@
 import { SamplerOptions, Transport } from "tone";
 
-import * as processing from "./processing";
 import * as types from "types";
 import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
 import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
@@ -13,6 +12,8 @@ import game from "game";
 import { Midi, Track } from "@tonejs/midi";
 import { PlaybackState } from "tone";
 import { Note } from "@tonejs/midi/dist/Note";
+import { TempoEvent } from "@tonejs/midi/dist/Header";
+import { PIANO_TUNING } from "../audio/constants";
 
 const BEAT_BUFFER = 0.02;
 
@@ -56,6 +57,7 @@ export default class MyMidiPlayer {
   practiceMode: boolean;
   pressedKeys: Set<string>;
   midi: Midi;
+  ppq: number;
   notes: Note[];
 
   constructor() {
@@ -92,6 +94,7 @@ export default class MyMidiPlayer {
     this.pressedKeys = new Set();
     this.midi = new Midi();
     this.notes = [];
+    this.ppq = 0;
 
     // init should be here but its await so it cant
     // should be safe to say string because when useSample is chosen it would save to local storage
@@ -116,11 +119,18 @@ export default class MyMidiPlayer {
     this.enablePracticeMode = this.enablePracticeMode.bind(this);
     this.disablePracticeMode = this.disablePracticeMode.bind(this);
     this._scheduleNotesToPlay = this._scheduleNotesToPlay.bind(this);
+    this._scheduleCanvasEvents = this._scheduleCanvasEvents.bind(this);
     this.getTotalTicks = this.getTotalTicks.bind(this);
+    this.getPPQ = this.getPPQ.bind(this);
+    this._setUpNewMidi = this._setUpNewMidi.bind(this);
   }
 
   getState(): PlaybackState {
     return Transport.state;
+  }
+
+  getPPQ() {
+    return this.ppq;
   }
 
   on(event: string, callback: Function) {
@@ -210,7 +220,7 @@ export default class MyMidiPlayer {
     // @ts-ignore
     // this.ticksPerBeat = this.midiPlayer.getDivision().division;
     this.isReady = true;
-    console.log("JER")
+    console.log("JER");
   }
 
   getTotalTicks(): number {
@@ -421,8 +431,8 @@ export default class MyMidiPlayer {
 
   async readArrayBuffer(arrayBuffer: ArrayBuffer) {
     this.midi = new Midi(arrayBuffer);
-    this.notes = this.midi.tracks.map(track => track.notes).flat();
-    this._scheduleNotesToPlay(this.midi.tracks);
+    Transport.PPQ = this.midi.header.ppq;
+    this._setUpNewMidi(this.midi);
     this.eventListeners?.import();
     this.isReady = true;
     myCanvas.buildNotes();
@@ -430,6 +440,39 @@ export default class MyMidiPlayer {
     //@ts-ignore
     this.eventListeners?.imported();
     this.eventListeners.actioned();
+  }
+
+  _setUpNewMidi(midi: Midi) {
+    this.notes = midi.tracks.map((track) => track.notes).flat();
+    this._scheduleTempoEvents(midi.header.tempos);
+    this._scheduleNotesToPlay(midi.tracks);
+    this._scheduleCanvasEvents(midi.tracks);
+    this.ppq = this.midi.header.ppq;
+  }
+
+  _scheduleCanvasEvents(tracks: Track[]) {
+    tracks.forEach((track) => {
+      track.notes.forEach((note) => {
+        const column = PIANO_TUNING[note.name];
+        Transport.schedule(() => {
+          myCanvas.flashingBottomTiles.flash(column);
+          myCanvas.flashingColumns.flash(column);
+        }, `${note.ticks}i`);
+        Transport.schedule(() => {
+          myCanvas.flashingBottomTiles.unflash(column);
+          myCanvas.flashingColumns.unflash(column);
+        }, `${note.ticks + note.durationTicks}i`);
+      });
+    });
+  }
+
+  _scheduleTempoEvents(tempos: TempoEvent[]) {
+    console.log({ tempos });
+    tempos.forEach((tempoObj) => {
+      Transport.schedule(() => {
+        Transport.bpm.value = tempoObj.bpm;
+      }, `${tempoObj.ticks}i`);
+    });
   }
 
   enablePracticeMode() {

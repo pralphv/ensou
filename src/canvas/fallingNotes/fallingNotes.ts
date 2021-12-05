@@ -1,5 +1,4 @@
 import * as PIXI from "pixi.js";
-import { Transport } from "tone";
 import * as types from "audio/types";
 import { PIANO_TUNING } from "audio/constants";
 import { IMyCanvasConfig } from "../types";
@@ -15,15 +14,15 @@ export default class FallingNotes {
   _canvasNoteScale: number;
   _textArray: PIXI.Text[];
   isTextOn: boolean;
+  upperLimit: number;
 
   constructor(
     app: PIXI.Renderer,
     stage: PIXI.Container,
-    groupedNotes: types.GroupedNotes[],
     config: IMyCanvasConfig,
     leftPadding: number,
     whiteKeyWidth: number,
-    blackKeyWidth: number
+    blackKeyWidth: number,
   ) {
     this._app = app;
     this._bottomTileHeight = config.bottomTileHeight;
@@ -47,7 +46,7 @@ export default class FallingNotes {
     myMidiPlayer.notes.forEach((note) => {
       const on = note.ticks / this._canvasNoteScale;
       const off = (note.ticks + note.durationTicks) / this._canvasNoteScale;
-      const height = note.durationTicks / this._canvasNoteScale;
+      const height = off - on;
       const x = pianoNoteXMap[note.name].x + leftPadding;
       const width = pianoNoteXMap[note.name].width;
       const cacheKey = `${height}_${width}`;
@@ -79,17 +78,16 @@ export default class FallingNotes {
     });
     this._totalFallingNotes = this._fallingNotes.length;
     this.hideText();
+    this.upperLimit = myMidiPlayer.getPPQ() * 4 * 8; // assume 4 beats per bar, show 3 bars
   }
 
-  draw() {
-    // const upperLimit = myMidiPlayer.ticksPerBeat * 4 * 8; // assume 4 beats per bar, show 3 bars
-    const upperLimit = 10000;
+  draw(tick: number) {
     for (const note of this._fallingNotes) {
       if (
-        Transport.ticks >= note.on * this._canvasNoteScale - upperLimit &&
-        Transport.ticks <= note.off * this._canvasNoteScale
+        tick >= note.on * this._canvasNoteScale - this.upperLimit &&
+        tick <= note.off * this._canvasNoteScale
       ) {
-        const on = note.on - Transport.ticks / this._canvasNoteScale;
+        const on = note.on - tick / this._canvasNoteScale;
         note.rectSprite.position.x = note.x;
         note.rectSprite.position.y =
           this._screenHeight - on - note.height - this._bottomTileHeight;

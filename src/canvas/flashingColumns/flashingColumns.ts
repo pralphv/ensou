@@ -64,6 +64,14 @@ export default class FlashingColumns {
     blackKeyRect.destroy({ children: true, texture: true, baseTexture: true });
   }
 
+  flash(i: number) {
+    this._columns[i].visible = true;
+  }
+
+  unflash(i: number) {
+    this._columns[i].visible = false;
+  }
+
   draw() {
     for (let i = 0; i < this._columns.length - 1; i++) {
       // flash and unflash tiles

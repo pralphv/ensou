@@ -19,10 +19,7 @@ export default class FlashingBottomTiles {
     console.log("Constructing new Flashing Bottom Tiles");
 
     stage.addChild(this._container);
-    stage.setChildIndex(
-      this._container,
-      stage.children.length - 1
-    );
+    stage.setChildIndex(this._container, stage.children.length - 1);
 
     const whiteKey = initRectangle(whiteKeyWidth + 1, config.bottomTileHeight);
     const blackKey = initRectangle(
@@ -56,6 +53,14 @@ export default class FlashingBottomTiles {
     });
     whiteKey.destroy({ children: true, baseTexture: true, texture: true });
     blackKey.destroy({ children: true, baseTexture: true, texture: true });
+  }
+
+  flash(i: number) {
+    this._columns[i].visible = true;
+  }
+
+  unflash(i: number) {
+    this._columns[i].visible = false;
   }
 
   draw() {

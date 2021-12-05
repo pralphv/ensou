@@ -22,18 +22,25 @@ export default class Highlighter {
     this._sprite = new PIXI.Sprite(this._texture);
     stage.addChild(this._sprite);
     this._sprite.visible = false;
+    this._sprite.position.y = 0;
+    this._sprite.height = 0;
     rect.destroy({ children: true, texture: true, baseTexture: true });
   }
 
-  draw() {
+  draw(tick: number) {
     this._sprite.visible = true;
+    if (myMidiPlayer.playRange.startTick == myMidiPlayer.playRange.endTick) {
+      // just dont highlight if not highlighting for optimizaion
+      return
+    } 
 
-    // this.destroy();
     const startY = convertMidiTickToCanvasHeight(
       myMidiPlayer.playRange.startTick || 0,
+      tick
     );
     const endY = convertMidiTickToCanvasHeight(
       myMidiPlayer.playRange.endTick || 0,
+      tick
     );
     this._sprite.position.y = endY > startY ? startY : endY;
     this._sprite.height = Math.max(Math.abs(endY - startY), 2);

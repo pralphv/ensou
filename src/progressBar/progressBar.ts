@@ -86,8 +86,8 @@ class ProgressBar {
   skipToPct(x: number) {
     const pct = x / this.app.screen.width;
     myMidiPlayer.skipToPercent(pct * 100);
-    this.render();
-    myCanvas.render();
+    // this.render();
+    // myCanvas.render();
   }
 
   disconnectHTML() {
@@ -98,9 +98,9 @@ class ProgressBar {
     window.removeEventListener("resize", this.fitWindow, false);
   }
 
-  render() {
+  render(tick: number) {
     if (this.container.visible) {
-      const pct = Transport.ticks / myMidiPlayer.getTotalTicks();
+      const pct = tick / myMidiPlayer.getTotalTicks();
       this.progressBar.width = this.app.screen.width * pct;
       this.app.render(this.stage);
     }

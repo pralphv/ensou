@@ -39,7 +39,7 @@ export default function Player(): JSX.Element {
   const [isHovering, setIsHovering] = useState<boolean>(false);
   const [isHorizontal, setIsHorizontal] = useState<boolean>(false);
   const [forceRender, setForceRender] = useState<number>(0); // for re-render on volume change
-  const [fps, setFps] = useState<number>(60);
+  const [fps, setFps] = useState<number>(30);
   const maximizableElement = React.useRef(null);
   const [isFullscreen, setIsFullscreen, isError] = useFullscreenStatus(
     maximizableElement
@@ -73,13 +73,6 @@ export default function Player(): JSX.Element {
       // download midi first
       await myMidiPlayer.downloadMidiFromFirebase(songId);
 
-      myMidiPlayer.on("playing", () => {
-        myCanvas.render();
-        progressBar.render();
-        if (myMidiPlayer.practiceMode) {
-          game.render();
-        }
-      });
       myMidiPlayer.on("actioned", () => {
         forceRerenderRef.current();
       });
@@ -115,8 +108,9 @@ export default function Player(): JSX.Element {
     // use Draw for requestanimation TODO: need to cancel schedule
       const scheduleId = Transport.scheduleRepeat((time) => {
         Draw.schedule(() => {
-          myCanvas.render();
-          progressBar.render();
+          const tick = Transport.ticks;
+          myCanvas.render(tick);  
+          progressBar.render(tick);
         }, time);
       }, 1 / fps);
   
