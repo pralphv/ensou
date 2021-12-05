@@ -38,12 +38,12 @@ export default class BeatLines {
     line.destroy({ children: true, baseTexture: true, texture: true });
   }
 
-  draw() {
-    const ticksPerBar = myMidiPlayer.getTicksPerBeat() * 4;
+  draw(tick: number) {
+    const ticksPerBar = myMidiPlayer.getPPQ() * 4;
     const startTick =
-      Math.ceil(Transport.ticks / ticksPerBar) * ticksPerBar;
+      Math.ceil(tick / ticksPerBar) * ticksPerBar;
     for (let i = 0; i < this._noOfSprites; i++) {
-      const y = convertMidiTickToCanvasHeight(startTick + ticksPerBar * i);
+      const y = convertMidiTickToCanvasHeight(startTick + ticksPerBar * i, tick);
       this._sprites[i].position.y = y;
 
       if (y < 0) {
