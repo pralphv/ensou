@@ -41,9 +41,8 @@ export default function Player(): JSX.Element {
   const [forceRender, setForceRender] = useState<number>(0); // for re-render on volume change
   const [fps, setFps] = useState<number>(30);
   const maximizableElement = React.useRef(null);
-  const [isFullscreen, setIsFullscreen, isError] = useFullscreenStatus(
-    maximizableElement
-  );
+  const [isFullscreen, setIsFullscreen, isError] =
+    useFullscreenStatus(maximizableElement);
   const urlParams: any = useParams();
   const firestore = useFirestore();
 
@@ -105,15 +104,14 @@ export default function Player(): JSX.Element {
           setIsHovering(false);
         }, 2000)
       );
-    // use Draw for requestanimation TODO: need to cancel schedule
+      // use Draw for requestanimation TODO: need to cancel schedule
       const scheduleId = Transport.scheduleRepeat((time) => {
         Draw.schedule(() => {
           const tick = Transport.ticks;
-          myCanvas.render(tick);  
+          myCanvas.render(tick);
           progressBar.render(tick);
         }, time);
       }, 1 / fps);
-  
     }
     async function fetchSongDetails() {
       const ref = await firestore.collection("midi").doc(songId);

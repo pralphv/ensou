@@ -31,7 +31,7 @@ export interface IMidiFunctions {
   changeVolume: (volume: number) => void;
   getVolumeDb: () => number | undefined;
   instrumentLoading: boolean;
-  playRangeApi: IPlayRangeApi;
+  loopPointsApi: IloopPointsApi;
   metronomeApi: MetronomeApi;
   loopApi: LoopApi;
   tempoApi: TempoApi;
@@ -78,9 +78,9 @@ interface ISamplerSource {
   setLocalSampler: (sampler: SamplerOptions["urls"]) => void;
 }
 
-export interface IPlayRangeApi {
-  getPlayRange: () => PlayRange;
-  setPlayRange: (playRange: PlayRange) => void;
+export interface IloopPointsApi {
+  getloopPoints: () => loopPoints;
+  setloopPoints: (loopPoints: loopPoints) => void;
 }
 
 export interface TempoApi {
@@ -100,7 +100,7 @@ export interface IGroupedNotes {
 
 export type forceRerender = () => void;
 
-export interface PlayRange {
+export interface loopPoints {
   startTick: number;
   endTick: number;
 }

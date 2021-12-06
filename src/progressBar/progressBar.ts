@@ -85,9 +85,10 @@ class ProgressBar {
 
   skipToPct(x: number) {
     const pct = x / this.app.screen.width;
-    myMidiPlayer.skipToPercent(pct * 100);
-    // this.render();
-    // myCanvas.render();
+    myMidiPlayer.skipToPercent(pct);
+    const tick = Transport.ticks;
+    this.render(tick);
+    myCanvas.render(tick);
   }
 
   disconnectHTML() {
@@ -113,6 +114,7 @@ class ProgressBar {
   hide(value?: boolean) {
     value = value === undefined ? true : value;
     this.container.visible = !value;
+    this.app.render(this.stage); // the render function only renders if container is visible
   }
 }
 

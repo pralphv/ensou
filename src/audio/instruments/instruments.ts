@@ -67,10 +67,10 @@ export default class Instruments {
     this.releaseAll();
   }
 
-  releaseAll() {
+  releaseAll(buffer?: number) {
     setTimeout(() => {
       // a buffer to make sure no attacks
       this._getInstruments().forEach((instrument) => instrument.releaseAll());
-    }, 100);
+    }, buffer || 100);
   }
 }

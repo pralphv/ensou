@@ -44,7 +44,7 @@ export default class MyMidiPlayer {
   tempoPercent: number;
   localSampler?: SamplerOptions["urls"];
   samplerSource?: types.SamplerSource;
-  playRange: types.PlayRange;
+  loopPoints: types.loopPoints;
   ticksPerBeat: number;
   // _setPlayerStatus: (status: string) => void;
   _synthOptions?: ISynthOptions;
@@ -59,6 +59,7 @@ export default class MyMidiPlayer {
   midi: Midi;
   ppq: number;
   notes: Note[];
+  durationTicks: number;
 
   constructor() {
     // _forceCanvasRerender: () => void // ) => void, //   groupedNotes: types.IGroupedNotes[] //   ticksPerBeat: number, //   currentTick: number, // onPlaying: ( // setInstrumentLoading: (loading: boolean) => void, // setPlayerStatus: (status: string) => void,
@@ -80,7 +81,7 @@ export default class MyMidiPlayer {
     this.ticksPerBeat = 0;
     this.tempoPercent = 1;
     this.practiceMode = false;
-    this.playRange = { startTick: 0, endTick: 0 };
+    this.loopPoints = { startTick: 0, endTick: 0 };
     this.localSampler = undefined;
     const cachedSampler =
       localStorageUtils.getSamplerSource() || types.SamplerSourceEnum.synth;
@@ -94,7 +95,8 @@ export default class MyMidiPlayer {
     this.pressedKeys = new Set();
     this.midi = new Midi();
     this.notes = [];
-    this.ppq = 0;
+    this.ppq = 0; // for cache
+    this.durationTicks = 0; // for cache
 
     // init should be here but its await so it cant
     // should be safe to say string because when useSample is chosen it would save to local storage
@@ -172,21 +174,21 @@ export default class MyMidiPlayer {
     // }
 
     // // handle song loop
-    // // if isPlaying && (songEnded || (hasPlayRange && playRangeReached))
+    // // if isPlaying && (songEnded || (hasloopPoints && loopPointsReached))
     // if (
     //   this.isPlaying &&
     //   (currentTick.tick >= this.totalTicks ||
-    //     (this.playRange.startTick !== this.playRange.endTick &&
-    //       currentTick.tick >= this.playRange.endTick))
+    //     (this.loopPoints.startTick !== this.loopPoints.endTick &&
+    //       currentTick.tick >= this.loopPoints.endTick))
     // ) {
     //   this.myTonejs?.clearPlayingNotes();
     //   if (this.isLoop) {
-    //     this.midiPlayer.skipToTick(this.playRange.startTick);
+    //     this.midiPlayer.skipToTick(this.loopPoints.startTick);
     //     this.play();
     //   } else {
     //     this.isPlaying = false;
-    //     if (this.playRange.startTick) {
-    //       this.midiPlayer.skipToTick(this.playRange.startTick);
+    //     if (this.loopPoints.startTick) {
+    //       this.midiPlayer.skipToTick(this.loopPoints.startTick);
     //     } else {
     //       this.restart();
     //     }
@@ -220,60 +222,54 @@ export default class MyMidiPlayer {
     // @ts-ignore
     // this.ticksPerBeat = this.midiPlayer.getDivision().division;
     this.isReady = true;
-    console.log("JER");
   }
 
   getTotalTicks(): number {
-    return this.midi.durationTicks;
+    return this.durationTicks;
   }
 
   setLocalSampler(sampler: SamplerOptions["urls"]) {
     this.localSampler = sampler;
   }
 
-  setPlayRange(startTick: number, endTick: number) {
-    this.playRange = { startTick, endTick };
-  }
-
   play() {
+    this.isPlaying = true;
+    myCanvas.onBeforePlay();
+    this.skipToTick(this.loopPoints.startTick); // always start at loop start
     instruments.play();
     this.eventListeners.actioned();
     game.resetGame();
   }
 
   stop() {
+    this.isPlaying = false;
     instruments.stop();
     this.eventListeners.actioned();
   }
 
   pause() {
+    this.isPlaying = false;
     instruments.pause();
     this.eventListeners.actioned();
   }
 
   restart() {
     this.skipToPercent(0);
-    this.setPlayRange(0, 0);
+    this.setLoopPoints(0, 0);
     this.eventListeners.actioned();
   }
 
   skipToPercent(percent: number) {
-    // instruments.skipToPercent(percent); // use transport here
-    if (this.isPlaying) {
-      // actioned included in play
-      this.play();
-    } else {
-      this.eventListeners.actioned();
-    }
+    this.skipToTick(Math.round(this.getTotalTicks() * percent));
   }
+
   skipToTick(tick: number) {
     Transport.ticks = tick;
-    if (this.isPlaying) {
-      this.play();
-    } else {
-      this.eventListeners.actioned();
-    }
+    // instruments.releaseAll(500); // stop attacked notes
+    myCanvas.onBeforePlay(); // make sure unflash
+    this.eventListeners.actioned();
   }
+
   setTempo(tempo: number) {
     // transport here
     this.eventListeners.actioned();
@@ -431,7 +427,6 @@ export default class MyMidiPlayer {
 
   async readArrayBuffer(arrayBuffer: ArrayBuffer) {
     this.midi = new Midi(arrayBuffer);
-    Transport.PPQ = this.midi.header.ppq;
     this._setUpNewMidi(this.midi);
     this.eventListeners?.import();
     this.isReady = true;
@@ -442,12 +437,35 @@ export default class MyMidiPlayer {
     this.eventListeners.actioned();
   }
 
+  setLoopPoints(startTick: number, endTick: number) {
+    startTick = Math.round(startTick);
+    endTick = Math.round(endTick);
+    console.log({ startTick, endTick });
+    if (startTick === endTick) {
+      endTick = this.getTotalTicks();
+    }
+    Transport.setLoopPoints(`${startTick}i`, `${endTick}i`);
+    this.loopPoints = { startTick, endTick };
+    Transport.loop = true;
+  }
+
   _setUpNewMidi(midi: Midi) {
     this.notes = midi.tracks.map((track) => track.notes).flat();
+    this.durationTicks = midi.durationTicks;
     this._scheduleTempoEvents(midi.header.tempos);
     this._scheduleNotesToPlay(midi.tracks);
     this._scheduleCanvasEvents(midi.tracks);
-    this.ppq = this.midi.header.ppq;
+    this._setPpq(midi.header.ppq);
+    this._setUpLoop(midi.durationTicks);
+  }
+
+  _setUpLoop(endTick: number) {
+    this.setLoopPoints(0, endTick);
+  }
+
+  _setPpq(ppq: number) {
+    Transport.PPQ = ppq;
+    this.ppq = ppq;
   }
 
   _scheduleCanvasEvents(tracks: Track[]) {

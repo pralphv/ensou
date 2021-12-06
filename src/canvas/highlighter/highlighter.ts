@@ -29,19 +29,25 @@ export default class Highlighter {
 
   draw(tick: number) {
     this._sprite.visible = true;
-    if (myMidiPlayer.playRange.startTick == myMidiPlayer.playRange.endTick) {
+    if (
+      myMidiPlayer.loopPoints.startTick === 0 &&
+      myMidiPlayer.loopPoints.endTick === myMidiPlayer.getTotalTicks()
+    ) {
       // just dont highlight if not highlighting for optimizaion
-      return
-    } 
+      return;
+    }
 
     const startY = convertMidiTickToCanvasHeight(
-      myMidiPlayer.playRange.startTick || 0,
+      myMidiPlayer.loopPoints.startTick || 0,
       tick
     );
-    const endY = convertMidiTickToCanvasHeight(
-      myMidiPlayer.playRange.endTick || 0,
-      tick
-    );
+    let endY =
+      myMidiPlayer.loopPoints.endTick === myMidiPlayer.getTotalTicks()
+        ? startY
+        : convertMidiTickToCanvasHeight(
+            myMidiPlayer.loopPoints.endTick || 0,
+            tick
+          );
     this._sprite.position.y = endY > startY ? startY : endY;
     this._sprite.height = Math.max(Math.abs(endY - startY), 2);
   }

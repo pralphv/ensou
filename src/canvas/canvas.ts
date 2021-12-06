@@ -128,8 +128,10 @@ class MyCanvas {
         let endTick = newIsLarger ? tick : this.lastClickedTick;
         // prevent small ranges due to slow clicks
         endTick = endTick - startTick > 10 ? endTick : startTick;
-        myMidiPlayer.setPlayRange(startTick, endTick);
-        this.highlighter.draw(Transport.ticks);
+        myMidiPlayer.setLoopPoints(startTick, endTick);
+        const currentTick = Transport.ticks;
+        this.highlighter.draw(currentTick);
+        this.render(currentTick);
       }
     });
     this.on("pointertap", () => {});
@@ -138,9 +140,10 @@ class MyCanvas {
         myMidiPlayer.pause();
         return;
       }
+      const currentTick = Transport.ticks;
       this.isDragging = true;
       const y: number = e.data.global.y;
-      let tick: number = convertCanvasHeightToMidiTick(y, Transport.ticks);
+      let tick: number = convertCanvasHeightToMidiTick(y, currentTick);
 
       const startTick: number = this.isShift
         ? Math.min(this.lastClickedTick, tick)
@@ -148,13 +151,13 @@ class MyCanvas {
       const endTick: number = this.isShift
         ? Math.max(this.lastClickedTick, tick)
         : tick;
-      myMidiPlayer.setPlayRange(startTick, endTick);
+      myMidiPlayer.setLoopPoints(startTick, endTick);
 
       if (!this.isShift) {
         // for multi shift clicking
-        this.lastClickedTick = convertCanvasHeightToMidiTick(y, Transport.ticks);
+        this.lastClickedTick = convertCanvasHeightToMidiTick(y, currentTick);
       }
-      this.highlighter.draw(Transport.ticks);
+      this.render(currentTick);
     });
     this.on("pointerup", () => {
       this.isDragging = false;
@@ -171,7 +174,7 @@ class MyCanvas {
   }
 
   disconnectHTML() {
-    myMidiPlayer.setPlayRange(0, 0);
+    myMidiPlayer.setLoopPoints(0, 0);
     this.highlighter.draw(0); // just reseting the highlighter
     this.pixiCanvas?.removeChild(this.app.view);
     this.pixiCanvas = undefined;
@@ -228,6 +231,12 @@ class MyCanvas {
     this.interaction.on(event, (e: PIXI.InteractionEvent) => {
       callback(e);
     });
+  }
+
+  onBeforePlay() {
+    // remove past flashes
+    this.flashingBottomTiles.unFlashAll();
+    this.flashingColumns.unFlashAll();
   }
 
   handleKeyDownListener(e: any) {

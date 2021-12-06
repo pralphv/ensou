@@ -6,7 +6,7 @@ export interface MidiPlayerStatus {
   downloadProgress: number;
 }
 
-export interface PlayRange {
+export interface loopPoints {
   startTick: number;
   endTick: number;
 }
