@@ -40,7 +40,6 @@ export default class MyMidiPlayer {
   isPlaying: boolean;
   isLoop: boolean;
   groupedNotes: types.IGroupedNotes[];
-  songTempo: number;
   tempoPercent: number;
   localSampler?: SamplerOptions["urls"];
   samplerSource?: types.SamplerSource;
@@ -77,7 +76,6 @@ export default class MyMidiPlayer {
     this.totalTicks = 0;
     this._isBlockMetronome = false;
     this.groupedNotes = [];
-    this.songTempo = 100;
     this.ticksPerBeat = 0;
     this.tempoPercent = 1;
     this.practiceMode = false;
@@ -125,6 +123,17 @@ export default class MyMidiPlayer {
     this.getTotalTicks = this.getTotalTicks.bind(this);
     this.getPPQ = this.getPPQ.bind(this);
     this._setUpNewMidi = this._setUpNewMidi.bind(this);
+    Transport.on("loopEnd", () => {
+      this.restartStates();
+      if (!this.isLoop) {
+        this.stop();
+      }
+    });
+  }
+
+  restartStates() {
+    instruments.releaseAll();
+    myCanvas.onBeforePlay(); // unflash stuff
   }
 
   getState(): PlaybackState {
@@ -265,13 +274,14 @@ export default class MyMidiPlayer {
 
   skipToTick(tick: number) {
     Transport.ticks = tick;
-    // instruments.releaseAll(500); // stop attacked notes
-    myCanvas.onBeforePlay(); // make sure unflash
+    this.restartStates();
     this.eventListeners.actioned();
   }
 
-  setTempo(tempo: number) {
+  setTempo(bpm: number) {
+    Transport.set({ bpm });
     // transport here
+    console.log({ bpm });
     this.eventListeners.actioned();
   }
 
@@ -293,9 +303,9 @@ export default class MyMidiPlayer {
 
   setTempoPercent(percent: number) {
     this.tempoPercent = percent / 100;
-    const newValue = (this.songTempo * percent) / 100;
+    const newValue = Transport.bpm.value * this.tempoPercent;
     // @ts-ignore
-    this.midiPlayer.setTempo(newValue);
+    this.setTempo(newValue);
     this.eventListeners.actioned();
   }
 
