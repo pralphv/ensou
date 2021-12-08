@@ -34,8 +34,6 @@ interface IMyMidiPlayerEvents {
 export default class MyMidiPlayer {
   instrument: types.Instrument;
   isReady: boolean;
-  isMetronome: boolean;
-  _isBlockMetronome: boolean;
   totalTicks: number;
   isPlaying: boolean;
   isLoop: boolean;
@@ -70,11 +68,9 @@ export default class MyMidiPlayer {
 
     this.isReady = false; // for blocking play button. etc. no file loaded
     this.instrument = "piano";
-    this.isMetronome = false;
     this.isPlaying = false;
     this.isLoop = localStorageUtils.getIsLoop() || false;
     this.totalTicks = 0;
-    this._isBlockMetronome = false;
     this.groupedNotes = [];
     this.ticksPerBeat = 0;
     this.tempoPercent = 1;
@@ -316,15 +312,6 @@ export default class MyMidiPlayer {
   setIsLoop(isLoop: boolean) {
     this.isLoop = isLoop;
     localStorageUtils.setIsLoop(isLoop);
-    this.eventListeners.actioned();
-  }
-
-  getIsMetronome() {
-    return this.isMetronome;
-  }
-
-  setIsMetronome(isMetronome: boolean) {
-    this.isMetronome = isMetronome;
     this.eventListeners.actioned();
   }
 

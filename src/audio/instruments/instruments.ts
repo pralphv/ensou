@@ -49,6 +49,17 @@ export default class Instruments {
     });
   }
 
+  triggerAttackRelease(
+    name: string,
+    duration: number,
+    ticks: number,
+    velocity: number
+  ) {
+    this._getInstruments().forEach((instrument) => {
+      instrument.triggerAttackRelease(name, duration, ticks, velocity);
+    });
+  }
+
   _getInstruments() {
     return this._useSampler ? this.samplers : this.polySynths;
   }

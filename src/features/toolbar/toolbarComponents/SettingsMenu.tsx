@@ -15,6 +15,7 @@ import AudioSettingsDialog from "features/audioSettingsDialog/AudioSettingsDialo
 import KeyBindingsDialog from "../keyBindingsDialog/KeyBindingsDialog";
 import myMidiPlayer from "audio";
 import myCanvas from "canvas";
+import metronome from "audio/metronome";
 
 interface ISettingsMenu {
   open: boolean;
@@ -62,10 +63,10 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
   }
 
   function handleOnChangeMetronome() {
-    if (myMidiPlayer.getIsMetronome()) {
-      myMidiPlayer.setIsMetronome(false);
+    if (metronome.activated) {
+      metronome.deactivate();
     } else {
-      myMidiPlayer.setIsMetronome(true);
+      metronome.activate();
     }
     forceLocalRender();
   }
@@ -153,7 +154,7 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
         <ListItem button>
           <ListItemText primary="Metronome" />
           <Switch
-            checked={myMidiPlayer.getIsMetronome()}
+            checked={metronome.activated}
             onChange={handleOnChangeMetronome}
           />
         </ListItem>
