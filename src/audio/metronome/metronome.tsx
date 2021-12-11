@@ -27,4 +27,8 @@ export default class Metronome {
     Transport.clear(this.scheduleId);
     this.activated = false;
   }
+
+  setVolume(value: number) {
+    this.metronomeSynth.volume.value = value;
+  }
 }

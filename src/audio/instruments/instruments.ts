@@ -11,6 +11,7 @@ import {
 } from "tone";
 import { Note } from "@tonejs/midi/dist/Note";
 import StartAudioContext from "startaudiocontext";
+import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
 import { initSynths } from "../synths/synths";
 import { AvailableSynths } from "types";
 import instruments from ".";
@@ -83,5 +84,30 @@ export default class Instruments {
       // a buffer to make sure no attacks
       this._getInstruments().forEach((instrument) => instrument.releaseAll());
     }, buffer || 100);
+  }
+
+  getVolume() {
+    return this._getInstruments()[0].volume.value;
+  }
+
+  setVolume(volume: number, samplers?: Sampler[], polySynths?: PolySynth[]) {
+    if (volume <= -15) {
+      volume = -1000;
+    }
+    if (this._useSampler) {
+      const samplers_ = samplers || this.samplers;
+      for (let i = 0; i < samplers_.length; i++) {
+        samplers_[i].volume.value = volume;
+      }
+    } else {
+      const polySynths_: PolySynth[] = polySynths || this.polySynths;
+      for (let i = 0; i < polySynths_.length; i++) {
+        polySynths_[i].volume.value = volume;
+      }
+    }
+    localStorageUtils.setVolume(volume);
+    // if (this.eventListeners.actioned) {
+    //   this.eventListeners.actioned();
+    // }
   }
 }
