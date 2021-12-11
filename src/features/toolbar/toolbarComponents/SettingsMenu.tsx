@@ -24,13 +24,10 @@ interface ISettingsMenu {
 export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
   const [forceLocalRenderDummy, setForceLocalRenderDummy] = useState<number>(0);
   const [samplerDialogOpen, setSamplerDialogOpen] = useState<boolean>(false);
-  const [
-    audioSettingsDialogOpen,
-    setAudioSettingsDialogOpen,
-  ] = useState<boolean>(false);
-  const [keySettingsDialogOpen, setKeySettingsDialogOpen] = useState<boolean>(
-    false
-  );
+  const [audioSettingsDialogOpen, setAudioSettingsDialogOpen] =
+    useState<boolean>(false);
+  const [keySettingsDialogOpen, setKeySettingsDialogOpen] =
+    useState<boolean>(false);
 
   /**
    * for rerendering settings because checking objects
@@ -156,6 +153,7 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
           <Switch
             checked={metronome.activated}
             onChange={handleOnChangeMetronome}
+            disabled={myMidiPlayer.getIsPlaying()}
           />
         </ListItem>
         <ListItem button>

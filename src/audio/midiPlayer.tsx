@@ -14,6 +14,7 @@ import { PlaybackState } from "tone";
 import { Note } from "@tonejs/midi/dist/Note";
 import { TempoEvent } from "@tonejs/midi/dist/Header";
 import { PIANO_TUNING } from "../audio/constants";
+import metronome from "./metronome";
 
 const BEAT_BUFFER = 0.02;
 
@@ -57,6 +58,7 @@ export default class MyMidiPlayer {
   ppq: number;
   notes: Note[];
   durationTicks: number;
+  originalBpm: number;
 
   constructor() {
     // _forceCanvasRerender: () => void // ) => void, //   groupedNotes: types.IGroupedNotes[] //   ticksPerBeat: number, //   currentTick: number, // onPlaying: ( // setInstrumentLoading: (loading: boolean) => void, // setPlayerStatus: (status: string) => void,
@@ -91,6 +93,7 @@ export default class MyMidiPlayer {
     this.notes = [];
     this.ppq = 0; // for cache
     this.durationTicks = 0; // for cache
+    this.originalBpm = 0;
 
     // init should be here but its await so it cant
     // should be safe to say string because when useSample is chosen it would save to local storage
@@ -223,9 +226,6 @@ export default class MyMidiPlayer {
 
   _handleFileLoaded() {
     this.isPlaying = false;
-    // this.totalTicks = groupedNotes[groupedNotes.length - 1].off;
-    // @ts-ignore
-    // this.ticksPerBeat = this.midiPlayer.getDivision().division;
     this.isReady = true;
   }
 
@@ -237,10 +237,28 @@ export default class MyMidiPlayer {
     this.localSampler = sampler;
   }
 
+  _sweepTempoEvents() {
+    const tick = this.loopPoints.startTick;
+    // for entering the correct tempo at given tick
+    const tempos = this.midi.header.tempos;
+    console.log({tick, tempos})
+    for (let i = 0; i < tempos.length; i++) {
+      if (tempos[i].ticks <= tick) {
+        this._setBpm(tempos[i].bpm);
+      } else {
+        console.log("END JER");
+        console.log(tempos[i]);
+        break;
+      }
+    }
+  }
+
   play() {
     this.isPlaying = true;
     myCanvas.onBeforePlay();
     this.skipToTick(this.loopPoints.startTick); // always start at loop start
+    this._sweepTempoEvents();
+    // need to read tempo adjustments before this start tick
     instruments.play();
     this.eventListeners.actioned();
     game.resetGame();
@@ -276,8 +294,6 @@ export default class MyMidiPlayer {
 
   setTempo(bpm: number) {
     Transport.set({ bpm });
-    // transport here
-    console.log({ bpm });
     this.eventListeners.actioned();
   }
 
@@ -289,17 +305,13 @@ export default class MyMidiPlayer {
     this.eventListeners.actioned();
   }
 
-  getTicksPerBeat(): number {
-    return this.ticksPerBeat;
-  }
-
   getIsPlaying(): boolean {
     return this.isPlaying;
   }
 
   setTempoPercent(percent: number) {
     this.tempoPercent = percent / 100;
-    const newValue = Transport.bpm.value * this.tempoPercent;
+    const newValue = this.originalBpm * this.tempoPercent;
     // @ts-ignore
     this.setTempo(newValue);
     this.eventListeners.actioned();
@@ -482,12 +494,20 @@ export default class MyMidiPlayer {
   }
 
   _scheduleTempoEvents(tempos: TempoEvent[]) {
-    console.log({ tempos });
     tempos.forEach((tempoObj) => {
       Transport.schedule(() => {
-        Transport.bpm.value = tempoObj.bpm;
+        this._setBpm(tempoObj.bpm);
       }, `${tempoObj.ticks}i`);
     });
+  }
+
+  _setBpm(bpm: number) {
+    console.log("JERRRR")
+    Transport.bpm.value = bpm * this.tempoPercent;
+    this.originalBpm = bpm;
+    if (metronome.activated) {
+      metronome.activate(); // reset metronome to new tempo
+    }
   }
 
   enablePracticeMode() {
