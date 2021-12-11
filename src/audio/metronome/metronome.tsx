@@ -12,14 +12,18 @@ export default class Metronome {
     this.activated = false;
   }
 
-  activate() {
+  activate(startTick?: number) {
     if (this.scheduleId !== 0) {
       // bug: canvas could not render if no conditional
       Transport.clear(this.scheduleId); // for clearing past metronome schedule
     }
-    this.scheduleId = Transport.scheduleRepeat((time) => {
-      this.metronomeSynth.triggerAttackRelease("A1", 0.5, time, 5);
-    }, "4n");
+    this.scheduleId = Transport.scheduleRepeat(
+      (time) => {
+        this.metronomeSynth.triggerAttackRelease("A1", 0.5, time, 5);
+      },
+      "4n",
+      startTick
+    );
     this.activated = true;
   }
 

@@ -241,13 +241,10 @@ export default class MyMidiPlayer {
     const tick = this.loopPoints.startTick;
     // for entering the correct tempo at given tick
     const tempos = this.midi.header.tempos;
-    console.log({ tick, tempos });
     for (let i = 0; i < tempos.length; i++) {
       if (tempos[i].ticks <= tick) {
-        this._setBpm(tempos[i].bpm);
+        this._setBpm(tempos[i].bpm, tempos[i].ticks);
       } else {
-        console.log("END JER");
-        console.log(tempos[i]);
         break;
       }
     }
@@ -496,17 +493,16 @@ export default class MyMidiPlayer {
   _scheduleTempoEvents(tempos: TempoEvent[]) {
     tempos.forEach((tempoObj) => {
       Transport.schedule(() => {
-        this._setBpm(tempoObj.bpm);
+        this._setBpm(tempoObj.bpm, tempoObj.ticks);
       }, `${tempoObj.ticks}i`);
     });
   }
 
-  _setBpm(bpm: number) {
-    console.log("JERRRR");
+  _setBpm(bpm: number, startTick: number) {
     Transport.bpm.value = bpm * this.tempoPercent;
     this.originalBpm = bpm;
     if (metronome.activated) {
-      metronome.activate(); // reset metronome to new tempo
+      metronome.activate(startTick); // reset metronome to new tempo
     }
   }
 
