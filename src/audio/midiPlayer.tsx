@@ -463,6 +463,7 @@ export default class MyMidiPlayer {
     this._scheduleCanvasEvents(midi.tracks);
     this._setPpq(midi.header.ppq);
     this._setUpLoop(midi.durationTicks);
+    myCanvas.setupCanvasNoteScale(midi.header.ppq);
   }
 
   _setUpLoop(endTick: number) {

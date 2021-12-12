@@ -26,9 +26,7 @@ class ProgressBar {
     const realProgressRect = initRectangle(this.app.screen.width, 8, 0x90eefe);
     const backgroundRect = initRectangle(this.app.screen.width, 8, 0x5c969f);
     // @ts-ignore
-    const realProgressTexture = this.app.generateTexture(
-      realProgressRect
-    );  
+    const realProgressTexture = this.app.generateTexture(realProgressRect);
     // @ts-ignore
     const backgroundTexture = this.app.generateTexture(backgroundRect);
     this.container = new PIXI.Container();

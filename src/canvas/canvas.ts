@@ -294,20 +294,26 @@ class MyCanvas {
     // );
   }
 
+  setupCanvasNoteScale(ppq: number) {
+    this.config.canvasNoteScale = Math.ceil(ppq / 100);
+  }
+
   increaseCanvasNoteScale() {
     this.config.canvasNoteScale++;
-    this.buildComponents();
-    this.buildNotes();
-    this.render(Transport.ticks);
+    this._rescale();
   }
 
   decreaseCanvasNoteScale() {
     if (this.config.canvasNoteScale > 1) {
       this.config.canvasNoteScale--;
-      this.buildComponents();
-      this.buildNotes();
-      this.render(Transport.ticks);
+      this._rescale();
     }
+  }
+
+  _rescale() {
+    this.buildComponents();
+    this.buildNotes();
+    this.render(Transport.ticks);
   }
 }
 
