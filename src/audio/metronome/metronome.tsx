@@ -15,8 +15,7 @@ export default class Metronome {
   activate(startTick?: number) {
     if (this.scheduleId !== 0) {
       // 0 means no previous schedules
-      // bug: canvas could not render if no conditional
-      Transport.clear(this.scheduleId); // for clearing past metronome schedule
+      Transport.clear(this.scheduleId);
     }
     this.scheduleId = Transport.scheduleRepeat(
       (time) => {
