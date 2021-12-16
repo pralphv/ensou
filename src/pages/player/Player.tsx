@@ -115,10 +115,13 @@ export default function Player(): JSX.Element {
     initMidiPlayer();
     fetchSongDetails();
     return function cleanup() {
-      myCanvas.disconnectHTML();
-      progressBar.disconnectHTML();
-      midiPlayer.stop();
-      midiPlayer.disablePracticeMode();
+      midiPlayer.cleanup();
+      setTimeout(() => {
+        // leave some buffer so all scheduled events stop
+        myCanvas.disconnectHTML();
+        progressBar.disconnectHTML();
+        midiPlayer.disablePracticeMode();
+      }, 500);
     };
   }, []);
 

@@ -95,7 +95,7 @@ export default class MyMidiPlayer {
     this.ppq = 0; // for cache
     this.durationTicks = 0; // for cache
     this.originalBpm = 0;
-    this.fps = 60;
+    this.fps = 30;
     this.scheduleId = 0;
 
     // init should be here but its await so it cant
@@ -435,14 +435,14 @@ export default class MyMidiPlayer {
   }
 
   async readArrayBuffer(arrayBuffer: ArrayBuffer) {
-    // Transport.cancel(0);
-    console.log({ Transport });
+    this.skipToTick(0);
+    Transport.cancel(0);
     this.midi = new Midi(arrayBuffer);
     this._setUpNewMidi(this.midi);
     this.eventListeners?.import();
     this.isReady = true;
     myCanvas.buildNotes();
-    game.buildPlayMap();
+    // game.buildPlayMap();
     //@ts-ignore
     this.eventListeners?.imported();
     this.eventListeners.actioned();
@@ -474,10 +474,10 @@ export default class MyMidiPlayer {
 
   _scheduleNoteEvents() {
     Transport.cancel(this.scheduleId);
-    // use Draw for requestanimation TODO: need to cancel schedule
     this.scheduleId = Transport.scheduleRepeat((time) => {
       Draw.schedule(() => {
         const tick = Transport.ticks;
+        console.log({tick})
         myCanvas.render(tick);
         progressBar.render(tick);
       }, time);
