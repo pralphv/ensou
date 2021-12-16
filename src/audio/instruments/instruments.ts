@@ -32,8 +32,15 @@ export default class Instruments {
     this.samplers = [];
     this.polySynths = [initSynths("Synth")];
     this.polySynths.forEach((polySynth) => polySynth.toDestination());
+    this.loadSavedSettigns();
     this.releaseAll = this.releaseAll.bind(this);
   }
+
+  loadSavedSettigns() {
+    const savedVolume = localStorageUtils.getVolume();
+    savedVolume && this.setVolume(savedVolume);
+  }
+
 
   scheduleNotesToPlay(notes: Note[]) {
     this._getInstruments().forEach((instrument) => {
@@ -90,21 +97,14 @@ export default class Instruments {
     return this._getInstruments()[0].volume.value;
   }
 
-  setVolume(volume: number, samplers?: Sampler[], polySynths?: PolySynth[]) {
+  setVolume(volume: number) {
     if (volume <= -15) {
       volume = -1000;
     }
-    if (this._useSampler) {
-      const samplers_ = samplers || this.samplers;
-      for (let i = 0; i < samplers_.length; i++) {
-        samplers_[i].volume.value = volume;
-      }
-    } else {
-      const polySynths_: PolySynth[] = polySynths || this.polySynths;
-      for (let i = 0; i < polySynths_.length; i++) {
-        polySynths_[i].volume.value = volume;
-      }
-    }
+    this._getInstruments().forEach(instrument => {
+      instrument.volume.value = volume;
+      
+    })
     localStorageUtils.setVolume(volume);
     // if (this.eventListeners.actioned) {
     //   this.eventListeners.actioned();

@@ -244,7 +244,6 @@ export default class MyMidiPlayer {
     const tick = this.loopPoints.startTick;
     // for entering the correct tempo at given tick
     const tempos = this.midi.header.tempos;
-    console.log({tempos})
     for (let i = 0; i < tempos.length; i++) {
       if (tempos[i].ticks <= tick) {
         this._setBpm(tempos[i].bpm, tempos[i].ticks);
@@ -518,6 +517,8 @@ export default class MyMidiPlayer {
 
   _setBpm(bpm: number, startTick: number) {
     Transport.bpm.value = bpm * this.tempoPercent;
+    console.log(Transport.bpm.value);
+    console.log({bpm})
     this.originalBpm = bpm;
     if (metronome.activated) {
       metronome.activate(startTick); // reset metronome to new tempo
