@@ -37,7 +37,7 @@ export default class Instruments {
 
   scheduleNotesToPlay(notes: Note[]) {
     this._getInstruments().forEach((instrument) => {
-      // intrument.unsync(); // NEED THIS TO BE WHEN NEW MIDI IS LOADED
+      // instrument.unsync(); // NEED THIS TO BE WHEN NEW MIDI IS LOADED
       instrument.sync();
       notes.forEach((note) => {
         instrument.triggerAttackRelease(

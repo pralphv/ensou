@@ -1,4 +1,4 @@
-import { SamplerOptions, Transport } from "tone";
+import { SamplerOptions, Transport, Draw } from "tone";
 
 import * as types from "types";
 import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
@@ -7,6 +7,7 @@ import { convertArrayBufferToAudioContext } from "utils/helper";
 import instruments from "./instruments";
 import { storageRef } from "firebaseApi/firebase";
 import myCanvas from "canvas";
+import progressBar from "progressBar";
 import myMidiPlayer from "audio";
 import game from "game";
 import { Midi, Track } from "@tonejs/midi";
@@ -15,8 +16,6 @@ import { Note } from "@tonejs/midi/dist/Note";
 import { TempoEvent } from "@tonejs/midi/dist/Header";
 import { PIANO_TUNING } from "../audio/constants";
 import metronome from "./metronome";
-
-const BEAT_BUFFER = 0.02;
 
 // needs to be in global types
 interface ISynthOptions {
@@ -59,6 +58,8 @@ export default class MyMidiPlayer {
   notes: Note[];
   durationTicks: number;
   originalBpm: number;
+  fps: number;
+  scheduleId: number;
 
   constructor() {
     // _forceCanvasRerender: () => void // ) => void, //   groupedNotes: types.IGroupedNotes[] //   ticksPerBeat: number, //   currentTick: number, // onPlaying: ( // setInstrumentLoading: (loading: boolean) => void, // setPlayerStatus: (status: string) => void,
@@ -94,6 +95,8 @@ export default class MyMidiPlayer {
     this.ppq = 0; // for cache
     this.durationTicks = 0; // for cache
     this.originalBpm = 0;
+    this.fps = 60;
+    this.scheduleId = 0;
 
     // init should be here but its await so it cant
     // should be safe to say string because when useSample is chosen it would save to local storage
@@ -432,6 +435,8 @@ export default class MyMidiPlayer {
   }
 
   async readArrayBuffer(arrayBuffer: ArrayBuffer) {
+    // Transport.cancel(0);
+    console.log({ Transport });
     this.midi = new Midi(arrayBuffer);
     this._setUpNewMidi(this.midi);
     this.eventListeners?.import();
@@ -456,6 +461,7 @@ export default class MyMidiPlayer {
   }
 
   _setUpNewMidi(midi: Midi) {
+    this._scheduleNoteEvents();
     this.notes = midi.tracks.map((track) => track.notes).flat();
     this.durationTicks = midi.durationTicks;
     this._scheduleTempoEvents(midi.header.tempos);
@@ -464,6 +470,18 @@ export default class MyMidiPlayer {
     this._setPpq(midi.header.ppq);
     this._setUpLoop(midi.durationTicks);
     myCanvas.setupCanvasNoteScale(midi.header.ppq);
+  }
+
+  _scheduleNoteEvents() {
+    Transport.cancel(this.scheduleId);
+    // use Draw for requestanimation TODO: need to cancel schedule
+    this.scheduleId = Transport.scheduleRepeat((time) => {
+      Draw.schedule(() => {
+        const tick = Transport.ticks;
+        myCanvas.render(tick);
+        progressBar.render(tick);
+      }, time);
+    }, `${this.fps}hz`);
   }
 
   _setUpLoop(endTick: number) {
