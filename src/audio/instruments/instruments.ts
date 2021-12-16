@@ -21,26 +21,23 @@ interface IIntrumentsArgs {
 }
 
 export default class Instruments {
-  synth: PolySynth;
   _useSampler: boolean;
   samplers: Sampler[];
   polySynths: PolySynth[];
 
   constructor(args: IIntrumentsArgs) {
     this._useSampler = args.useSample || false;
-    this.synth = initSynths("Synth"); // change this Synth to enum
     this.samplers = [];
     this.polySynths = [initSynths("Synth")];
     this.polySynths.forEach((polySynth) => polySynth.toDestination());
-    this.loadSavedSettigns();
+    this.loadSavedSettings();
     this.releaseAll = this.releaseAll.bind(this);
   }
 
-  loadSavedSettigns() {
+  loadSavedSettings() {
     const savedVolume = localStorageUtils.getVolume();
     savedVolume && this.setVolume(savedVolume);
   }
-
 
   scheduleNotesToPlay(notes: Note[]) {
     this._getInstruments().forEach((instrument) => {
@@ -106,8 +103,5 @@ export default class Instruments {
       
     })
     localStorageUtils.setVolume(volume);
-    // if (this.eventListeners.actioned) {
-    //   this.eventListeners.actioned();
-    // }
   }
 }
