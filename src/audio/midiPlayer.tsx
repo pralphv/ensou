@@ -244,6 +244,7 @@ export default class MyMidiPlayer {
     const tick = this.loopPoints.startTick;
     // for entering the correct tempo at given tick
     const tempos = this.midi.header.tempos;
+    console.log({tempos})
     for (let i = 0; i < tempos.length; i++) {
       if (tempos[i].ticks <= tick) {
         this._setBpm(tempos[i].bpm, tempos[i].ticks);
@@ -451,7 +452,6 @@ export default class MyMidiPlayer {
   setLoopPoints(startTick: number, endTick: number) {
     startTick = Math.round(startTick);
     endTick = Math.round(endTick);
-    console.log({ startTick, endTick });
     if (startTick === endTick) {
       endTick = this.getTotalTicks();
     }
@@ -477,7 +477,6 @@ export default class MyMidiPlayer {
     this.scheduleId = Transport.scheduleRepeat((time) => {
       Draw.schedule(() => {
         const tick = Transport.ticks;
-        console.log({tick})
         myCanvas.render(tick);
         progressBar.render(tick);
       }, time);
