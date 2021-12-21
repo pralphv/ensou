@@ -12,25 +12,36 @@ import {
 import { Note } from "@tonejs/midi/dist/Note";
 import StartAudioContext from "startaudiocontext";
 import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
-import { initSynths } from "../synths/synths";
 import { AvailableSynths } from "types";
 import instruments from ".";
+import { ISampleEventsMap } from "./types";
+import MySampler from "./sampler";
+import MyPolySynth from "./polySynths";
 
 interface IIntrumentsArgs {
   useSample?: boolean;
 }
 
+// interface IInstrumentsEvents {
+//   // [key: string]: Function;
+//   onSampleDownloadStart?: types.onSampleDownloadStart,
+//   onSampleDownloading?: types.onSampleDownloading,
+//   onApplyingSamples?: types.onApplyingSamples
+// }
+
 export default class Instruments {
   _useSampler: boolean;
-  samplers: Sampler[];
-  polySynths: PolySynth[];
+  mySampler: MySampler;
+  myPolySynth: MyPolySynth;
+  // _eventListeners: IInstrumentsEvents;
 
   constructor(args: IIntrumentsArgs) {
     this._useSampler = args.useSample || false;
-    this.samplers = [];
-    this.polySynths = [initSynths("Synth")];
-    this.polySynths.forEach((polySynth) => polySynth.toDestination());
+    this.myPolySynth = new MyPolySynth();
+    this.mySampler = new MySampler();
     this.loadSavedSettings();
+    // this._eventListeners = {};
+
     this.releaseAll = this.releaseAll.bind(this);
   }
 
@@ -66,7 +77,9 @@ export default class Instruments {
   }
 
   _getInstruments() {
-    return this._useSampler ? this.samplers : this.polySynths;
+    return this._useSampler
+      ? this.mySampler.samplers
+      : this.myPolySynth.polySynths;
   }
 
   play() {
@@ -98,10 +111,33 @@ export default class Instruments {
     if (volume <= -15) {
       volume = -1000;
     }
-    this._getInstruments().forEach(instrument => {
+    this._getInstruments().forEach((instrument) => {
       instrument.volume.value = volume;
-      
-    })
+    });
     localStorageUtils.setVolume(volume);
   }
+
+  /**
+   * will load synth settings if synthIndex
+   */
+  async _buildTrack(synthIndex?: number): Promise<Sampler | PolySynth> {
+    if (this._useSampler) {
+      const sampler = await this.mySampler.getInstrument();
+      return sampler;
+    } else {
+      let polySynth = synthsApi.initSynths(
+        synthIndex !== undefined
+          ? this.synthNames[synthIndex]
+          : types.AvailableSynthsEnum.Synth,
+        synthIndex
+      );
+      return polySynth;
+    }
+    const savedVolume = localStorageUtils.getVolume();
+    savedVolume && this.setVolume(savedVolume);
+  }
+
+  // on<K extends keyof ISampleEventsMap>(event: K, callback: ISampleEventsMap[K]) {
+  //   this._eventListeners[event] = callback;
+  // }
 }

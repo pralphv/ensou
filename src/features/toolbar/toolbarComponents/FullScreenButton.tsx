@@ -18,7 +18,6 @@ export default function FullScreenButton({
       {isFullscreen ? (
         <CustomButton
           onClick={() => setIsFullscreen(false)}
-          // style={{ width: BUTTON_WIDTH, height: BUTTON_HEIGHT }}
           size="small"
         >
           <FullscreenExitIcon />
@@ -26,7 +25,6 @@ export default function FullScreenButton({
       ) : (
         <CustomButton
           onClick={() => setIsFullscreen(true)}
-          //  style={{ width: BUTTON_WIDTH }}
           size="small"
         >
           <FullscreenIcon />
