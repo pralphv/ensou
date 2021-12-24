@@ -53,7 +53,6 @@ export default class Instruments {
 
   scheduleNotesToPlay(notes: Note[]) {
     this._getInstruments().forEach((instrument) => {
-      console.log({instrument})
       instrument.sync();
       notes.forEach((note) => {
         instrument.triggerAttackRelease(
