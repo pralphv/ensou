@@ -104,6 +104,7 @@ export default class MySampler {
       this._connectAll();
     }
   }
+  
   _connectAll() {
     this.samplers.forEach((sampler) => sampler.toDestination());
   }
