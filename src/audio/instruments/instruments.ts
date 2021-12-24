@@ -30,15 +30,16 @@ interface IIntrumentsArgs {
 // }
 
 export default class Instruments {
-  _useSampler: boolean;
+  useSampler: boolean;
   mySampler: MySampler;
   myPolySynth: MyPolySynth;
   // _eventListeners: IInstrumentsEvents;
 
   constructor(args: IIntrumentsArgs) {
-    this._useSampler = args.useSample || false;
+    this.useSampler = args.useSample || false;
     this.myPolySynth = new MyPolySynth();
     this.mySampler = new MySampler();
+    this.myPolySynth.activate();
     this.loadSavedSettings();
     // this._eventListeners = {};
 
@@ -52,7 +53,7 @@ export default class Instruments {
 
   scheduleNotesToPlay(notes: Note[]) {
     this._getInstruments().forEach((instrument) => {
-      // instrument.unsync(); // NEED THIS TO BE WHEN NEW MIDI IS LOADED
+      console.log({instrument})
       instrument.sync();
       notes.forEach((note) => {
         instrument.triggerAttackRelease(
@@ -77,7 +78,7 @@ export default class Instruments {
   }
 
   _getInstruments() {
-    return this._useSampler
+    return this.useSampler
       ? this.mySampler.samplers
       : this.myPolySynth.polySynths;
   }
@@ -117,25 +118,45 @@ export default class Instruments {
     localStorageUtils.setVolume(volume);
   }
 
+  async processRecordedSound(note: string, arrayBuffer: ArrayBuffer) {
+    await this.mySampler.processRecordedSound(note, arrayBuffer);
+  }
+
+  async activateSampler() {
+    this.myPolySynth.deactivate();
+    await this.mySampler.activate();
+    this.useSampler = true;
+  }
+
+  activatePolySynth() {
+    this.mySampler.deactivate();
+    this.myPolySynth.activate();
+    this.useSampler = false;
+  }
+
+  cancelEvents() {
+    Transport.cancel(0);
+  }
+
   /**
    * will load synth settings if synthIndex
    */
-  async _buildTrack(synthIndex?: number): Promise<Sampler | PolySynth> {
-    if (this._useSampler) {
-      const sampler = await this.mySampler.getInstrument();
-      return sampler;
-    } else {
-      let polySynth = synthsApi.initSynths(
-        synthIndex !== undefined
-          ? this.synthNames[synthIndex]
-          : types.AvailableSynthsEnum.Synth,
-        synthIndex
-      );
-      return polySynth;
-    }
-    const savedVolume = localStorageUtils.getVolume();
-    savedVolume && this.setVolume(savedVolume);
-  }
+  // async _buildTrack(synthIndex?: number): Promise<Sampler | PolySynth> {
+  //   if (this._useSampler) {
+  //     const sampler = await this.mySampler.getInstrument();
+  //     return sampler;
+  //   } else {
+  //     let polySynth = synthsApi.initSynths(
+  //       synthIndex !== undefined
+  //         ? this.synthNames[synthIndex]
+  //         : types.AvailableSynthsEnum.Synth,
+  //       synthIndex
+  //     );
+  //     return polySynth;
+  //   }
+  //   const savedVolume = localStorageUtils.getVolume();
+  //   savedVolume && this.setVolume(savedVolume);
+  // }
 
   // on<K extends keyof ISampleEventsMap>(event: K, callback: ISampleEventsMap[K]) {
   //   this._eventListeners[event] = callback;

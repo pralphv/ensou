@@ -52,7 +52,7 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
 
   async function handleOnChangeDialog() {
     if (myMidiPlayer.checkIfSampler()) {
-      myMidiPlayer.setSamplerSource(types.SamplerSourceEnum.synth);
+      await myMidiPlayer.activatePolySynth();
     } else {
       setSamplerDialogOpen(true);
     }

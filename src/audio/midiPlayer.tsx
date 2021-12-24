@@ -114,7 +114,6 @@ export default class MyMidiPlayer {
     this.readArrayBuffer = this.readArrayBuffer.bind(this);
     this.setTempoPercent = this.setTempoPercent.bind(this);
     this.checkIfSampler = this.checkIfSampler.bind(this);
-    this.setSamplerSource = this.setSamplerSource.bind(this);
     // this._initToneJs = this._initToneJs.bind(this);
     this.handleOnDownloaded = this.handleOnDownloaded.bind(this);
     this.on = this.on.bind(this);
@@ -221,8 +220,8 @@ export default class MyMidiPlayer {
     callback();
   }
 
-  _scheduleNotesToPlay(tracks: Track[]) {
-    tracks.forEach((track) => {
+  _scheduleNotesToPlay() {
+    this.midi.tracks.forEach((track) => {
       instruments.scheduleNotesToPlay(track.notes);
     });
   }
@@ -297,14 +296,6 @@ export default class MyMidiPlayer {
     this.eventListeners.actioned();
   }
 
-  async setSamplerSource(source: types.SamplerSource) {
-    this.samplerSource = source;
-    localStorageUtils.setSamplerSource(source);
-    // await this._initToneJs();
-    // after sample set
-    this.eventListeners.actioned();
-  }
-
   getIsPlaying(): boolean {
     return this.isPlaying;
   }
@@ -328,16 +319,7 @@ export default class MyMidiPlayer {
   }
 
   checkIfSampler(): boolean {
-    if (this.samplerSource) {
-      return [
-        types.SamplerSourceEnum.cachedLocal,
-        types.SamplerSourceEnum.local,
-        types.SamplerSourceEnum.server,
-        types.SamplerSourceEnum.recorded,
-      ].includes(this.samplerSource);
-    } else {
-      return false;
-    }
+    return instruments.useSampler;
   }
 
   getSampleName() {
@@ -430,13 +412,13 @@ export default class MyMidiPlayer {
       userLastSampler === types.SamplerSourceEnum.recorded;
     if (wasUsingLocal && localSampler) {
       this.localSampler = await convertArrayBufferToAudioContext(localSampler);
-      this.setSamplerSource(types.SamplerSourceEnum.cachedLocal);
+      // this.setSamplerSource(types.SamplerSourceEnum.cachedLocal);
     }
   }
 
   async readArrayBuffer(arrayBuffer: ArrayBuffer) {
     this.skipToTick(0);
-    Transport.cancel(0);
+    instruments.cancelEvents();
     this.midi = new Midi(arrayBuffer);
     this._setUpNewMidi(this.midi);
     this.eventListeners?.import();
@@ -464,7 +446,7 @@ export default class MyMidiPlayer {
     this.notes = midi.tracks.map((track) => track.notes).flat();
     this.durationTicks = midi.durationTicks;
     this._scheduleTempoEvents(midi.header.tempos);
-    this._scheduleNotesToPlay(midi.tracks);
+    this._scheduleNotesToPlay();
     this._scheduleCanvasEvents(midi.tracks);
     this._setPpq(midi.header.ppq);
     this._setUpLoop(midi.durationTicks);
@@ -517,8 +499,6 @@ export default class MyMidiPlayer {
 
   _setBpm(bpm: number, startTick: number) {
     Transport.bpm.value = bpm * this.tempoPercent;
-    console.log(Transport.bpm.value);
-    console.log({bpm})
     this.originalBpm = bpm;
     if (metronome.activated) {
       metronome.activate(startTick); // reset metronome to new tempo
@@ -554,6 +534,21 @@ export default class MyMidiPlayer {
 
   getVolume(): number {
     return instruments.getVolume();
+  }
+
+  async useRecordedSound(note: string, arrayBuffer: ArrayBuffer) {
+    await instruments.processRecordedSound(note, arrayBuffer);
+    await instruments.activateSampler();
+    this._scheduleNotesToPlay();
+    this.eventListeners.actioned();
+  }
+
+  async activateSampler() {
+    await instruments.activateSampler();
+  }
+
+  async activatePolySynth() {
+    await instruments.activatePolySynth();
   }
 
   cleanup() {

@@ -184,13 +184,7 @@ function Accepted({
   async function handleOnApply() {
     if (mediaRecorderRef.current?.blob) {
       const arrayBuffer = await mediaRecorderRef.current.blob.arrayBuffer();
-      const arrayBufferMap = { [chosenNote]: arrayBuffer };
-      await indexedDbUtils.setLocalSamplerArrayBuffer(arrayBufferMap);
-      const sampleMap: SamplerOptions["urls"] =
-      await convertArrayBufferToAudioContext(arrayBufferMap);
-      console.log({arrayBufferMap, sampleMap})
-      myMidiPlayer.setLocalSampler(sampleMap);
-      myMidiPlayer.setSamplerSource(types.SamplerSourceEnum.recorded);
+      myMidiPlayer.useRecordedSound(chosenNote, arrayBuffer);
       onOk();
     }
   }

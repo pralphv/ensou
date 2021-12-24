@@ -1,9 +1,10 @@
-import { Sampler, Destination } from "tone";
+import { Sampler, Destination, SamplerOptions } from "tone";
 import * as types from "types";
 import { ISampleEventsMap } from "./types";
 import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
 import { storageRef } from "firebaseApi/firebase";
 import { convertArrayBufferToAudioContext } from "utils/helper";
+import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
 
 // interface ISamplerOptions {
 //   instrument: types.Instrument;
@@ -17,6 +18,8 @@ export default class MySampler {
   instrument: types.Instrument;
   sample: string;
   // sampleMap?: SamplerOptions["urls"];
+  localSampleMap?: SamplerOptions["urls"];
+  samplerSource?: types.SamplerSource;
 
   constructor() {
     this._eventListeners = {};
@@ -81,12 +84,49 @@ export default class MySampler {
   }
 
   async getInstrument() {
-    const sampleMap = await this._fetchInstruments();
-      // throw new Error("CRITICAL: no sample map provided.");
+    let sampleMap; 
+    if (this.samplerSource === types.SamplerSourceEnum.recorded) {
+      sampleMap = this.localSampleMap;
+    } else {
+      sampleMap = await this._fetchInstruments();
+    }
+    // throw new Error("CRITICAL: no sample map provided.");
     let sampler = new Sampler(sampleMap, {
       attack: 0.01,
     });
     // this._setPlayerStatus("");
     return sampler;
+  }
+
+  async activate() {
+    if (this.samplers.length === 0) {
+      await this.add();
+      this._connectAll();
+    }
+  }
+  _connectAll() {
+    this.samplers.forEach((sampler) => sampler.toDestination());
+  }
+
+  deactivate() {
+    this.samplers.forEach((sampler) => sampler.disconnect());
+  }
+
+  async _setSamplerSource(source: types.SamplerSource) {
+    console.log({source})
+    this.samplerSource = source;
+    localStorageUtils.setSamplerSource(source);
+    // await this._initToneJs();
+    // after sample set
+    // this.eventListeners.actioned();
+  }
+
+  async processRecordedSound(note: string, arrayBuffer: ArrayBuffer) {
+    const arrayBufferMap = { [note]: arrayBuffer };
+    await indexedDbUtils.setLocalSamplerArrayBuffer(arrayBufferMap);
+    const sampleMap: SamplerOptions["urls"] =
+      await convertArrayBufferToAudioContext(arrayBufferMap);
+    this.localSampleMap = sampleMap;
+    this._setSamplerSource(types.SamplerSourceEnum.recorded);
   }
 }
