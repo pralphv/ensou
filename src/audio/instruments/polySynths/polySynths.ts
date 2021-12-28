@@ -19,7 +19,10 @@ export default class MyPolySynth {
     this.synthNames = [];
     this.eventListeners = {};
     this.loadSavedSettings();
-    // this.polySynths.forEach((polySynth) => polySynth.toDestination());
+    if (this.polySynths.length === 0) {
+      this.add();
+      this._connectAll();
+    }
   }
 
   loadSavedSettings() {
@@ -44,13 +47,7 @@ export default class MyPolySynth {
   }
 
   activate() {
-    if (this.polySynths.length === 0) {
-      // starting the class probably
-      this.add();
-      this._connectAll();
-    } else {
-      this._connectAll();
-    }
+    this._connectAll();
   }
 
   _connectAll() {
