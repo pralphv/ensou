@@ -104,7 +104,7 @@ export function setSynthSettingsOthers(settings: types.IOtherSettings[]) {
   setLocalStorage(LocalStorageKeys.others, settings);
 }
 
-export function getSynthName(): types.AvailableSynthsEnum[] | null {
+export function getSynthNames(): types.AvailableSynthsEnum[] | null {
   return getLocalStorage(LocalStorageKeys.synthName);
 }
 

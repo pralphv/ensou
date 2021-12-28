@@ -5,7 +5,7 @@ import Select from "@mui/material/Select";
 import Slider from "@mui/material/Slider";
 import MenuItem from "@mui/material/MenuItem";
 
-import myMidiPlayer from "audio";
+import instruments from "audio/instruments";
 import * as types from "types";
 
 interface IOscillatorSettingsProps {
@@ -18,7 +18,7 @@ export default function OscillatorSettings({
   synthIndex,
 }: IOscillatorSettingsProps) {
   const settings =
-    myMidiPlayer.myTonejs?.getSynthSettings(synthIndex)?.oscillator;
+  instruments.myPolySynth.getSynthSettings(synthIndex)?.oscillator;
   const count = settings?.count;
   const spread = settings?.spread;
   const harmonicity = settings?.harmonicity;
@@ -32,7 +32,7 @@ export default function OscillatorSettings({
             //@ts-ignore
             value={settings.type}
             onChange={(e: any) => {
-              myMidiPlayer.myTonejs?.setSynthSettingsOscillator(
+              instruments.myPolySynth.setSynthSettingsOscillator(
                 "type",
                 e.target.value,
                 synthIndex
@@ -56,7 +56,7 @@ export default function OscillatorSettings({
                 step={1}
                 max={7}
                 onChange={(e, newValue) => {
-                  myMidiPlayer.myTonejs?.setSynthSettingsOscillator(
+                  instruments.myPolySynth.setSynthSettingsOscillator(
                     "count",
                     newValue as number,
                     synthIndex
@@ -77,7 +77,7 @@ export default function OscillatorSettings({
                 step={1}
                 max={100}
                 onChange={(e, newValue) => {
-                  myMidiPlayer.myTonejs?.setSynthSettingsOscillator(
+                  instruments.myPolySynth.setSynthSettingsOscillator(
                     "spread",
                     newValue as number,
                     synthIndex
@@ -98,7 +98,7 @@ export default function OscillatorSettings({
                 step={0.1}
                 max={5}
                 onChange={(e, newValue) => {
-                  myMidiPlayer.myTonejs?.setSynthSettingsOscillator(
+                  instruments.myPolySynth.setSynthSettingsOscillator(
                     "harmonicity",
                     newValue as number,
                     synthIndex

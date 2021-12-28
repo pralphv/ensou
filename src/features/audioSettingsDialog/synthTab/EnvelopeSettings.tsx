@@ -5,7 +5,7 @@ import InputLabel from "@mui/material/InputLabel";
 import prettyMilliseconds from "pretty-ms";
 import Slider from "@mui/material/Slider";
 
-import myMidiPlayer from "audio";
+import instruments from "audio/instruments";
 import * as types from "types";
 
 interface IEnvelopeSettingsProps {
@@ -18,7 +18,7 @@ export default function EnvelopeSettings({
   synthIndex,
 }: IEnvelopeSettingsProps) {
   const settings =
-    myMidiPlayer.myTonejs?.getSynthSettings(synthIndex)?.envelope;
+    instruments.myPolySynth.getSynthSettings(synthIndex)?.envelope;
 
   return (
     <div>
@@ -39,7 +39,7 @@ export default function EnvelopeSettings({
                 });
               }}
               onChange={(e, newValue) => {
-                myMidiPlayer.myTonejs?.setSynthSettingsEnvelope(
+                instruments.myPolySynth.setSynthSettingsEnvelope(
                   key,
                   newValue,
                   synthIndex

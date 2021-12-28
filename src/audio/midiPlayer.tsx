@@ -130,6 +130,9 @@ export default class MyMidiPlayer {
         this.stop();
       }
     });
+    instruments.myPolySynth.on("restart", () => {
+      this._scheduleNotesToPlay();
+    });
   }
 
   restartStates() {
@@ -222,6 +225,7 @@ export default class MyMidiPlayer {
 
   _scheduleNotesToPlay() {
     this.midi.tracks.forEach((track) => {
+      console.log({ track });
       instruments.scheduleNotesToPlay(track.notes);
     });
   }
