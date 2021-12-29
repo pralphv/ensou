@@ -44,6 +44,19 @@ export default class MyPolySynth {
     const polySynth = initSynth(synthName);
     this.synthNames.push(synthName);
     this.polySynths.push(polySynth);
+    this.saveState();
+  }
+
+  saveState(){
+    this.saveSynthNames();
+    this.saveOscilatorSettingsToLocalStorage();
+    saveEnvelopeSettings(this.polySynths);
+  }
+
+  remove(synthIndex: number){
+    this.synthNames.splice(synthIndex, 1);
+    this.polySynths.splice(synthIndex, 1);
+    this.saveState();
   }
 
   activate() {
@@ -77,7 +90,7 @@ export default class MyPolySynth {
       },
     });
 
-    this.saveOscilatorSettingsToLocalStorage();
+    this.saveState();
     if (needToRestart) {
       // if switch to new osci, the new osci will inherit the old osci settings
       // causing bugs. so just init a new one
@@ -97,7 +110,7 @@ export default class MyPolySynth {
         [key]: value,
       },
     });
-    saveEnvelopeSettings(this.polySynths);
+    this.saveState();
     // need event listener actioned
   }
 
@@ -158,15 +171,19 @@ export default class MyPolySynth {
     return settings;
   }
 
+  saveSynthNames() {
+    localStorageUtils.setSynthName(this.synthNames);
+  }
+
   async setSynthName(synthName: types.AvailableSynthsEnum, synthIndex: number) {
     // this.publishingChanges = true;
     const polySynth = this.polySynths[synthIndex];
     polySynth.unsync();
     _tryRelease(polySynth);
     this._setSynthName(synthIndex, synthName);
-    localStorageUtils.setSynthName(this.synthNames);
     this.replaceSynth(synthName, synthIndex);
     this.eventListeners.restart?.();
+    this.saveState();
 
     // let polySynth = await this._buildTrack(
     //   synthIndex // not here originally

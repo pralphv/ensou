@@ -19,7 +19,7 @@ export function initSynth(
   const oscillator = localStorageUtils.getSynthSettingsOscillator();
   const envelope = localStorageUtils.getSynthSettingsEnvelope();
   const others = localStorageUtils.getSynthSettingsOthers();
-  const synthNames = localStorageUtils.getSynthNames();
+  // const synthNames = localStorageUtils.getSynthNames();
   if (oscillator && synthIndex !== undefined) {
     options.oscillator = oscillator[synthIndex];
   }
@@ -30,10 +30,7 @@ export function initSynth(
     // doesnt work
     options = { ...options, ...others[synthIndex] };
   }
-  const synthToUse =
-    synthNames && synthIndex
-      ? synthNames[synthIndex]
-      : constants.SYNTH_MAP[synth];
+  const synthToUse = constants.SYNTH_MAP[synth];
   //@ts-ignore
   const polysynth = new PolySynth(synthToUse, options);
   polysynth.maxPolyphony = 176;
