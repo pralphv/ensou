@@ -54,9 +54,13 @@ export default class MyPolySynth {
   }
 
   remove(synthIndex: number){
-    this.synthNames.splice(synthIndex, 1);
-    this.polySynths.splice(synthIndex, 1);
-    this.saveState();
+    // do not remove if only 1 polysynth left
+    if (this.polySynths.length > 1) {
+      this.disposeTrack(synthIndex);
+      this.synthNames.splice(synthIndex, 1);
+      this.polySynths.splice(synthIndex, 1);
+      this.saveState();
+    }
   }
 
   activate() {

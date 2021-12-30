@@ -56,7 +56,7 @@ export default function SynthTab({ forceLocalRender }: ISynthTab) {
               />
               <RemoveButton
                 onClick={() => {
-                  instruments.myPolySynth.disposeTrack(i);
+                  instruments.myPolySynth.remove(i);
                   forceLocalRender();
                 }}
               />
