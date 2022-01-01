@@ -533,12 +533,16 @@ export default class MyMidiPlayer {
   async useRecordedSound(note: string, arrayBuffer: ArrayBuffer) {
     await instruments.processRecordedSound(note, arrayBuffer);
     await instruments.activateSampler();
-    this._scheduleNotesToPlay();
-    this.eventListeners.actioned();
+  }
+
+  async useLocalSample() {
+    await instruments.activateSampler();
   }
 
   async activateSampler() {
     await instruments.activateSampler();
+    this._scheduleNotesToPlay();
+    this.eventListeners.actioned();
   }
 
   async activatePolySynth() {

@@ -84,7 +84,7 @@ export default class MySampler {
   }
 
   async getInstrument() {
-    let sampleMap; 
+    let sampleMap;
     if (this.samplerSource === types.SamplerSourceEnum.recorded) {
       sampleMap = this.localSampleMap;
     } else {
@@ -104,7 +104,7 @@ export default class MySampler {
       this._connectAll();
     }
   }
-  
+
   _connectAll() {
     this.samplers.forEach((sampler) => sampler.toDestination());
   }
@@ -114,7 +114,7 @@ export default class MySampler {
   }
 
   async _setSamplerSource(source: types.SamplerSource) {
-    console.log({source})
+    console.log({ source });
     this.samplerSource = source;
     localStorageUtils.setSamplerSource(source);
     // await this._initToneJs();
@@ -127,7 +127,16 @@ export default class MySampler {
     await indexedDbUtils.setLocalSamplerArrayBuffer(arrayBufferMap);
     const sampleMap: SamplerOptions["urls"] =
       await convertArrayBufferToAudioContext(arrayBufferMap);
-    this.localSampleMap = sampleMap;
+    this.setLocalSampleMap(sampleMap);
     this._setSamplerSource(types.SamplerSourceEnum.recorded);
+  }
+
+  setLocalSampleMap(sampleMap: SamplerOptions["urls"]) {
+    this.localSampleMap = sampleMap;
+  }
+
+  saveUserUploadSample(sampleMap: SamplerOptions["urls"]) {
+    this.setLocalSampleMap(sampleMap);
+    this._setSamplerSource(types.SamplerSourceEnum.local);
   }
 }

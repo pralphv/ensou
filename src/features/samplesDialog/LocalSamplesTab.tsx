@@ -13,6 +13,7 @@ import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
 import { SamplerOptions } from "tone";
 import { convertArrayBufferToAudioContext } from "utils/helper";
 import myMidiPlayer from "audio";
+import instruments from "audio/instruments";
 
 interface ILocalSamplesTabProps {
   setOpen: (bool: boolean) => void;
@@ -68,8 +69,8 @@ export default function LocalSamplesTab({ setOpen }: ILocalSamplesTabProps) {
 
   function handleOnSubmit() {
     if (sampleMap) {
-      myMidiPlayer.setLocalSampler(sampleMap);
-      myMidiPlayer.setSamplerSource(types.SamplerSourceEnum.local);
+      instruments.mySampler.saveUserUploadSample(sampleMap);
+      myMidiPlayer.useLocalSample();
       setOpen(false);
     }
   }
