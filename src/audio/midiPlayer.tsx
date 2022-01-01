@@ -48,7 +48,6 @@ export default class MyMidiPlayer {
   _samplerOptions?: ISamplerOptions;
   // _setInstrumentLoading: (loading: boolean) => void;
   // _forceCanvasRerender: () => void;
-  sampleName?: string; //etc piano-in-162
   eventListeners: IMyMidiPlayerEvents;
   playingNotes!: Set<number>; // might be worth to use list of bools instead
   practiceMode: boolean;
@@ -86,7 +85,6 @@ export default class MyMidiPlayer {
       cachedSampler === types.SamplerSourceEnum.cachedLocal
         ? types.SamplerSourceEnum.local
         : cachedSampler; // force rerender in useInstrument and getLocalSampler;
-    this.sampleName = localStorageUtils.getSampleName() as string;
     this.eventListeners = {};
     this.resetPlayingNotes();
     this.pressedKeys = new Set();
@@ -324,14 +322,6 @@ export default class MyMidiPlayer {
 
   checkIfSampler(): boolean {
     return instruments.useSampler;
-  }
-
-  getSampleName() {
-    return this.sampleName;
-  }
-
-  setSampleName(sampleName: string) {
-    this.sampleName = sampleName;
   }
 
   async downloadMidiFromFirebase(songId: string) {

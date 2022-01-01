@@ -14,7 +14,8 @@ export default function SamplerTab({
   // sampler only has 1 track so synthIndex must be 0
   return (
     <DialogContent>
-      <DelaySlider forceLocalRender={forceLocalRender} synthIndex={0}/>
+      
+      {/* <DelaySlider forceLocalRender={forceLocalRender} synthIndex={0}/> */}
     </DialogContent>
   );
 }

@@ -49,11 +49,11 @@ export default function SynthTab({ forceLocalRender }: ISynthTab) {
                 forceLocalRender={forceLocalRender}
                 synthIndex={i}
               />
-              <DelaySlider forceLocalRender={forceLocalRender} synthIndex={i} />
+              {/* <DelaySlider forceLocalRender={forceLocalRender} synthIndex={i} />
               <OtherSettings
                 forceLocalRender={forceLocalRender}
                 synthIndex={i}
-              />
+              /> */}
               <RemoveButton
                 onClick={() => {
                   instruments.myPolySynth.remove(i);

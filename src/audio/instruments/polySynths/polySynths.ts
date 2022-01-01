@@ -44,16 +44,23 @@ export default class MyPolySynth {
     const polySynth = initSynth(synthName);
     this.synthNames.push(synthName);
     this.polySynths.push(polySynth);
+    polySynth.toDestination();
     this.saveState();
   }
 
-  saveState(){
+  saveState() {
     this.saveSynthNames();
     this.saveOscilatorSettingsToLocalStorage();
+    this.saveOtherSettingsToLocalStorage();
     saveEnvelopeSettings(this.polySynths);
   }
 
-  remove(synthIndex: number){
+  saveOtherSettingsToLocalStorage() {
+    const otherSettings = this.getOtherSettings();
+    localStorageUtils.setSynthSettingsOthers(otherSettings);
+  }
+
+  remove(synthIndex: number) {
     // do not remove if only 1 polysynth left
     if (this.polySynths.length > 1) {
       this.disposeTrack(synthIndex);
@@ -115,7 +122,17 @@ export default class MyPolySynth {
       },
     });
     this.saveState();
-    // need event listener actioned
+  }
+
+  setSynthSettingsOther(
+    key: keyof types.IOtherSettings,
+    value: any,
+    synthIndex: number
+  ) {
+    this.polySynths[synthIndex].set({
+      [key]: value,
+    });
+    this.saveState();
   }
 
   disposeTrack(polySynthIndex: number) {
@@ -140,6 +157,18 @@ export default class MyPolySynth {
       };
       return oscillatorSetting;
     });
+  }
+
+  getOtherSettings(): types.IOtherSettings[] {
+    const otherSettings = this.polySynths.map((polySynth) => {
+      const settings = polySynth.get();
+      const othersSetting: types.IOtherSettings = {
+        detune: settings.detune,
+        volume: settings.volume,
+      };
+      return othersSetting;
+    });
+    return otherSettings;
   }
 
   saveOscilatorSettingsToLocalStorage() {
