@@ -184,7 +184,7 @@ function Accepted({
   async function handleOnApply() {
     if (mediaRecorderRef.current?.blob) {
       const arrayBuffer = await mediaRecorderRef.current.blob.arrayBuffer();
-      myMidiPlayer.useRecordedSound(chosenNote, arrayBuffer);
+      await myMidiPlayer.useRecordedSound(chosenNote, arrayBuffer);
       onOk();
     }
   }

@@ -2,7 +2,6 @@ import { SamplerOptions, Transport, Draw } from "tone";
 
 import * as types from "types";
 import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
-import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
 import { convertArrayBufferToAudioContext } from "utils/helper";
 import instruments from "./instruments";
 import { storageRef } from "firebaseApi/firebase";
@@ -32,12 +31,10 @@ interface IMyMidiPlayerEvents {
 }
 
 export default class MyMidiPlayer {
-  instrument: types.Instrument;
   isReady: boolean;
   totalTicks: number;
   isPlaying: boolean;
   isLoop: boolean;
-  groupedNotes: types.IGroupedNotes[];
   tempoPercent: number;
   localSampler?: SamplerOptions["urls"];
   samplerSource?: types.SamplerSource;
@@ -69,22 +66,14 @@ export default class MyMidiPlayer {
     // this._forceCanvasRerender = _forceCanvasRerender;
 
     this.isReady = false; // for blocking play button. etc. no file loaded
-    this.instrument = "piano";
     this.isPlaying = false;
     this.isLoop = localStorageUtils.getIsLoop() || false;
     this.totalTicks = 0;
-    this.groupedNotes = [];
     this.ticksPerBeat = 0;
     this.tempoPercent = 1;
     this.practiceMode = false;
     this.loopPoints = { startTick: 0, endTick: 0 };
     this.localSampler = undefined;
-    const cachedSampler =
-      localStorageUtils.getSamplerSource() || types.SamplerSourceEnum.synth;
-    this.samplerSource =
-      cachedSampler === types.SamplerSourceEnum.cachedLocal
-        ? types.SamplerSourceEnum.local
-        : cachedSampler; // force rerender in useInstrument and getLocalSampler;
     this.eventListeners = {};
     this.resetPlayingNotes();
     this.pressedKeys = new Set();
@@ -223,7 +212,6 @@ export default class MyMidiPlayer {
 
   _scheduleNotesToPlay() {
     this.midi.tracks.forEach((track) => {
-      console.log({ track });
       instruments.scheduleNotesToPlay(track.notes);
     });
   }
@@ -396,20 +384,6 @@ export default class MyMidiPlayer {
   //   }
   // }
 
-  async fetchLocalSampler() {
-    const localSampler: types.ArrayBufferMap =
-      await indexedDbUtils.getLocalSamplerArrayBuffer();
-    const userLastSampler = localStorageUtils.getSamplerSource();
-    const wasUsingLocal =
-      userLastSampler === types.SamplerSourceEnum.local ||
-      userLastSampler === types.SamplerSourceEnum.cachedLocal ||
-      userLastSampler === types.SamplerSourceEnum.recorded;
-    if (wasUsingLocal && localSampler) {
-      this.localSampler = await convertArrayBufferToAudioContext(localSampler);
-      // this.setSamplerSource(types.SamplerSourceEnum.cachedLocal);
-    }
-  }
-
   async readArrayBuffer(arrayBuffer: ArrayBuffer) {
     this.skipToTick(0);
     instruments.cancelEvents();
@@ -532,11 +506,11 @@ export default class MyMidiPlayer {
 
   async useRecordedSound(note: string, arrayBuffer: ArrayBuffer) {
     await instruments.processRecordedSound(note, arrayBuffer);
-    await instruments.activateSampler();
+    await this.activateSampler();
   }
 
   async useLocalSample() {
-    await instruments.activateSampler();
+    await this.activateSampler();
   }
 
   async activateSampler() {

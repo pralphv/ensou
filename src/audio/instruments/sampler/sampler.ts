@@ -19,13 +19,14 @@ export default class MySampler {
   sample: string;
   // sampleMap?: SamplerOptions["urls"];
   localSampleMap?: SamplerOptions["urls"];
-  samplerSource?: types.SamplerSource;
+  samplerSource: types.SamplerSource | null;
 
   constructor() {
     this._eventListeners = {};
     this.samplers = [];
     this.instrument = "piano";
     this.sample = ""; // should be samples saved in firebase
+    this.samplerSource = localStorageUtils.getSamplerSource();
   }
 
   async add() {
@@ -85,12 +86,16 @@ export default class MySampler {
 
   async getInstrument() {
     let sampleMap;
-    if (this.samplerSource === types.SamplerSourceEnum.recorded) {
-      sampleMap = this.localSampleMap;
-    } else {
-      sampleMap = await this._fetchInstruments();
+    switch (this.samplerSource) {
+      case types.SamplerSourceEnum.recorded:
+        sampleMap = this.localSampleMap;
+        break;
+      case types.SamplerSourceEnum.local:
+        sampleMap = this.localSampleMap;
+        break;
+      case types.SamplerSourceEnum.server:
+        sampleMap = await this._fetchInstruments();
     }
-    // throw new Error("CRITICAL: no sample map provided.");
     let sampler = new Sampler(sampleMap, {
       attack: 0.01,
     });
@@ -113,22 +118,27 @@ export default class MySampler {
     this.samplers.forEach((sampler) => sampler.disconnect());
   }
 
-  async _setSamplerSource(source: types.SamplerSource) {
-    console.log({ source });
+  _setSamplerSource(source: types.SamplerSource) {
     this.samplerSource = source;
     localStorageUtils.setSamplerSource(source);
-    // await this._initToneJs();
-    // after sample set
-    // this.eventListeners.actioned();
+  }
+
+  async processLocalSample(arrayBufferMap: types.ArrayBufferMap) {
+    await this.processArrayBufferMap(arrayBufferMap);
+    this._setSamplerSource(types.SamplerSourceEnum.local);
   }
 
   async processRecordedSound(note: string, arrayBuffer: ArrayBuffer) {
     const arrayBufferMap = { [note]: arrayBuffer };
+    await this.processArrayBufferMap(arrayBufferMap);
+    this._setSamplerSource(types.SamplerSourceEnum.recorded);
+  }
+
+  async processArrayBufferMap(arrayBufferMap: types.ArrayBufferMap) {
     await indexedDbUtils.setLocalSamplerArrayBuffer(arrayBufferMap);
     const sampleMap: SamplerOptions["urls"] =
       await convertArrayBufferToAudioContext(arrayBufferMap);
     this.setLocalSampleMap(sampleMap);
-    this._setSamplerSource(types.SamplerSourceEnum.recorded);
   }
 
   setLocalSampleMap(sampleMap: SamplerOptions["urls"]) {
@@ -138,5 +148,16 @@ export default class MySampler {
   saveUserUploadSample(sampleMap: SamplerOptions["urls"]) {
     this.setLocalSampleMap(sampleMap);
     this._setSamplerSource(types.SamplerSourceEnum.local);
+  }
+
+  async loadLocalSampler() {
+    const cachedSample: types.ArrayBufferMap =
+      await indexedDbUtils.getLocalSamplerArrayBuffer();
+    if (cachedSample) {
+      console.log({cachedSample})
+      await this.processArrayBufferMap(cachedSample);
+      return true
+    }
+    return false;
   }
 }

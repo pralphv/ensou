@@ -3,6 +3,7 @@ import { IKeyNoteMap } from "game/types";
 
 enum LocalStorageKeys {
   volume = "volume",
+  useSampler = "useSampler",
   samplerSource = "samplerSource",
   sampleName = "sampleName",
   isLoop = "isLoop",
@@ -176,4 +177,12 @@ export function setKeyBindings(rows: IKeyNoteMap) {
 
 export function deleteKeyBindings() {
   deleteLocalStorage(LocalStorageKeys.keybindings);
+}
+
+export function getUseSampler(): boolean | null {
+  return getLocalStorage(LocalStorageKeys.useSampler);
+}
+
+export function setUseSampler(value: boolean) {
+  setLocalStorage(LocalStorageKeys.useSampler, value);
 }

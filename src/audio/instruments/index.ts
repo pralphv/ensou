@@ -1,3 +1,3 @@
 import Instrument from "./instruments";
-const instruments = new Instrument({useSample: false});
+const instruments = new Instrument();
 export default instruments;

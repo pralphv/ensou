@@ -1,26 +1,9 @@
-import {
-  Sampler,
-  MembraneSynth,
-  SamplerOptions,
-  PolySynth,
-  context,
-  Destination,
-  UserMedia,
-  now,
-  Transport,
-} from "tone";
+import { Transport } from "tone";
 import { Note } from "@tonejs/midi/dist/Note";
 import StartAudioContext from "startaudiocontext";
 import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
-import { AvailableSynths } from "types";
-import instruments from ".";
-import { ISampleEventsMap } from "./types";
 import MySampler from "./sampler";
 import MyPolySynth from "./polySynths";
-
-interface IIntrumentsArgs {
-  useSample?: boolean;
-}
 
 // interface IInstrumentsEvents {
 //   // [key: string]: Function;
@@ -35,20 +18,29 @@ export default class Instruments {
   myPolySynth: MyPolySynth;
   // _eventListeners: IInstrumentsEvents;
 
-  constructor(args: IIntrumentsArgs) {
-    this.useSampler = args.useSample || false;
+  constructor() {
     this.myPolySynth = new MyPolySynth();
     this.mySampler = new MySampler();
-    this.myPolySynth.activate();
+    this.useSampler = false;
     this.loadSavedSettings();
     // this._eventListeners = {};
 
     this.releaseAll = this.releaseAll.bind(this);
   }
 
-  loadSavedSettings() {
+  async loadSavedSettings() {
     const savedVolume = localStorageUtils.getVolume();
     savedVolume && this.setVolume(savedVolume);
+    if (localStorageUtils.getUseSampler()) {
+      const cacheLoaded = await this.mySampler.loadLocalSampler();
+      if (!cacheLoaded) {
+        throw Error("useSampler in localStorage is true but sampler not found")
+      }
+      await this.activateSampler();
+    } else {
+      this.activatePolySynth();
+    }
+
   }
 
   scheduleNotesToPlay(notes: Note[]) {
@@ -125,12 +117,14 @@ export default class Instruments {
     this.myPolySynth.deactivate();
     await this.mySampler.activate();
     this.useSampler = true;
+    localStorageUtils.setUseSampler(true);
   }
 
   activatePolySynth() {
     this.mySampler.deactivate();
     this.myPolySynth.activate();
     this.useSampler = false;
+    localStorageUtils.setUseSampler(false);
   }
 
   cancelEvents() {
