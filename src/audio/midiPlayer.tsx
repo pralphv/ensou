@@ -422,7 +422,8 @@ export default class MyMidiPlayer {
     this._setPpq(midi.header.ppq);
     this._setUpLoop(midi.durationTicks);
     myCanvas.setupCanvasNoteScale(midi.header.ppq);
-    this.scheduleNotesToPlay();
+    // only set up notes in transport last. there will be bug if not (notes release pre-maturely)
+    this.scheduleNotesToPlay();  
   }
 
   _scheduleNoteEvents() {
