@@ -1,11 +1,11 @@
 import React from "react";
 
-import grey from "@mui/material/colors/grey";
 import Grid from "@mui/material/Grid";
 import DialogContent from "@mui/material/DialogContent";
 import * as types from "types";
 import DelaySlider from "../DelaySlider";
 import instruments from "audio/instruments";
+import myMidiPlayer from "audio";
 
 import EnvelopeSettings from "./EnvelopeSettings";
 import OscillatorSettings from "./OscillatorSettings";
@@ -65,7 +65,7 @@ export default function SynthTab({ forceLocalRender }: ISynthTab) {
         ))}
         <AddButton
           onClick={() => {
-            instruments.myPolySynth.add();
+            myMidiPlayer.addSynth();
             forceLocalRender();
           }}
         />

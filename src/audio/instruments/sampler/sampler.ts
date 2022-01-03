@@ -106,8 +106,8 @@ export default class MySampler {
   async activate() {
     if (this.samplers.length === 0) {
       await this.add();
-      this._connectAll();
     }
+    this._connectAll();
   }
 
   _connectAll() {

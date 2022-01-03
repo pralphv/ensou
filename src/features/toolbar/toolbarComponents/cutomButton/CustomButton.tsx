@@ -1,6 +1,6 @@
 import React from "react";
 
-import ToggleButton from "@mui/lab/ToggleButton";
+import { ToggleButton } from "@mui/material";
 import "./styles.css";
 
 export default function CustomButton(props: any) {

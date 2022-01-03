@@ -26,6 +26,7 @@ export default class Instruments {
     // this._eventListeners = {};
 
     this.releaseAll = this.releaseAll.bind(this);
+    this.scheduleNotesToPlay = this.scheduleNotesToPlay.bind(this);
   }
 
   async loadSavedSettings() {
@@ -39,6 +40,7 @@ export default class Instruments {
       await this.activateSampler();
     } else {
       this.activatePolySynth();
+      console.log("I SHOULD COM AFTER")
     }
 
   }

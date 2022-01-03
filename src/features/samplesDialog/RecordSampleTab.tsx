@@ -76,7 +76,6 @@ class MyMediaRecorder {
     this.mediaRecorder = new MediaRecorder(stream);
     this.chunks = [];
     this.mediaRecorder.ondataavailable = (e: BlobEvent) => {
-      console.log(e.data)
       this.chunks.push(e.data);
     };
     this.mediaRecorder.onstop = (e) => {

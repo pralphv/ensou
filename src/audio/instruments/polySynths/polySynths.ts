@@ -21,8 +21,8 @@ export default class MyPolySynth {
     this.loadSavedSettings();
     if (this.polySynths.length === 0) {
       this.add();
-      this._connectAll();
     }
+    console.log("FINISH POLY SYNTH");
   }
 
   loadSavedSettings() {
@@ -33,7 +33,6 @@ export default class MyPolySynth {
         const polySynth = initSynth(synthName, i);
         this.polySynths.push(polySynth);
       });
-      this._connectAll();
     }
   }
 
@@ -72,6 +71,8 @@ export default class MyPolySynth {
 
   activate() {
     this._connectAll();
+    // bug: when sample -> polysynth, synth will triggerattack
+    this.polySynths.forEach((polySynth) => polySynth.releaseAll());
   }
 
   _connectAll() {

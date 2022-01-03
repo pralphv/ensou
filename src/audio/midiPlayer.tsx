@@ -2,12 +2,10 @@ import { SamplerOptions, Transport, Draw } from "tone";
 
 import * as types from "types";
 import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
-import { convertArrayBufferToAudioContext } from "utils/helper";
 import instruments from "./instruments";
 import { storageRef } from "firebaseApi/firebase";
 import myCanvas from "canvas";
 import progressBar from "progressBar";
-import myMidiPlayer from "audio";
 import game from "game";
 import { Midi, Track } from "@tonejs/midi";
 import { PlaybackState } from "tone";
@@ -106,7 +104,7 @@ export default class MyMidiPlayer {
     this.on = this.on.bind(this);
     this.enablePracticeMode = this.enablePracticeMode.bind(this);
     this.disablePracticeMode = this.disablePracticeMode.bind(this);
-    this._scheduleNotesToPlay = this._scheduleNotesToPlay.bind(this);
+    this.scheduleNotesToPlay = this.scheduleNotesToPlay.bind(this);
     this._scheduleCanvasEvents = this._scheduleCanvasEvents.bind(this);
     this.getTotalTicks = this.getTotalTicks.bind(this);
     this.getPPQ = this.getPPQ.bind(this);
@@ -118,7 +116,7 @@ export default class MyMidiPlayer {
       }
     });
     instruments.myPolySynth.on("restart", () => {
-      this._scheduleNotesToPlay();
+      this.scheduleNotesToPlay();
     });
   }
 
@@ -210,10 +208,16 @@ export default class MyMidiPlayer {
     callback();
   }
 
-  _scheduleNotesToPlay() {
+  scheduleNotesToPlay() {
     this.midi.tracks.forEach((track) => {
       instruments.scheduleNotesToPlay(track.notes);
     });
+  }
+
+  addSynth() {
+    // this function exists for rescheduling notes when add synth button is pressed
+    instruments.myPolySynth.add();
+    this.scheduleNotesToPlay();
   }
 
   _handleFileLoaded() {
@@ -414,11 +418,11 @@ export default class MyMidiPlayer {
     this.notes = midi.tracks.map((track) => track.notes).flat();
     this.durationTicks = midi.durationTicks;
     this._scheduleTempoEvents(midi.header.tempos);
-    this._scheduleNotesToPlay();
     this._scheduleCanvasEvents(midi.tracks);
     this._setPpq(midi.header.ppq);
     this._setUpLoop(midi.durationTicks);
     myCanvas.setupCanvasNoteScale(midi.header.ppq);
+    this.scheduleNotesToPlay();
   }
 
   _scheduleNoteEvents() {
@@ -515,12 +519,14 @@ export default class MyMidiPlayer {
 
   async activateSampler() {
     await instruments.activateSampler();
-    this._scheduleNotesToPlay();
+    this.scheduleNotesToPlay();
     this.eventListeners.actioned();
   }
 
   async activatePolySynth() {
     await instruments.activatePolySynth();
+    this.scheduleNotesToPlay();
+    this.eventListeners.actioned();
   }
 
   cleanup() {
