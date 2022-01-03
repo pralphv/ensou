@@ -274,6 +274,7 @@ export default class MyMidiPlayer {
     this.setLoopPoints(0, 0);
     myCanvas.highlighter.disable();
     this.eventListeners.actioned();
+    this.updateCanvas(0);
   }
 
   skipToPercent(percent: number) {
@@ -426,6 +427,7 @@ export default class MyMidiPlayer {
     myCanvas.setupCanvasNoteScale(midi.header.ppq);
     // only set up notes in transport last. there will be bug if not (notes release pre-maturely)
     this.scheduleNotesToPlay();
+    this.updateCanvas(0);
   }
 
   _scheduleNoteEvents() {
@@ -433,10 +435,14 @@ export default class MyMidiPlayer {
     this.scheduleId = Transport.scheduleRepeat((time) => {
       Draw.schedule(() => {
         const tick = Transport.ticks;
-        myCanvas.render(tick);
-        progressBar.render(tick);
+        this.updateCanvas(tick);
       }, time);
     }, `${this.fps}hz`);
+  }
+
+  updateCanvas(tick: number) {
+    myCanvas.render(tick);
+    progressBar.render(tick);
   }
 
   _setUpLoop(endTick: number) {
