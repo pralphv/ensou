@@ -272,6 +272,7 @@ export default class MyMidiPlayer {
   restart() {
     this.skipToPercent(0);
     this.setLoopPoints(0, 0);
+    myCanvas.highlighter.disable();
     this.eventListeners.actioned();
   }
 
@@ -403,6 +404,7 @@ export default class MyMidiPlayer {
   }
 
   setLoopPoints(startTick: number, endTick: number) {
+    startTick = Math.max(startTick, 0);
     startTick = Math.round(startTick);
     endTick = Math.round(endTick);
     if (startTick === endTick) {
@@ -423,7 +425,7 @@ export default class MyMidiPlayer {
     this._setUpLoop(midi.durationTicks);
     myCanvas.setupCanvasNoteScale(midi.header.ppq);
     // only set up notes in transport last. there will be bug if not (notes release pre-maturely)
-    this.scheduleNotesToPlay();  
+    this.scheduleNotesToPlay();
   }
 
   _scheduleNoteEvents() {
@@ -439,6 +441,7 @@ export default class MyMidiPlayer {
 
   _setUpLoop(endTick: number) {
     this.setLoopPoints(0, endTick);
+    myCanvas.highlighter.activate();
   }
 
   _setPpq(ppq: number) {

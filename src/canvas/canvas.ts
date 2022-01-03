@@ -140,6 +140,7 @@ class MyCanvas {
         myMidiPlayer.pause();
         return;
       }
+      this.highlighter.activate();
       const currentTick = Transport.ticks;
       this.isDragging = true;
       const y: number = e.data.global.y;

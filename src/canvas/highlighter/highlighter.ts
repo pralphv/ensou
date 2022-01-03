@@ -8,12 +8,14 @@ export default class Highlighter {
   _texture!: PIXI.Texture;
   _sprite!: PIXI.Sprite;
   _config: types.IMyCanvasConfig;
+  active: boolean;
   constructor(
     app: PIXI.Renderer,
     stage: PIXI.Container,
     config: types.IMyCanvasConfig
   ) {
     console.log("Constructing Highlighter");
+    this.active = false;
     this._app = app;
     this._config = config;
     const rect = initRectangle(this._app.screen.width, this._app.screen.height);
@@ -28,35 +30,37 @@ export default class Highlighter {
   }
 
   draw(tick: number) {
-    this._sprite.visible = true;
-    if (
-      myMidiPlayer.loopPoints.startTick === 0 &&
-      myMidiPlayer.loopPoints.endTick === myMidiPlayer.getTotalTicks()
-    ) {
-      // just dont highlight if not highlighting for optimizaion
-      return;
+    if (this.active) {
+      this._sprite.visible = true;
+      const startY = convertMidiTickToCanvasHeight(
+        myMidiPlayer.loopPoints.startTick || 0,
+        tick
+      );
+      let endY =
+        myMidiPlayer.loopPoints.endTick === myMidiPlayer.getTotalTicks()
+          ? startY
+          : convertMidiTickToCanvasHeight(
+              myMidiPlayer.loopPoints.endTick || 0,
+              tick
+            );
+      this._sprite.position.y = endY > startY ? startY : endY;
+      this._sprite.height = Math.max(Math.abs(endY - startY), 2);
     }
-
-    const startY = convertMidiTickToCanvasHeight(
-      myMidiPlayer.loopPoints.startTick || 0,
-      tick
-    );
-    let endY =
-      myMidiPlayer.loopPoints.endTick === myMidiPlayer.getTotalTicks()
-        ? startY
-        : convertMidiTickToCanvasHeight(
-            myMidiPlayer.loopPoints.endTick || 0,
-            tick
-          );
-    this._sprite.position.y = endY > startY ? startY : endY;
-    this._sprite.height = Math.max(Math.abs(endY - startY), 2);
   }
 
   destroy() {
     // console.log("Destroying Highlighter");
     this._sprite?.destroy({ children: true, texture: true, baseTexture: true });
     this._texture?.destroy(true);
-    // canBeDestroyed = false;
+  }
+
+  activate() {
+    this.active = true;
+  }
+
+  disable() {
+    this.active = false;
+    this._sprite.height = 0;
   }
 }
 
