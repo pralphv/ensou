@@ -8,6 +8,7 @@ import MenuItem from "@mui/material/MenuItem";
 
 import * as types from "types";
 import myMidiPlayer from "audio";
+import myEffects from "audio/instruments/effects";
 
 interface IRange {
   min: number;
@@ -136,7 +137,7 @@ export default function EffectParams({
                 <CustomSelect
                   value={value}
                   onChange={(e) => {
-                    myMidiPlayer.myTonejs?.changeFxSettings(
+                    myEffects.changeFxSettings(
                       fxIndex,
                       param,
                       e.target.value
@@ -161,7 +162,7 @@ export default function EffectParams({
                   // }
                   valueLabelFormat={(x) => x.toFixed(2)}
                   onChange={(e, newValue) => {
-                    myMidiPlayer.myTonejs?.changeFxSettings(
+                    myEffects.changeFxSettings(
                       fxIndex,
                       param,
                       newValue

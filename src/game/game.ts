@@ -5,7 +5,7 @@ import myCanvas from "canvas";
 import { PIANO_TUNING, NOTE_NUMBER_TO_NOTE } from "audio/constants";
 import myMidiPlayer from "audio";
 import * as types from "./types";
-import { getKeyBindings } from "utils/localStorageUtils/localStorageUtils";
+import { keyBindingsLocalStorage } from "utils/localStorageUtils";
 import * as midiKeyboard from "./midiKeyboard";
 
 interface IPlayMap {
@@ -55,7 +55,7 @@ class Game {
   }
 
   loadKeyNoteMap() {
-    this.keyNoteMap = getKeyBindings() || constants.DEFAULT_KEY_NOTE_MAP;
+    this.keyNoteMap = keyBindingsLocalStorage.getKeyBindings() || constants.DEFAULT_KEY_NOTE_MAP;
     this.availableKeys = new Set(Object.keys(this.keyNoteMap));
 
     this.noteLabelMap = {};
@@ -115,23 +115,23 @@ class Game {
     const playMap: IPlayMap = {};
     const notesToBePlayed: INotesToBePlayed = {};
 
-    for (const note of myMidiPlayer.groupedNotes) {
-      notesToBePlayed[note.id] = {
-        played: false,
-        note: note.noteName,
-        lastTick: note.on + 99,
-      };
-      for (let i = -100; i < 120; i++) {
-        if (!playMap[i + note.on]) {
-          playMap[i + note.on] = [note.id];
-        } else {
-          playMap[i + note.on].push(note.id);
-        }
-      }
-    }
-    this.playMap = playMap;
-    this.notesToBePlayed = notesToBePlayed;
-    this.originalNotesToBePlayed = JSON.parse(JSON.stringify(notesToBePlayed));
+    // for (const note of myMidiPlayer.groupedNotes) {
+    //   notesToBePlayed[note.id] = {
+    //     played: false,
+    //     note: note.noteName,
+    //     lastTick: note.on + 99,
+    //   };
+    //   for (let i = -100; i < 120; i++) {
+    //     if (!playMap[i + note.on]) {
+    //       playMap[i + note.on] = [note.id];
+    //     } else {
+    //       playMap[i + note.on].push(note.id);
+    //     }
+    //   }
+    // }
+    // this.playMap = playMap;
+    // this.notesToBePlayed = notesToBePlayed;
+    // this.originalNotesToBePlayed = JSON.parse(JSON.stringify(notesToBePlayed));
   }
 
   disable() {
@@ -158,7 +158,7 @@ class Game {
   triggerAttack(note: string, velocity: number = 1) {
     // myMidiPlayer.myTonejs?.triggerAttack(note, velocity);
     myMidiPlayer.playingNotes.add(PIANO_TUNING[note]);
-    myCanvas.render();
+    // myCanvas.render();
     if (this.playMap[Transport.ticks]) {
       for (const id of this.playMap[Transport.ticks]) {
         if (
@@ -177,7 +177,7 @@ class Game {
   triggerRelease(note: string) {
     // myMidiPlayer.myTonejs?.triggerRelease(note);
     myMidiPlayer.playingNotes.delete(PIANO_TUNING[note]);
-    myCanvas.render();
+    // myCanvas.render();
   }
 
   render() {

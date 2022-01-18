@@ -12,7 +12,7 @@ import EffectSelector from "./EffectSelector";
 import AddButton from "../../addButton/AddButton";
 import ActivateSwitch from "./ActivateSwitch";
 import RemoveButton from "features/removeButton/RemoveButton";
-import myMidiPlayer from "audio";
+import myEffects from "audio/instruments/effects";
 
 interface IEffectsTab {
   forceLocalRender: types.forceLocalRender;
@@ -21,16 +21,18 @@ interface IEffectsTab {
 export default function EffectsTab({
   forceLocalRender,
 }: IEffectsTab): JSX.Element {
-  const myTonejs = myMidiPlayer.myTonejs;
   return (
     <React.Fragment>
-      {myTonejs && (
         <DialogContent>
           <React.Fragment>
             <ActivateSwitch
-              checked={myTonejs.getEffectsActivated()}
+              checked={myEffects.activated}
               onChange={() => {
-                myTonejs?.toggleEffectsActivated();
+                if (myEffects.activated) {
+                  myEffects.deactivate();
+                } else {
+                  myEffects.activate();
+                }
                 forceLocalRender();
               }}
             />
@@ -41,7 +43,7 @@ export default function EffectsTab({
               justifyContent="center"
               alignItems="stretch"
             >
-              {myTonejs.getEffectsChain().map((fx, fxIndex) => {
+              {myEffects.effectChain.map((fx, fxIndex) => {
                 const effectName = fx.name as types.AvailableEffectsNames;
                 return (
                   <Grid
@@ -54,7 +56,7 @@ export default function EffectsTab({
                     <EffectSelector
                       value={effectName}
                       onChange={(e: any) => {
-                        myTonejs.changeFx(
+                        myEffects.changeFx(
                           fxIndex,
                           e.target.value as types.AvailableEffectsNames
                         );
@@ -67,9 +69,9 @@ export default function EffectsTab({
                       fxIndex={fxIndex}
                       forceLocalRender={forceLocalRender}
                     />
-                    <ExtraOutput
+                    {/* <ExtraOutput
                       fxIndex={fxIndex}
-                      noOfTracks={myTonejs.getEffectsChain().length}
+                      noOfTracks={myEffects.getEffectsChain().length}
                       value={myTonejs.getExtraConnection(fxIndex).effectorIndex}
                       onChange={(e: any) => {
                         myTonejs.changeExtraConnection(
@@ -79,8 +81,8 @@ export default function EffectsTab({
                         );
                         forceLocalRender();
                       }}
-                    />
-                    <ToMasterCheckbox
+                    /> */}
+                    {/* <ToMasterCheckbox
                       checked={myTonejs.getExtraConnection(fxIndex).toMaster}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         myTonejs.changeExtraConnection(
@@ -90,10 +92,10 @@ export default function EffectsTab({
                         );
                         forceLocalRender();
                       }}
-                    />
+                    /> */}
                     <RemoveButton
                       onClick={() => {
-                        myTonejs.removeFx(fxIndex);
+                        myEffects.removeFx(fxIndex);
                         forceLocalRender();
                       }}
                     />
@@ -102,14 +104,13 @@ export default function EffectsTab({
               })}
               <AddButton
                 onClick={() => {
-                  myTonejs.addFx();
+                  myEffects.addFx();
                   forceLocalRender();
                 }}
               />
             </Grid>
           </React.Fragment>
         </DialogContent>
-      )}
     </React.Fragment>
   );
 }

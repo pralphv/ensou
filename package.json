@@ -15,6 +15,7 @@
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
     "@tonejs/midi": "^2.0.27",
+    "@types/dom-mediacapture-record": "^1.0.11",
     "@types/jest": "^24.0.0",
     "@types/lodash": "^4.14.161",
     "@types/node": "^12.0.0",
@@ -28,6 +29,7 @@
     "idb-keyval": "^3.2.0",
     "lodash": "^4.17.20",
     "notistack": "^2.0.2",
+    "npm": "^8.3.0",
     "pixi.js": "^5.3.10",
     "pretty-ms": "^7.0.1",
     "react": "^17.0.2",
@@ -42,8 +44,7 @@
     "react-scripts": "^4.0.0",
     "redux-firestore": "^0.13.0",
     "startaudiocontext": "^1.2.1",
-    "tone": "^14.7.77",
-    "typescript": "^3.7.7"
+    "tone": "^14.7.77"
   },
   "scripts": {
     "start": "set BABEL_ENV=development && set PORT=5000 && react-scripts start",
@@ -66,5 +67,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "typescript": "^3.9.10"
   }
 }

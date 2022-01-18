@@ -2,6 +2,7 @@ import { SamplerOptions, Transport, Draw } from "tone";
 
 import * as types from "types";
 import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
+import { isLoopLocalStorage } from "utils/localStorageUtils";
 import instruments from "./instruments";
 import { storageRef } from "firebaseApi/firebase";
 import myCanvas from "canvas";
@@ -65,7 +66,7 @@ export default class MyMidiPlayer {
 
     this.isReady = false; // for blocking play button. etc. no file loaded
     this.isPlaying = false;
-    this.isLoop = localStorageUtils.getIsLoop() || false;
+    this.isLoop = isLoopLocalStorage.getIsLoop() || false;
     this.totalTicks = 0;
     this.ticksPerBeat = 0;
     this.tempoPercent = 1;
@@ -310,7 +311,7 @@ export default class MyMidiPlayer {
 
   setIsLoop(isLoop: boolean) {
     this.isLoop = isLoop;
-    localStorageUtils.setIsLoop(isLoop);
+    isLoopLocalStorage.setIsLoop(isLoop);
     this.eventListeners.actioned();
   }
 
@@ -520,6 +521,11 @@ export default class MyMidiPlayer {
 
   async useRecordedSound(note: string, arrayBuffer: ArrayBuffer) {
     await instruments.processRecordedSound(note, arrayBuffer);
+    await this.activateSampler();
+  }
+
+  async useDownloadedSample() {
+    instruments.mySampler.processDownloadedSample();
     await this.activateSampler();
   }
 

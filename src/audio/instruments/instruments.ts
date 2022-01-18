@@ -1,9 +1,13 @@
-import { Transport } from "tone";
+import { Destination, Transport, Sampler, PolySynth } from "tone";
 import { Note } from "@tonejs/midi/dist/Note";
 import StartAudioContext from "startaudiocontext";
-import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
+import {
+  samplerLocalStorage,
+  volumeLocalStorage,
+} from "utils/localStorageUtils";
 import MySampler from "./sampler";
 import MyPolySynth from "./polySynths";
+import myEffects from "./effects";
 
 // interface IInstrumentsEvents {
 //   // [key: string]: Function;
@@ -27,26 +31,35 @@ export default class Instruments {
 
     this.releaseAll = this.releaseAll.bind(this);
     this.scheduleNotesToPlay = this.scheduleNotesToPlay.bind(this);
+    myEffects.on("reconnect", (effectChain) => {
+      this._getInstruments().forEach((instrument: Sampler | PolySynth) => {
+        instrument.chain(...effectChain, Destination);
+      });
+    });
+    myEffects.on("disconnect", () => {
+      this._getInstruments().forEach((instrument: Sampler | PolySynth) => {
+        instrument.toDestination();
+      });
+    });
   }
 
   async loadSavedSettings() {
-    const savedVolume = localStorageUtils.getVolume();
+    const savedVolume = volumeLocalStorage.getVolume();
     savedVolume && this.setVolume(savedVolume);
-    if (localStorageUtils.getUseSampler()) {
+    if (samplerLocalStorage.getUseSampler()) {
       const cacheLoaded = await this.mySampler.loadLocalSampler();
       if (!cacheLoaded) {
-        throw Error("useSampler in localStorage is true but sampler not found")
+        throw Error("useSampler in localStorage is true but sampler not found");
       }
       await this.activateSampler();
     } else {
       this.activatePolySynth();
-      console.log("I SHOULD COM AFTER")
+      console.log("I SHOULD COM AFTER");
     }
-
   }
 
   scheduleNotesToPlay(notes: Note[]) {
-    this._getInstruments().forEach((instrument) => {
+    this._getInstruments().forEach((instrument: Sampler | PolySynth) => {
       instrument.sync();
       notes.forEach((note) => {
         instrument.triggerAttackRelease(
@@ -65,12 +78,12 @@ export default class Instruments {
     ticks: number,
     velocity: number
   ) {
-    this._getInstruments().forEach((instrument) => {
+    this._getInstruments().forEach((instrument: Sampler | PolySynth) => {
       instrument.triggerAttackRelease(name, duration, ticks, velocity);
     });
   }
 
-  _getInstruments() {
+  _getInstruments(): Sampler[] | PolySynth[] {
     return this.useSampler
       ? this.mySampler.samplers
       : this.myPolySynth.polySynths;
@@ -93,7 +106,7 @@ export default class Instruments {
   releaseAll(buffer?: number) {
     setTimeout(() => {
       // a buffer to make sure no attacks
-      this._getInstruments().forEach((instrument) => instrument.releaseAll());
+      this._getInstruments().forEach((instrument: Sampler | PolySynth) => instrument.releaseAll());
     }, buffer || 100);
   }
 
@@ -105,10 +118,10 @@ export default class Instruments {
     if (volume <= -15) {
       volume = -1000;
     }
-    this._getInstruments().forEach((instrument) => {
+    this._getInstruments().forEach((instrument: Sampler | PolySynth) => {
       instrument.volume.value = volume;
     });
-    localStorageUtils.setVolume(volume);
+    volumeLocalStorage.setVolume(volume);
   }
 
   async processRecordedSound(note: string, arrayBuffer: ArrayBuffer) {
@@ -119,14 +132,14 @@ export default class Instruments {
     this.myPolySynth.deactivate();
     await this.mySampler.activate();
     this.useSampler = true;
-    localStorageUtils.setUseSampler(true);
+    samplerLocalStorage.setUseSampler(true);
   }
 
   activatePolySynth() {
     this.mySampler.deactivate();
     this.myPolySynth.activate();
     this.useSampler = false;
-    localStorageUtils.setUseSampler(false);
+    samplerLocalStorage.setUseSampler(false);
   }
 
   cancelEvents() {

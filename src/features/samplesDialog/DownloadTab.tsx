@@ -11,7 +11,6 @@ import Select, { SelectChangeEvent } from "@mui/material/Select";
 
 import { storageRef } from "firebaseApi/firebase";
 import * as types from "types";
-import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
 import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
 import myMidiPlayer from "audio";
 
@@ -53,10 +52,8 @@ export default function DownloadTab({ setOpen }: IDownloadTabProps) {
     setChosenSample(event.target.value);
   }
 
-  function handleOnSubmit() {
-    myMidiPlayer.setSampleName(chosenSample);
-    myMidiPlayer.setSamplerSource(types.SamplerSourceEnum.server);
-    localStorageUtils.setSampleName(chosenSample);
+  async function handleOnSubmit() {
+    await myMidiPlayer.useDownloadedSample();
     setOpen(false);
   }
   // http://ivyaudio.com/Piano-in-162

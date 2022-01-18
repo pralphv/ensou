@@ -1,14 +1,14 @@
 import * as types from "types";
 import { fetchInstruments } from "./fetch";
 import { Sampler } from "tone";
-import * as instrumentTypes from "../types";
+import { onSampleDownloadStartType, onSampleDownloadingType, onApplyingSamplesType} from "./types";
 
 export async function get(
   instrument: types.Instrument,
   sample: string,
-  onSampleDownloadStart: instrumentTypes.onSampleDownloadStart,
-  onSampleDownloading: instrumentTypes.onSampleDownloading,
-  onApplyingSamples: instrumentTypes.onApplyingSamples
+  onSampleDownloadStart: onSampleDownloadStartType,
+  onSampleDownloading: onSampleDownloadingType,
+  onApplyingSamples: onApplyingSamplesType
 ) {
   const sampleMap = await fetchInstruments(
     instrument,

@@ -4,7 +4,7 @@ import { ISampleEventsMap } from "./types";
 import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
 import { storageRef } from "firebaseApi/firebase";
 import { convertArrayBufferToAudioContext } from "utils/helper";
-import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
+import { samplerLocalStorage } from "utils/localStorageUtils";
 
 // interface ISamplerOptions {
 //   instrument: types.Instrument;
@@ -26,7 +26,7 @@ export default class MySampler {
     this.samplers = [];
     this.instrument = "piano";
     this.sample = ""; // should be samples saved in firebase
-    this.samplerSource = localStorageUtils.getSamplerSource();
+    this.samplerSource = samplerLocalStorage.getSamplerSource();
   }
 
   async add() {
@@ -120,12 +120,16 @@ export default class MySampler {
 
   _setSamplerSource(source: types.SamplerSource) {
     this.samplerSource = source;
-    localStorageUtils.setSamplerSource(source);
+    samplerLocalStorage.setSamplerSource(source);
   }
 
   async processLocalSample(arrayBufferMap: types.ArrayBufferMap) {
     await this.processArrayBufferMap(arrayBufferMap);
     this._setSamplerSource(types.SamplerSourceEnum.local);
+  }
+
+  async processDownloadedSample() {
+    this._setSamplerSource(types.SamplerSourceEnum.server);
   }
 
   async processRecordedSound(note: string, arrayBuffer: ArrayBuffer) {
@@ -154,9 +158,9 @@ export default class MySampler {
     const cachedSample: types.ArrayBufferMap =
       await indexedDbUtils.getLocalSamplerArrayBuffer();
     if (cachedSample) {
-      console.log({cachedSample})
+      console.log({ cachedSample });
       await this.processArrayBufferMap(cachedSample);
-      return true
+      return true;
     }
     return false;
   }

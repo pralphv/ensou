@@ -2,7 +2,7 @@ import React from "react";
 
 import DialogContent from "@mui/material/DialogContent";
 import * as types from "types";
-import DelaySlider from "./DelaySlider";
+// import DelaySlider from "./DelaySlider";
 
 interface ISamplerTabProps {
   forceLocalRender: types.forceLocalRender;

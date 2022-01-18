@@ -35,19 +35,21 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
    * hacky i know
    */
   function forceLocalRender(skipWait?: boolean) {
-    if (skipWait) {
-      setForceLocalRenderDummy(forceLocalRenderDummy + 1);
-    } else {
-      setTimeout(() => {
-        if (!myMidiPlayer.myTonejs?.publishingChanges) {
-          console.log("waiting for change...");
-          setForceLocalRenderDummy(forceLocalRenderDummy + 1);
-          return;
-        } else {
-          forceLocalRender(false);
-        }
-      }, 100);
-    }
+    setForceLocalRenderDummy(forceLocalRenderDummy + 1);
+
+    // if (skipWait) {
+    //   setForceLocalRenderDummy(forceLocalRenderDummy + 1);
+    // } else {
+    //   setTimeout(() => {
+    //     if (!myMidiPlayer.myTonejs?.publishingChanges) {
+    //       console.log("waiting for change...");
+    //       setForceLocalRenderDummy(forceLocalRenderDummy + 1);
+    //       return;
+    //     } else {
+    //       forceLocalRender(false);
+    //     }
+    //   }, 100);
+    // }
   }
 
   async function handleOnChangeDialog() {

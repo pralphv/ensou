@@ -3,13 +3,13 @@ import React from "react";
 import Grid from "@mui/material/Grid";
 import DialogContent from "@mui/material/DialogContent";
 import * as types from "types";
-import DelaySlider from "../DelaySlider";
+// import DelaySlider from "../DelaySlider";
 import instruments from "audio/instruments";
 import myMidiPlayer from "audio";
 
 import EnvelopeSettings from "./EnvelopeSettings";
 import OscillatorSettings from "./OscillatorSettings";
-import OtherSettings from "../OtherSettings";
+// import OtherSettings from "../OtherSettings";
 import SynthesizerSettings from "./SynthesizerSettings";
 import AddButton from "features/addButton/AddButton";
 import RemoveButton from "features/removeButton/RemoveButton";

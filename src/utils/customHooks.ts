@@ -83,9 +83,11 @@ export function useLoadLocal(
           reader.readAsArrayBuffer(readFile);
           handleNotification(`Successfully read: ${file.name}`, "success");
         }
-      } catch (error: unknown) {
-        handleNotification(error.toString(), "error");
-        console.error(error);
+      } catch (error) {
+        if (error instanceof Error) {
+          handleNotification(error.toString(), "error");
+          console.error(error);
+        }
       }
     },
     [enqueueSnackbar, readArrayBuffer]

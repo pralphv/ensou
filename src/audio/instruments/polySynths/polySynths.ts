@@ -1,6 +1,6 @@
 import { PolySynth, Destination } from "tone";
 import { initSynth, saveEnvelopeSettings } from "./utils";
-import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
+import { synthLocalStorage } from "utils/localStorageUtils";
 import * as types from "types";
 
 interface IMyPolySynthEvents {
@@ -26,7 +26,7 @@ export default class MyPolySynth {
   }
 
   loadSavedSettings() {
-    const synthNames = localStorageUtils.getSynthNames();
+    const synthNames = synthLocalStorage.getSynthNames();
     if (synthNames) {
       this.synthNames = synthNames;
       synthNames.forEach((synthName, i) => {
@@ -56,7 +56,7 @@ export default class MyPolySynth {
 
   saveOtherSettingsToLocalStorage() {
     const otherSettings = this.getOtherSettings();
-    localStorageUtils.setSynthSettingsOthers(otherSettings);
+    synthLocalStorage.setSynthSettingsOthers(otherSettings);
   }
 
   remove(synthIndex: number) {
@@ -174,7 +174,7 @@ export default class MyPolySynth {
 
   saveOscilatorSettingsToLocalStorage() {
     const oscillatorSettings = this.getOscillatorSettings();
-    localStorageUtils.setSynthSettingsOscillator(oscillatorSettings);
+    synthLocalStorage.setSynthSettingsOscillator(oscillatorSettings);
   }
 
   getSynthSettings(synthIndex: number): types.ISynthSettings {
@@ -206,7 +206,7 @@ export default class MyPolySynth {
   }
 
   saveSynthNames() {
-    localStorageUtils.setSynthName(this.synthNames);
+    synthLocalStorage.setSynthName(this.synthNames);
   }
 
   async setSynthName(synthName: types.AvailableSynthsEnum, synthIndex: number) {

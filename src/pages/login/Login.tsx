@@ -48,8 +48,9 @@ export default function Login({ history }: ILoginProps) {
       history.push(Pages.Home);
       window.location.reload();
       //   clearLocalStorage();
-    } catch (error: any) {
+    } catch (error) {
       const errorCode =
+      //@ts-ignore
         error.code === "auth/wrong-password" ? "Wrong Password" : error.message;
       setError(errorCode);
     }

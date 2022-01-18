@@ -2,6 +2,7 @@ import { PolySynth } from "tone";
 
 import * as constants from "./constants";
 import * as types from "types";
+import { synthLocalStorage } from "utils/localStorageUtils";
 import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
 
 /**
@@ -16,9 +17,9 @@ export function initSynth(
 ): PolySynth {
   let options = constants.DEFAULT_AUDIO_SETTINGS;
   options = { ...options, ...options.others };
-  const oscillator = localStorageUtils.getSynthSettingsOscillator();
-  const envelope = localStorageUtils.getSynthSettingsEnvelope();
-  const others = localStorageUtils.getSynthSettingsOthers();
+  const oscillator = synthLocalStorage.getSynthSettingsOscillator();
+  const envelope = synthLocalStorage.getSynthSettingsEnvelope();
+  const others = synthLocalStorage.getSynthSettingsOthers();
   // const synthNames = localStorageUtils.getSynthNames();
   if (oscillator && synthIndex !== undefined) {
     options.oscillator = oscillator[synthIndex];
@@ -48,5 +49,5 @@ export function saveEnvelopeSettings(polySynths: PolySynth[]) {
     };
     return envelopeSettings;
   });
-  localStorageUtils.setSynthSettingsEnvelope(allSettings);
+  synthLocalStorage.setSynthSettingsEnvelope(allSettings);
 }

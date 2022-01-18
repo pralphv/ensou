@@ -3,7 +3,7 @@ import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
 import { storageRef } from "firebaseApi/firebase";
 import { convertArrayBufferToAudioContext } from "utils/helper";
 import { ISampleCache } from "../../types";
-import * as instrumentTypes from "../types";
+import { onSampleDownloadStartType, onSampleDownloadingType, onApplyingSamplesType} from "./types";
 
 // let SAMPLE_CACH: ISampleCache = {};
 
@@ -13,9 +13,9 @@ import * as instrumentTypes from "../types";
 export async function fetchInstruments(
   instrument: types.Instrument,
   sample: string,
-  onSampleDownloadStart: instrumentTypes.onSampleDownloadStart,
-  onSampleDownloading: instrumentTypes.onSampleDownloading,
-  onApplyingSamples: instrumentTypes.onApplyingSamples
+  onSampleDownloadStart: onSampleDownloadStartType,
+  onSampleDownloading: onSampleDownloadingType,
+  onApplyingSamples: onApplyingSamplesType
 ) {
   const cacheKey: string = `${instrument}_${sample}`;
   const cache: types.ArrayBufferMap = await indexedDbUtils.getServerSampler(

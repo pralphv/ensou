@@ -8,10 +8,7 @@ import Button from "@mui/material/Button";
 import game from "game";
 import { PIANO_TUNING } from "audio/constants";
 import { IRow } from "./types";
-import {
-  setKeyBindings,
-  deleteKeyBindings,
-} from "utils/localStorageUtils/localStorageUtils";
+import { keyBindingsLocalStorage } from "utils/localStorageUtils";
 import { IKeyNoteMap } from "game/types";
 
 interface IKeyBindingsDialog {
@@ -105,7 +102,7 @@ export default function KeyBindingsDialog({
   }
 
   function handleButtonOnClick() {
-    deleteKeyBindings();
+    keyBindingsLocalStorage.deleteKeyBindings();
     game.loadKeyNoteMap();
     setReset(!reset);
   }
@@ -174,5 +171,5 @@ function setKeyBindingsMiddleWare(newTable: IRow[]) {
       appearedHotKey.add(row.hotkey);
     }
   }
-  setKeyBindings(formattedTable);
+  keyBindingsLocalStorage.setKeyBindings(formattedTable);
 }
