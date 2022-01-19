@@ -19,7 +19,6 @@ export default class FlashingLightsBottomTiles {
     this._container = new PIXI.Container();
     this._columns = [];
 
-    console.log("Constructing new Flashing Lights Bottom Tiles");
     stage.addChild(this._container);
     stage.setChildIndex(this._container, 4);
 
@@ -66,7 +65,6 @@ export default class FlashingLightsBottomTiles {
   }
 
   destroy() {
-    console.log("Destroying flashing bottom tiles");
     this._container.destroy({
       children: true,
       texture: true,

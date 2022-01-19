@@ -5,28 +5,38 @@ enum LocalStorageKeys {
 }
 
 interface IParamSetting {
-  param: string;
-  value: string | number;
+  [key: string]: string | number;
 }
 
-interface IFxSettings {
-  [key: string]: IParamSetting;
-}
-
-export function getFxSettings(): IFxSettings | null {
+export function getFxSettings(): IParamSetting[] | null {
   return getLocalStorage(LocalStorageKeys.fxSettings);
 }
 
 export function setFxSettings(fxIndex: number, param: string, value: any) {
-  const fxSetting = getFxSettings() || {};
-  fxSetting[fxIndex] = { param, value };
-  setLocalStorage(LocalStorageKeys.fxSettings, fxSetting);
+  const fxSettings = getFxSettings() || [];
+  if (fxIndex === fxSettings.length) {
+    // need to push 1 more
+    fxSettings.push({});
+  }
+  fxSettings[fxIndex][param] = value;
+  setLocalStorage(LocalStorageKeys.fxSettings, fxSettings);
+}
+
+export function setEmptyFxSettings(fxIndex: number) {
+  const fxSettings = getFxSettings() || [];
+  if (fxIndex === fxSettings.length) {
+    // need to push 1 more
+    fxSettings.push({});
+  } else {
+    fxSettings[fxIndex] = {}
+  }
+  setLocalStorage(LocalStorageKeys.fxSettings, fxSettings);
 }
 
 export function deleteFxSettings(fxIndex: number) {
-  const fxSetting = getFxSettings();
-  if (fxSetting) {
-    delete fxSetting[fxIndex];
-    setLocalStorage(LocalStorageKeys.fxSettings, fxSetting);
+  const fxSettings = getFxSettings();
+  if (fxSettings) {
+    fxSettings.splice(fxIndex, 1);
+    setLocalStorage(LocalStorageKeys.fxSettings, fxSettings);
   }
 }

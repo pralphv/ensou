@@ -66,7 +66,6 @@ class MyCanvas {
     this.background = new Background(this.app, this.stage, this.config);
     this.highlighter = new Highlighter(this.app, this.stage, this.config);
     this.comboDisplay = new ComboDisplay(this.app, this.stage);
-    console.log(this.stage);
   }
 
   buildComponents() {
@@ -110,7 +109,6 @@ class MyCanvas {
     if (this.pixiCanvas) {
       return;
     }
-    console.log("Attaching PIXI to HTML");
     htmlRef.appendChild(this.app.view);
     this.pixiCanvas = htmlRef;
     this.interaction = new PIXI.InteractionManager(this.app);
@@ -209,7 +207,6 @@ class MyCanvas {
   }
 
   destroy() {
-    console.log("Destroying app");
     if (this.app.view) {
       this.background.destroy();
       this.flashingColumns.destroy();

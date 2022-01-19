@@ -53,7 +53,6 @@ export default class BeatLines {
   }
 
   destroy() {
-    // console.log("Destroying beat lines");
     this._container.destroy({
       baseTexture: true,
       children: true,

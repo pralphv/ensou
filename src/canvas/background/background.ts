@@ -72,7 +72,6 @@ export default class Background {
   }
 
   destroy() {
-    console.log("Destroying beat lines");
     this._container.destroy({
       children: true,
       texture: true,

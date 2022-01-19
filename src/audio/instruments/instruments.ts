@@ -33,14 +33,17 @@ export default class Instruments {
     this.scheduleNotesToPlay = this.scheduleNotesToPlay.bind(this);
     myEffects.on("reconnect", (effectChain) => {
       this._getInstruments().forEach((instrument: Sampler | PolySynth) => {
+        instrument.disconnect();
         instrument.chain(...effectChain, Destination);
       });
     });
     myEffects.on("disconnect", () => {
       this._getInstruments().forEach((instrument: Sampler | PolySynth) => {
+        instrument.disconnect();
         instrument.toDestination();
       });
     });
+    myEffects.loadSavedSettings();
   }
 
   async loadSavedSettings() {
@@ -54,7 +57,6 @@ export default class Instruments {
       await this.activateSampler();
     } else {
       this.activatePolySynth();
-      console.log("I SHOULD COM AFTER");
     }
   }
 

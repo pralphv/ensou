@@ -94,7 +94,6 @@ export default class BottomTiles {
         sprite.position.y = screenHeight - tileHeight - 1;
       }
     });
-    console.log({whiteKeyContainer})
     this._container.addChild(whiteKeyContainer);
     this._container.addChild(blackKeyContainer);
 
@@ -127,7 +126,6 @@ export default class BottomTiles {
   }
 
   destroy() {
-    console.log("Destroying beat lines");
     this._container.destroy({
       children: true,
       texture: true,

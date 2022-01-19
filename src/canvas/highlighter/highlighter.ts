@@ -14,7 +14,6 @@ export default class Highlighter {
     stage: PIXI.Container,
     config: types.IMyCanvasConfig
   ) {
-    console.log("Constructing Highlighter");
     this.active = false;
     this._app = app;
     this._config = config;
@@ -49,7 +48,6 @@ export default class Highlighter {
   }
 
   destroy() {
-    // console.log("Destroying Highlighter");
     this._sprite?.destroy({ children: true, texture: true, baseTexture: true });
     this._texture?.destroy(true);
   }

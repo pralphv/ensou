@@ -7,7 +7,6 @@ import {
 } from "utils/localStorageUtils";
 import { NAME_TO_EFFECT_MAP } from "./constants";
 
-// reconnect
 interface IEffectsEventsMap {
   reconnect?: (effectChain: types.AvailableEffects[]) => void;
   disconnect?: () => void;
@@ -21,9 +20,9 @@ export default class Effects {
   activated: boolean;
 
   constructor() {
-    this.activated = false;
+    this.activated = true;
     this._effectChainNames = effectsLocalStorage.getEffectChainNames() || [];
-    this.effectChain = [];
+    this.effectChain = [];  // loaded in instruments.ts
     this._eventListeners = {
       effectChainChanged: (effectChainNames: types.AvailableEffectsNames[]) => {
         effectsLocalStorage.setEffectChainNames(effectChainNames);
@@ -31,24 +30,52 @@ export default class Effects {
     };
   }
 
+  async loadSavedSettings() {
+    const effectChainNames = effectsLocalStorage.getEffectChainNames();
+    if (effectChainNames) {
+      effectChainNames.forEach(effectChainName => {
+        //@ts-ignore
+        const node = new NAME_TO_EFFECT_MAP[effectChainName]();
+        this.effectChain.push(node);
+      })
+      this._eventListeners.reconnect?.(this.effectChain);
+    }
+    const fxSetting = effectsSettingsLocalStorage.getFxSettings();
+    if (fxSetting) {
+      Object.entries(fxSetting).forEach(([fxIndex, settings]) => {
+        Object.entries(settings).forEach(([param, value])=> {
+          this.effectChain[parseInt(fxIndex)].set({ [param]: value });
+        })
+      })
+    }
+  }
+
   async addFx() {
-    this.effectChain[this.effectChain.length - 1].disconnect(Destination);
+    if (this.effectChain.length > 0) {
+      this.effectChain[this.effectChain.length - 1].disconnect(Destination);
+    }
     // all new effects start at gain
     const gain = types.AvailableEffectsNames.gain;
     this._effectChainNames.push(gain);
     const gainNode = new NAME_TO_EFFECT_MAP[gain]();
     this.effectChain.push(gainNode);
-    this._eventListeners.reconnect?.(this.effectChain);
     effectsLocalStorage.setEffectChainNames(this._effectChainNames);
+    effectsSettingsLocalStorage.setEmptyFxSettings(this.effectChain.length - 1);
+    if (this.activated) {
+      this._eventListeners.reconnect?.(this.effectChain);
+    }
+
   }
 
   async removeFx(fxIndex: number) {
     this.effectChain[fxIndex].disconnect().dispose();
     this._effectChainNames.splice(fxIndex, 1);
     this.effectChain.splice(fxIndex, 1);
-    this._eventListeners.reconnect?.(this.effectChain);
     effectsLocalStorage.setEffectChainNames(this._effectChainNames);
     effectsSettingsLocalStorage.deleteFxSettings(fxIndex);
+    if (this.activated) {
+      this._eventListeners.reconnect?.(this.effectChain);
+    }
   }
 
   async changeFx(fxIndex: number, type: types.AvailableEffectsNames) {
@@ -57,8 +84,11 @@ export default class Effects {
     //@ts-ignore
     const node = new NAME_TO_EFFECT_MAP[type]();
     this.effectChain[fxIndex] = node;
+    effectsSettingsLocalStorage.setEmptyFxSettings(fxIndex);
     effectsLocalStorage.setEffectChainNames(this._effectChainNames);
-    this._eventListeners.reconnect?.(this.effectChain);
+    if (this.activated) {
+      this._eventListeners.reconnect?.(this.effectChain);
+    }
   }
 
   _publishFxChange() {
@@ -88,10 +118,12 @@ export default class Effects {
 
   activate() {
     this._eventListeners.reconnect?.(this.effectChain);
+    this.activated = true;
   }
 
   deactivate() {
     this._eventListeners.disconnect?.();
+    this.activated = false;
   }
 
   changeFxSettings(fxIndex: number, param: string, value: any) {

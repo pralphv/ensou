@@ -34,7 +34,6 @@ export default class FallingNotes {
 
     this._fallingNotes = [];
     this._totalFallingNotes = 0;
-    console.log("Constructing new Falling Notes");
     // setIsLoading(true);
     const color1 = "#63F0FF";
     const color2 = "#35D1FC";
@@ -117,7 +116,6 @@ export default class FallingNotes {
   }
 
   destroy() {
-    console.log("Destroying falling notes");
     this._container.destroy({
       children: true,
       texture: true,

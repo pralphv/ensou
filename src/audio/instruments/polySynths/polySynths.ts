@@ -22,7 +22,6 @@ export default class MyPolySynth {
     if (this.polySynths.length === 0) {
       this.add();
     }
-    console.log("FINISH POLY SYNTH");
   }
 
   loadSavedSettings() {
@@ -38,7 +37,6 @@ export default class MyPolySynth {
 
   add() {
     // all synths start with Synth
-    console.log("adding synth");
     const synthName = types.AvailableSynthsEnum.Synth;
     const polySynth = initSynth(synthName);
     this.synthNames.push(synthName);
@@ -137,7 +135,6 @@ export default class MyPolySynth {
   }
 
   disposeTrack(polySynthIndex: number) {
-    console.log(`Disposing polySynthIndex ${polySynthIndex}`);
     this.polySynths[polySynthIndex].unsync().disconnect().dispose();
   }
 

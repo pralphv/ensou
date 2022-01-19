@@ -19,7 +19,6 @@ export default class FlashingColumns {
     this._app = app;
     this._container = new PIXI.Container();
     this._columns = [];
-    console.log("Constructing new Flashing Columns");
     const height = isHorizontal
       ? this._app.screen.width
       : this._app.screen.height;
@@ -87,8 +86,6 @@ export default class FlashingColumns {
   }
 
   destroy() {
-    console.log("Destroying flashing columns");
-
     this._container.destroy({
       children: true,
       texture: true,
