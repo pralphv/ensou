@@ -12,11 +12,13 @@ export default class BottomTiles {
   blackKeyWidth: number;
   _config: types.IMyCanvasConfig;
   _textArray: PIXI.Text[];
+  onTextChange: () => void;
 
-  constructor(app: PIXI.Renderer, stage: PIXI.Container, config: types.IMyCanvasConfig) {
+  constructor(app: PIXI.Renderer, stage: PIXI.Container, config: types.IMyCanvasConfig, onTextChange: () => void) {
     this._app = app;
     this._container = new PIXI.Container();
     this._config = config;
+    this.onTextChange = onTextChange;
 
     stage.addChild(this._container);
     stage.setChildIndex(
@@ -75,6 +77,7 @@ export default class BottomTiles {
           text.anchor.x = 0.5;
           text.position.x = blackKeyWidth / 2;
           text.position.y = tileHeight * 0.66 - text.style.fontSize - 5;
+          text.visible = false;
         } else {
           const text = new PIXI.Text(game.noteLabelMap[key], {
             ...TEXT_CONFIG,
@@ -90,6 +93,7 @@ export default class BottomTiles {
           text.position.x = whiteKeyWidth / 2;
           text.position.y = tileHeight - text.style.fontSize - 5;
           x += whiteKeyWidth;
+          text.visible = false;
         }
         sprite.position.y = screenHeight - tileHeight - 1;
       }
@@ -110,19 +114,20 @@ export default class BottomTiles {
     this._container.addChild(sprite);
     whiteKey.destroy({ children: true, baseTexture: true, texture: true });
     blackKey.destroy({ children: true, baseTexture: true, texture: true });
-    this.hideText();
   }
 
   showText() {
     for (const text of this._textArray) {
       text.visible = true;
     }
+    this.onTextChange();
   }
 
   hideText() {
     for (const text of this._textArray) {
       text.visible = false;
     }
+    this.onTextChange();
   }
 
   destroy() {

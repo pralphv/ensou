@@ -22,7 +22,7 @@ export default class Effects {
   constructor() {
     this.activated = true;
     this._effectChainNames = effectsLocalStorage.getEffectChainNames() || [];
-    this.effectChain = [];  // loaded in instruments.ts
+    this.effectChain = []; // loaded in instruments.ts
     this._eventListeners = {
       effectChainChanged: (effectChainNames: types.AvailableEffectsNames[]) => {
         effectsLocalStorage.setEffectChainNames(effectChainNames);
@@ -33,20 +33,20 @@ export default class Effects {
   async loadSavedSettings() {
     const effectChainNames = effectsLocalStorage.getEffectChainNames();
     if (effectChainNames) {
-      effectChainNames.forEach(effectChainName => {
+      effectChainNames.forEach((effectChainName) => {
         //@ts-ignore
         const node = new NAME_TO_EFFECT_MAP[effectChainName]();
         this.effectChain.push(node);
-      })
+      });
       this._eventListeners.reconnect?.(this.effectChain);
     }
     const fxSetting = effectsSettingsLocalStorage.getFxSettings();
     if (fxSetting) {
       Object.entries(fxSetting).forEach(([fxIndex, settings]) => {
-        Object.entries(settings).forEach(([param, value])=> {
+        Object.entries(settings).forEach(([param, value]) => {
           this.effectChain[parseInt(fxIndex)].set({ [param]: value });
-        })
-      })
+        });
+      });
     }
   }
 
@@ -64,7 +64,6 @@ export default class Effects {
     if (this.activated) {
       this._eventListeners.reconnect?.(this.effectChain);
     }
-
   }
 
   async removeFx(fxIndex: number) {

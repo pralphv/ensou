@@ -10,15 +10,18 @@ export default class Background {
   _container: PIXI.Container;
   bottomTiles: BottomTiles;
   _config: types.IMyCanvasConfig;
+  onChange: () => void;  // might be bad idea. should refactor
 
   constructor(
     app: PIXI.Renderer,
     stage: PIXI.Container,
-    config: types.IMyCanvasConfig
+    config: types.IMyCanvasConfig,
+    onChange: () => void
   ) {
     this._app = app;
     this._stage = stage;
-    this.bottomTiles = new BottomTiles(this._app, this._stage, config);
+    this.onChange = onChange;
+    this.bottomTiles = new BottomTiles(this._app, this._stage, config, onChange);
     this.drawGuidingLines();
     this._container = new PIXI.Container();
     this._config = config;
@@ -29,7 +32,7 @@ export default class Background {
   resetBottomTiles(textOn: boolean = false) {
     this.bottomTiles.destroy();
     // recreate bottom tiles with latest key bindings
-    this.bottomTiles = new BottomTiles(this._app, this._stage, this._config);
+    this.bottomTiles = new BottomTiles(this._app, this._stage, this._config, this.onChange);
     if (textOn) {
       this.bottomTiles.showText();
     }

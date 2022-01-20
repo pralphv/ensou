@@ -9,7 +9,7 @@ export async function enableMidiKeyboard() {
     console.log("Finished loading midi access");
     return true;
   } else {
-    console.log("WebMIDI is not supported in this browser.");
+    console.error("WebMIDI is not supported in this browser.");
     return false;
   }
 }

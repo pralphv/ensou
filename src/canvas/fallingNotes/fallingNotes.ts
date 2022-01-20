@@ -15,6 +15,7 @@ export default class FallingNotes {
   _textArray: PIXI.Text[];
   isTextOn: boolean;
   upperLimit: number;
+  onChange: () => void;
 
   constructor(
     app: PIXI.Renderer,
@@ -23,10 +24,12 @@ export default class FallingNotes {
     leftPadding: number,
     whiteKeyWidth: number,
     blackKeyWidth: number,
+    onChange: () => void
   ) {
     this._app = app;
     this._bottomTileHeight = config.bottomTileHeight;
     this._canvasNoteScale = config.canvasNoteScale;
+    this.onChange = onChange;
     this._screenHeight = app.screen.height;
     this._container = new PIXI.Container();
     this._textArray = [];
@@ -69,6 +72,7 @@ export default class FallingNotes {
       // text.anchor.x = 0.5;
       text.position.x = width / 2;
       text.position.y = height - 12 - 5;
+      text.visible = false;
       this._container.addChild(rectSprite);
       this._fallingNotes.push({ rectSprite, on, off, height, x });
     });
@@ -76,7 +80,6 @@ export default class FallingNotes {
       rect.destroy({ children: true, texture: true, baseTexture: true });
     });
     this._totalFallingNotes = this._fallingNotes.length;
-    this.hideText();
     this.upperLimit = myMidiPlayer.getPPQ() * 4 * 8; // assume 4 beats per bar, show 3 bars
   }
 
@@ -102,6 +105,7 @@ export default class FallingNotes {
       text.visible = true;
     }
     this.isTextOn = true;
+    this.onChange();
   }
 
   hideText() {
@@ -109,6 +113,7 @@ export default class FallingNotes {
       text.visible = false;
     }
     this.isTextOn = false;
+    this.onChange();
   }
 
   getIsTextOn() {

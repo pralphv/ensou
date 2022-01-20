@@ -63,9 +63,20 @@ class MyCanvas {
     this.decreaseCanvasNoteScale = this.decreaseCanvasNoteScale.bind(this);
     this.buildComponents = this.buildComponents.bind(this);
     this.on = this.on.bind(this);
-    this.background = new Background(this.app, this.stage, this.config);
+    this.runRender = this.runRender.bind(this);
+    this.background = new Background(
+      this.app,
+      this.stage,
+      this.config,
+      this.runRender
+    );
     this.highlighter = new Highlighter(this.app, this.stage, this.config);
     this.comboDisplay = new ComboDisplay(this.app, this.stage);
+  }
+
+  runRender() {
+    // for child components to render this parent
+    this.render(Transport.ticks);
   }
 
   buildComponents() {
@@ -201,7 +212,8 @@ class MyCanvas {
       this.config,
       this.background.bottomTiles.leftPadding,
       this.background.bottomTiles.whiteKeyWidth,
-      this.background.bottomTiles.blackKeyWidth
+      this.background.bottomTiles.blackKeyWidth,
+      this.runRender
     );
     this.beatLines = new BeatLines(this.app, this.stage, this.config);
   }
