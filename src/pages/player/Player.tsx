@@ -11,8 +11,6 @@ import progressBar from "progressBar";
 import Toolbar from "features/toolbar/Toolbar";
 
 import myMidiPlayer from "audio";
-import instruments from "audio/instruments";
-import game from "game";
 import { useParams } from "react-router";
 
 import { Helmet } from "react-helmet";

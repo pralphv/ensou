@@ -12,14 +12,10 @@ import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 
-import { SamplerOptions, Synth } from "tone";
-import { useSnackbar } from "notistack";
+import { Synth } from "tone";
 
-import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
-import { convertArrayBufferToAudioContext } from "utils/helper";
 import { PIANO_TUNING } from "audio/constants";
 import myMidiPlayer from "audio";
-import * as types from "types";
 
 let audioCtx;
 const HAS_MEDIA_SUPPORT: boolean = !!navigator.mediaDevices.getUserMedia;

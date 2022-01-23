@@ -10,7 +10,6 @@ import FormControl from "@mui/material/FormControl";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 
 import { storageRef } from "firebaseApi/firebase";
-import * as types from "types";
 import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
 import myMidiPlayer from "audio";
 

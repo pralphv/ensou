@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 
 import Button from "@mui/material/Button";
 import DialogActions from "@mui/material/DialogActions";
@@ -9,9 +9,6 @@ import { useSnackbar } from "notistack";
 import { useDropzone } from "react-dropzone";
 
 import * as types from "types";
-import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
-import { SamplerOptions } from "tone";
-import { convertArrayBufferToAudioContext } from "utils/helper";
 import myMidiPlayer from "audio";
 import instruments from "audio/instruments";
 
