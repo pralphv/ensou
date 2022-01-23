@@ -85,6 +85,21 @@ export default class Instruments {
     });
   }
 
+  scheduleNotesToPlayForLastInstrument(notes: Note[]) {
+    // for new added synth. not sure if could really avoid duplicate events
+    const instruments = this._getInstruments();
+    const instrument = instruments[instruments.length - 1];
+    instrument.sync();
+    notes.forEach((note) => {
+      instrument.triggerAttackRelease(
+        note.name,
+        note.duration,
+        `${note.ticks}i`,
+        note.velocity
+      );
+    });
+  }
+
   triggerAttackRelease(
     name: string,
     duration: number,

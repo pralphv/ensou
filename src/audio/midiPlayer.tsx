@@ -147,7 +147,9 @@ export default class MyMidiPlayer {
   addSynth() {
     // this function exists for rescheduling notes when add synth button is pressed
     instruments.myPolySynth.add();
-    this.scheduleNotesToPlay();
+    this.midi.tracks.forEach((track) => {
+      instruments.scheduleNotesToPlayForLastInstrument(track.notes);
+    });
   }
 
   _handleFileLoaded() {
@@ -337,6 +339,7 @@ export default class MyMidiPlayer {
   }
 
   _setUpNewMidi(midi: Midi) {
+    Transport.cancel();
     this._scheduleDrawing();
     this.notes = midi.tracks.map((track) => track.notes).flat();
     this.durationTicks = midi.durationTicks;
