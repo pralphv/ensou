@@ -9,12 +9,12 @@ import instruments from "audio/instruments";
 import * as types from "types";
 
 interface IEnvelopeSettingsProps {
-  forceLocalRender: types.forceLocalRender;
+  requireRender: Function;
   synthIndex: number;
 }
 
 export default function EnvelopeSettings({
-  forceLocalRender,
+  requireRender,
   synthIndex,
 }: IEnvelopeSettingsProps) {
   const settings =
@@ -44,7 +44,7 @@ export default function EnvelopeSettings({
                   newValue,
                   synthIndex
                 );
-                forceLocalRender();
+                requireRender();
               }}
               valueLabelDisplay="auto"
             />

@@ -5,15 +5,14 @@ import InputLabel from "@mui/material/InputLabel";
 import Slider from "@mui/material/Slider";
 
 import instruments from "audio/instruments";
-import * as types from "types";
 
 interface IOtherSettingsProps {
-  forceLocalRender: types.forceLocalRender;
+  requireLocal: Function;
   synthIndex: number;
 }
 
 export default function OtherSettings({
-  forceLocalRender,
+  requireLocal,
   synthIndex,
 }: IOtherSettingsProps) {
   const settings = instruments.myPolySynth.getSynthSettings(synthIndex).others;
@@ -36,7 +35,7 @@ export default function OtherSettings({
                 newValue,
                 synthIndex
               );
-              forceLocalRender();
+              requireLocal();
             }}
             valueLabelDisplay="auto"
           />
@@ -53,7 +52,7 @@ export default function OtherSettings({
                 newValue,
                 synthIndex
               );
-              forceLocalRender();
+              requireLocal();
             }}
             valueLabelDisplay="auto"
           />

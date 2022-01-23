@@ -81,8 +81,8 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
     () => (
       <AudioSettingsDialog
         open={audioSettingsDialogOpen}
-        setOpen={setAudioSettingsDialogOpen}
-        forceLocalRender={forceLocalRender}
+        onClose={() => setAudioSettingsDialogOpen(false)}
+        requireRender={forceLocalRender}
       />
     ),
     [

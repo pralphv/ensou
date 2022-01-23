@@ -16,10 +16,10 @@ import RemoveButton from "features/removeButton/RemoveButton";
 import { range } from "lodash";
 
 export interface ISynthTab {
-  forceLocalRender: types.forceLocalRender;
+  requireRender: Function;
 }
 
-export default function SynthTab({ forceLocalRender }: ISynthTab) {
+export default function SynthTab({ requireRender }: ISynthTab) {
   return (
     <DialogContent>
       <Grid
@@ -38,26 +38,18 @@ export default function SynthTab({ forceLocalRender }: ISynthTab) {
               }}
             >
               <SynthesizerSettings
-                forceLocalRender={forceLocalRender}
+                requireRender={requireRender}
                 synthIndex={i}
               />
-              <EnvelopeSettings
-                forceLocalRender={forceLocalRender}
-                synthIndex={i}
-              />
+              <EnvelopeSettings requireRender={requireRender} synthIndex={i} />
               <OscillatorSettings
-                forceLocalRender={forceLocalRender}
+                requireRender={requireRender}
                 synthIndex={i}
               />
-              {/* <DelaySlider forceLocalRender={forceLocalRender} synthIndex={i} />
-              <OtherSettings
-                forceLocalRender={forceLocalRender}
-                synthIndex={i}
-              /> */}
               <RemoveButton
                 onClick={() => {
                   instruments.myPolySynth.remove(i);
-                  forceLocalRender();
+                  requireRender();
                 }}
               />
             </Grid>
@@ -66,7 +58,7 @@ export default function SynthTab({ forceLocalRender }: ISynthTab) {
         <AddButton
           onClick={() => {
             myMidiPlayer.addSynth();
-            forceLocalRender();
+            requireRender();
           }}
         />
       </Grid>

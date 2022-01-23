@@ -11,14 +11,14 @@ import myMidiPlayer from "audio";
 
 interface IAudioSettingsDialog {
   open: boolean;
-  setOpen: (bool: boolean) => void;
-  forceLocalRender: () => void;
+  onClose: () => void;
+  requireRender: Function;
 }
 
 export default function AudioSettingsDialog({
   open,
-  setOpen,
-  forceLocalRender,
+  requireRender,
+  onClose
 }: IAudioSettingsDialog) {
   const [value, setValue] = React.useState(0);
 
@@ -28,7 +28,7 @@ export default function AudioSettingsDialog({
 
   const isSampler = myMidiPlayer.checkIfSampler();
   return (
-    <Dialog maxWidth="lg" open={open} onClose={() => setOpen(false)}>
+    <Dialog maxWidth="lg" open={open} onClose={onClose}>
       <Tabs
         value={value}
         indicatorColor="primary"
@@ -40,11 +40,11 @@ export default function AudioSettingsDialog({
       </Tabs>
       {value === 0 &&
         (isSampler ? (
-          <SamplerTab forceLocalRender={forceLocalRender} />
+          <SamplerTab requireRender={requireRender} />
         ) : (
-          <SynthTab forceLocalRender={forceLocalRender} />
+          <SynthTab requireRender={requireRender} />
         ))}
-      {value === 1 && <EffectsTab forceLocalRender={forceLocalRender} />}
+      {value === 1 && <EffectsTab requireRender={requireRender} />}
     </Dialog>
   );
 }

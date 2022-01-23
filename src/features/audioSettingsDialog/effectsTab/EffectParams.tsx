@@ -104,14 +104,14 @@ interface IEffectParams {
   effectName: types.AvailableEffectsNames;
   fx: types.AvailableEffects;
   fxIndex: number;
-  forceLocalRender: types.forceLocalRender;
+  requireRender: Function;
 }
 
 export default function EffectParams({
   effectName,
   fx,
   fxIndex,
-  forceLocalRender,
+  requireRender,
 }: IEffectParams): JSX.Element {
   return (
     <div>
@@ -142,7 +142,7 @@ export default function EffectParams({
                       param,
                       e.target.value
                     );
-                    forceLocalRender(true);
+                    requireRender();
                   }}
                   items={SELECT_OPTIONS_MAP[param]}
                 />
@@ -167,7 +167,7 @@ export default function EffectParams({
                       param,
                       newValue
                     );
-                    forceLocalRender(true);
+                    requireRender();
                   }}
                 />
               )}

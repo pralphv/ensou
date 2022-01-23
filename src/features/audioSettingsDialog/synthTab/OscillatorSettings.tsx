@@ -9,12 +9,12 @@ import instruments from "audio/instruments";
 import * as types from "types";
 
 interface IOscillatorSettingsProps {
-  forceLocalRender: types.forceLocalRender;
+  requireRender: Function;
   synthIndex: number;
 }
 
 export default function OscillatorSettings({
-  forceLocalRender,
+  requireRender,
   synthIndex,
 }: IOscillatorSettingsProps) {
   const settings =
@@ -37,7 +37,7 @@ export default function OscillatorSettings({
                 e.target.value,
                 synthIndex
               );
-              forceLocalRender();
+              requireRender();
             }}
           >
             {Object.keys(types.OscillatorType).map((value) => (
@@ -61,7 +61,7 @@ export default function OscillatorSettings({
                     newValue as number,
                     synthIndex
                   );
-                  forceLocalRender();
+                  requireRender();
                 }}
                 valueLabelDisplay="auto"
               />
@@ -82,7 +82,7 @@ export default function OscillatorSettings({
                     newValue as number,
                     synthIndex
                   );
-                  forceLocalRender();
+                  requireRender();
                 }}
                 valueLabelDisplay="auto"
               />
@@ -103,7 +103,7 @@ export default function OscillatorSettings({
                     newValue as number,
                     synthIndex
                   );
-                  forceLocalRender();
+                  requireRender();
                 }}
                 valueLabelDisplay="auto"
               />

@@ -9,12 +9,12 @@ import instruments from "audio/instruments";
 import * as types from "types";
 
 interface ISynthesizerSettingsProps {
-  forceLocalRender: types.forceLocalRender;
+  requireRender: Function;
   synthIndex: number;
 }
 
 export default function SynthesizerSettings({
-  forceLocalRender,
+  requireRender,
   synthIndex,
 }: ISynthesizerSettingsProps) {
   return (
@@ -24,7 +24,7 @@ export default function SynthesizerSettings({
         value={instruments.myPolySynth.getSynthName(synthIndex)}
         onChange={(e: any) => {
           instruments.myPolySynth?.setSynthName(e.target.value, synthIndex);
-          setTimeout(forceLocalRender, 500);
+          setTimeout(requireRender, 500);
         }}
       >
         {Object.keys(types.AvailableSynthsEnum).map((value) => (

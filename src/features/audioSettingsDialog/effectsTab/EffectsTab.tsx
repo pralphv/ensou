@@ -1,7 +1,6 @@
 import React from "react";
 
 import DialogContent from "@mui/material/DialogContent";
-import grey from "@mui/material/colors/grey";
 import Grid from "@mui/material/Grid";
 
 import * as types from "types";
@@ -15,11 +14,11 @@ import RemoveButton from "features/removeButton/RemoveButton";
 import myEffects from "audio/instruments/effects";
 
 interface IEffectsTab {
-  forceLocalRender: types.forceLocalRender;
+  requireRender: Function;
 }
 
 export default function EffectsTab({
-  forceLocalRender,
+  requireRender,
 }: IEffectsTab): JSX.Element {
   return (
     <React.Fragment>
@@ -33,7 +32,7 @@ export default function EffectsTab({
                 } else {
                   myEffects.activate();
                 }
-                forceLocalRender();
+                requireRender();
               }}
             />
             <Grid
@@ -60,14 +59,14 @@ export default function EffectsTab({
                           fxIndex,
                           e.target.value as types.AvailableEffectsNames
                         );
-                        forceLocalRender();
+                        requireRender();
                       }}
                     />
                     <EffectParams
                       effectName={effectName}
                       fx={fx}
                       fxIndex={fxIndex}
-                      forceLocalRender={forceLocalRender}
+                      requireRender={requireRender}
                     />
                     {/* <ExtraOutput
                       fxIndex={fxIndex}
@@ -96,7 +95,7 @@ export default function EffectsTab({
                     <RemoveButton
                       onClick={() => {
                         myEffects.removeFx(fxIndex);
-                        forceLocalRender();
+                        requireRender();
                       }}
                     />
                   </Grid>
@@ -105,7 +104,7 @@ export default function EffectsTab({
               <AddButton
                 onClick={() => {
                   myEffects.addFx();
-                  forceLocalRender();
+                  requireRender();
                 }}
               />
             </Grid>

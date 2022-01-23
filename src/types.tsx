@@ -278,8 +278,6 @@ export interface ITrackComponents {
   track: Track;
 }
 
-export type forceLocalRender = (skipWait?: boolean) => void;
-
 export interface IExtraConnection {
   toMaster: boolean;
   effectorIndex: number | null;
