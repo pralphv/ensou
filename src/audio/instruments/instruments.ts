@@ -34,12 +34,20 @@ export default class Instruments {
     this.mySampler.on("onActivate", (samplers: Sampler[]) => {
       samplers.forEach((sampler) => {
         sampler.disconnect();
-        sampler.chain(...myEffects.effectChain, Destination);
+        if (myEffects.activated) {
+          sampler.chain(...myEffects.effectChain, Destination);
+        } else {
+          sampler.toDestination();
+        }
       });
     });
     this.myPolySynth.on("needsConnection", (polySynths: PolySynth[]) => {
       polySynths.forEach((polySynth: PolySynth) => {
-        polySynth.chain(...myEffects.effectChain, Destination);
+        if (myEffects.activated) {
+          polySynth.chain(...myEffects.effectChain, Destination);
+        } else {
+          polySynth.toDestination();
+        }
       });
     });
     myEffects.on("reconnect", (effectChain) => {

@@ -462,7 +462,7 @@ export default class MyMidiPlayer {
 
   activatePolySynth() {
     instruments.activatePolySynth();
-    this.scheduleNotesToPlay();
+    this.scheduleNotesToPlay();  // synth -> sampler -> synth may cause synth to have 2 duplicate events
     this.eventListeners.actioned();
   }
 
