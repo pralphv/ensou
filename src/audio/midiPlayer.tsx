@@ -87,7 +87,6 @@ export default class MyMidiPlayer {
     // init should be here but its await so it cant
     // should be safe to say string because when useSample is chosen it would save to local storage
 
-    this._handleOnPlaying = this._handleOnPlaying.bind(this);
     this._handleFileLoaded = this._handleFileLoaded.bind(this);
     this.resetPlayingNotes = this.resetPlayingNotes.bind(this);
     this.play = this.play.bind(this);
@@ -137,76 +136,6 @@ export default class MyMidiPlayer {
   on(event: string, callback: Function) {
     this.eventListeners[event] = callback;
     // playing, willMount, mounted, willDownloadMidi, downloadedMidi, willImport, imported
-  }
-
-  _handleOnPlaying(
-    currentTick: types.Tick,
-    callback: Function
-    // callback: (
-    //   currentTick: number,
-    //   ticksPerBeat: number,
-    //   types: types.IGroupedNotes[]
-    // ) => void
-  ) {
-    // this._forceCanvasRerender();
-    // @ts-ignore
-    // const ticksPerBeat_ = this.midiPlayer.getDivision().division;
-
-    // /**
-    //  const remainder = currentTick.tick % ticksPerBeat_;
-    //  const progressToOneBeat = currentTick.tick % ticksPerBeat_ / (ticksPerBeat_ * 4); // 1 is on the beat
-    //  const fourthBeat = progressToOneBeat <= 0.0 + BEAT_BUFFER;
-    //  if (this.isMetronome && fourthBeat) {
-    // */
-    // if (
-    //   this.isMetronome &&
-    //   (currentTick.tick % ticksPerBeat_) / (ticksPerBeat_ * 4) <=
-    //     0.0 + BEAT_BUFFER
-    // ) {
-    //   // dont play if played once already
-    //   if (!this._isBlockMetronome) {
-    //     this.myTonejs?.playMetronome();
-    //   }
-    //   this._isBlockMetronome = true;
-    // } else {
-    //   this._isBlockMetronome = false;
-    // }
-
-    // // handle song loop
-    // // if isPlaying && (songEnded || (hasloopPoints && loopPointsReached))
-    // if (
-    //   this.isPlaying &&
-    //   (currentTick.tick >= this.totalTicks ||
-    //     (this.loopPoints.startTick !== this.loopPoints.endTick &&
-    //       currentTick.tick >= this.loopPoints.endTick))
-    // ) {
-    //   this.myTonejs?.clearPlayingNotes();
-    //   if (this.isLoop) {
-    //     this.midiPlayer.skipToTick(this.loopPoints.startTick);
-    //     this.play();
-    //   } else {
-    //     this.isPlaying = false;
-    //     if (this.loopPoints.startTick) {
-    //       this.midiPlayer.skipToTick(this.loopPoints.startTick);
-    //     } else {
-    //       this.restart();
-    //     }
-    //   }
-    // }
-    // if (!this.practiceMode) {
-    //   this.playingNotes.clear();
-    //   for (let i = 0; i < this.groupedNotes.length; i++) {
-    //     // use this.groupedNotes[i] for performance
-    //     if (
-    //       currentTick.tick >= this.groupedNotes[i].on &&
-    //       currentTick.tick <= this.groupedNotes[i].off
-    //     ) {
-    //       this.playingNotes.add(this.groupedNotes[i].x);
-    //     }
-    //   }
-    // }
-
-    callback();
   }
 
   scheduleNotesToPlay() {
@@ -381,16 +310,6 @@ export default class MyMidiPlayer {
   //   this.eventListeners.toneSet();
   // }
 
-  // async init() {
-  //   if (!this.myTonejs) {
-  //     await this.fetchLocalSampler();
-  //     console.log("Constructing My MidiPlayer");
-  //     this.eventListeners?.willMount();
-  //     await this._initToneJs();
-  //     this.eventListeners?.mounted();
-  //   }
-  // }
-
   async readArrayBuffer(arrayBuffer: ArrayBuffer) {
     this.skipToTick(0);
     instruments.cancelEvents();
@@ -418,7 +337,7 @@ export default class MyMidiPlayer {
   }
 
   _setUpNewMidi(midi: Midi) {
-    this._scheduleNoteEvents();
+    this._scheduleDrawing();
     this.notes = midi.tracks.map((track) => track.notes).flat();
     this.durationTicks = midi.durationTicks;
     this._scheduleTempoEvents(midi.header.tempos);
@@ -431,7 +350,7 @@ export default class MyMidiPlayer {
     this.updateCanvas(0);
   }
 
-  _scheduleNoteEvents() {
+  _scheduleDrawing() {
     Transport.cancel(this.scheduleId);
     this.scheduleId = Transport.scheduleRepeat((time) => {
       Draw.schedule(() => {

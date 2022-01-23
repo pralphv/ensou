@@ -8,6 +8,9 @@ interface IMyPolySynthEvents {
 }
 
 export default class MyPolySynth {
+  // dont do destination connection here
+  // because in instruments.ts, need to connect
+  // to either destination, or chain effects
   polySynths: PolySynth[];
   synthTypes: types.AvailableSynthsEnum[];
   synthNames: types.AvailableSynthsEnum[];
@@ -41,7 +44,7 @@ export default class MyPolySynth {
     const polySynth = initSynth(synthName);
     this.synthNames.push(synthName);
     this.polySynths.push(polySynth);
-    polySynth.toDestination();
+    this.eventListeners.needsConnection?.(this.polySynths);  // connect with effectors, then destination
     this.saveState();
   }
 
@@ -68,13 +71,9 @@ export default class MyPolySynth {
   }
 
   activate() {
-    this._connectAll();
+    this.eventListeners.needsConnection?.(this.polySynths);  // connect with effectors, then destination
     // bug: when sample -> polysynth, synth will triggerattack
     this.polySynths.forEach((polySynth) => polySynth.releaseAll());
-  }
-
-  _connectAll() {
-    this.polySynths.forEach((polySynth) => polySynth.toDestination());
   }
 
   deactivate() {
@@ -232,7 +231,7 @@ export default class MyPolySynth {
   replaceSynth(synthName: types.AvailableSynthsEnum, synthIndex: number) {
     this.disposeTrack(synthIndex);
     const newSynth = initSynth(synthName, synthIndex);
-    newSynth.toDestination();
+    this.eventListeners.needsConnection?.(this.polySynths);  // connect with effectors, then destination
     this.polySynths[synthIndex] = newSynth;
   }
 

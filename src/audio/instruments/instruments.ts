@@ -31,6 +31,17 @@ export default class Instruments {
 
     this.releaseAll = this.releaseAll.bind(this);
     this.scheduleNotesToPlay = this.scheduleNotesToPlay.bind(this);
+    this.mySampler.on("onActivate", (samplers: Sampler[]) => {
+      samplers.forEach((sampler) => {
+        sampler.disconnect();
+        sampler.chain(...myEffects.effectChain, Destination);
+      });
+    });
+    this.myPolySynth.on("needsConnection", (polySynths: PolySynth[]) => {
+      polySynths.forEach((polySynth: PolySynth) => {
+        polySynth.chain(...myEffects.effectChain, Destination);
+      });
+    });
     myEffects.on("reconnect", (effectChain) => {
       this._getInstruments().forEach((instrument: Sampler | PolySynth) => {
         instrument.disconnect();
@@ -85,6 +96,19 @@ export default class Instruments {
     });
   }
 
+  triggerAttack(note: string, velocity: number) {
+    this._getInstruments().forEach((instrument: Sampler | PolySynth) => {
+      console.log({ instrument });
+      instrument.triggerAttack(note, 0.01, velocity);
+    });
+  }
+
+  triggerRelease(note: string) {
+    this._getInstruments().forEach((instrument: Sampler | PolySynth) => {
+      instrument.triggerRelease(note, 0.01);
+    });
+  }
+
   _getInstruments(): Sampler[] | PolySynth[] {
     return this.useSampler
       ? this.mySampler.samplers
@@ -108,7 +132,9 @@ export default class Instruments {
   releaseAll(buffer?: number) {
     setTimeout(() => {
       // a buffer to make sure no attacks
-      this._getInstruments().forEach((instrument: Sampler | PolySynth) => instrument.releaseAll());
+      this._getInstruments().forEach((instrument: Sampler | PolySynth) =>
+        instrument.releaseAll()
+      );
     }, buffer || 100);
   }
 
@@ -131,6 +157,7 @@ export default class Instruments {
   }
 
   async activateSampler() {
+    // need activate and deactivate events on both
     this.myPolySynth.deactivate();
     await this.mySampler.activate();
     this.useSampler = true;

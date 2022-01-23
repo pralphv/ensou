@@ -107,15 +107,11 @@ export default class MySampler {
     if (this.samplers.length === 0) {
       await this.add();
     }
-    this._connectAll();
-  }
-
-  _connectAll() {
-    this.samplers.forEach((sampler) => sampler.toDestination());
+    this._eventListeners.onActivate?.(this.samplers);
   }
 
   deactivate() {
-    this.samplers.forEach((sampler) => sampler.disconnect());
+    this.samplers.forEach((sampler) => {sampler.toDestination(); sampler.disconnect()});
   }
 
   _setSamplerSource(source: types.SamplerSource) {
