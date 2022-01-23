@@ -74,6 +74,16 @@ class MyCanvas {
     this.comboDisplay = new ComboDisplay(this.app, this.stage);
   }
 
+  flash(columnIndex: number) {
+    this.flashingBottomTiles.flash(columnIndex);
+    this.flashingColumns.flash(columnIndex);
+  }
+
+  unflash(columnIndex: number) {
+    this.flashingBottomTiles.unflash(columnIndex);
+    this.flashingColumns.unflash(columnIndex);
+  }
+
   runRender() {
     // for child components to render this parent
     this.render(Transport.ticks);

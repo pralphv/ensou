@@ -3,7 +3,7 @@ import { Transport } from "tone";
 import * as constants from "./constants";
 import myCanvas from "canvas";
 import { PIANO_TUNING, NOTE_NUMBER_TO_NOTE } from "audio/constants";
-import myMidiPlayer from "audio";
+import myInstruments from "audio/instruments";
 import * as types from "./types";
 import { keyBindingsLocalStorage } from "utils/localStorageUtils";
 import * as midiKeyboard from "./midiKeyboard";
@@ -156,28 +156,28 @@ class Game {
   }
 
   triggerAttack(note: string, velocity: number = 1) {
-    // myMidiPlayer.myTonejs?.triggerAttack(note, velocity);
-    myMidiPlayer.playingNotes.add(PIANO_TUNING[note]);
-    // myCanvas.render();
-    if (this.playMap[Transport.ticks]) {
-      for (const id of this.playMap[Transport.ticks]) {
-        if (
-          this.notesToBePlayed[id].note === note &&
-          !this.notesToBePlayed[id].played
-        ) {
-          this.notesToBePlayed[id].played = true;
-          this.addScore();
-          myCanvas.comboDisplay.draw(this.score);
-          break;
-        }
-      }
-    }
+    myInstruments.triggerAttack(note, velocity);
+    myCanvas.flash(PIANO_TUNING[note]);
+    myCanvas.runRender();
+    // if (this.playMap[Transport.ticks]) {
+    //   for (const id of this.playMap[Transport.ticks]) {
+    //     if (
+    //       this.notesToBePlayed[id].note === note &&
+    //       !this.notesToBePlayed[id].played
+    //     ) {
+    //       this.notesToBePlayed[id].played = true;
+    //       this.addScore();
+    //       myCanvas.comboDisplay.draw(this.score);
+    //       break;
+    //     }
+    //   }
+    // }
   }
 
   triggerRelease(note: string) {
-    // myMidiPlayer.myTonejs?.triggerRelease(note);
-    myMidiPlayer.playingNotes.delete(PIANO_TUNING[note]);
-    // myCanvas.render();
+    myInstruments.triggerRelease(note);
+    myCanvas.unflash(PIANO_TUNING[note]);
+    myCanvas.runRender();
   }
 
   render() {

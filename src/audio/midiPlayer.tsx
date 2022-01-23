@@ -457,16 +457,15 @@ export default class MyMidiPlayer {
   }
 
   _scheduleCanvasEvents(tracks: Track[]) {
+    // flash and unflash
     tracks.forEach((track) => {
       track.notes.forEach((note) => {
         const column = PIANO_TUNING[note.name];
         Transport.schedule(() => {
-          myCanvas.flashingBottomTiles.flash(column);
-          myCanvas.flashingColumns.flash(column);
+          myCanvas.flash(column);
         }, `${note.ticks}i`);
         Transport.schedule(() => {
-          myCanvas.flashingBottomTiles.unflash(column);
-          myCanvas.flashingColumns.unflash(column);
+          myCanvas.unflash(column);
         }, `${note.ticks + note.durationTicks}i`);
       });
     });
@@ -539,8 +538,8 @@ export default class MyMidiPlayer {
     this.eventListeners.actioned();
   }
 
-  async activatePolySynth() {
-    await instruments.activatePolySynth();
+  activatePolySynth() {
+    instruments.activatePolySynth();
     this.scheduleNotesToPlay();
     this.eventListeners.actioned();
   }

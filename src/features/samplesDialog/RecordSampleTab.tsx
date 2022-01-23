@@ -153,7 +153,7 @@ function Accepted({
   mediaRecorderRef,
 }: IAcceptedProps): JSX.Element {
   const [recording, setRecording] = useState<boolean>(false);
-  const [chosenNote, setChosenNote] = useState<string>("A5");
+  const [chosenNote, setChosenNote] = useState<string>("C4");
   const synth = new Synth().toDestination();
 
   function handleChange(event: SelectChangeEvent<string>): void {
