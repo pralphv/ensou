@@ -45,7 +45,6 @@ export default class MyMidiPlayer {
   // _setInstrumentLoading: (loading: boolean) => void;
   // _forceCanvasRerender: () => void;
   eventListeners: IMyMidiPlayerEvents;
-  playingNotes!: Set<number>; // might be worth to use list of bools instead
   practiceMode: boolean;
   pressedKeys: Set<string>;
   midi: Midi;
@@ -55,6 +54,7 @@ export default class MyMidiPlayer {
   originalBpm: number;
   fps: number;
   scheduleId: number;
+  _canvasEventsScheduleIds: number[];
 
   constructor() {
     // _forceCanvasRerender: () => void // ) => void, //   groupedNotes: types.IGroupedNotes[] //   ticksPerBeat: number, //   currentTick: number, // onPlaying: ( // setInstrumentLoading: (loading: boolean) => void, // setPlayerStatus: (status: string) => void,
@@ -74,7 +74,6 @@ export default class MyMidiPlayer {
     this.loopPoints = { startTick: 0, endTick: 0 };
     this.localSampler = undefined;
     this.eventListeners = {};
-    this.resetPlayingNotes();
     this.pressedKeys = new Set();
     this.midi = new Midi();
     this.notes = [];
@@ -83,12 +82,12 @@ export default class MyMidiPlayer {
     this.originalBpm = 0;
     this.fps = 30;
     this.scheduleId = 0;
+    this._canvasEventsScheduleIds = [];
 
     // init should be here but its await so it cant
     // should be safe to say string because when useSample is chosen it would save to local storage
 
     this._handleFileLoaded = this._handleFileLoaded.bind(this);
-    this.resetPlayingNotes = this.resetPlayingNotes.bind(this);
     this.play = this.play.bind(this);
     this.pause = this.pause.bind(this);
     this.restart = this.restart.bind(this);
@@ -116,7 +115,9 @@ export default class MyMidiPlayer {
       }
     });
     instruments.myPolySynth.on("restart", () => {
-      this.scheduleNotesToPlay();
+      if (!this.practiceMode) {
+        this.scheduleNotesToPlay();
+      }
     });
   }
 
@@ -147,9 +148,11 @@ export default class MyMidiPlayer {
   addSynth() {
     // this function exists for rescheduling notes when add synth button is pressed
     instruments.myPolySynth.add();
-    this.midi.tracks.forEach((track) => {
-      instruments.scheduleNotesToPlayForLastInstrument(track.notes);
-    });
+    if (!this.practiceMode) {
+      this.midi.tracks.forEach((track) => {
+        instruments.scheduleNotesToPlayForLastInstrument(track.notes);
+      });
+    }
   }
 
   _handleFileLoaded() {
@@ -344,12 +347,14 @@ export default class MyMidiPlayer {
     this.notes = midi.tracks.map((track) => track.notes).flat();
     this.durationTicks = midi.durationTicks;
     this._scheduleTempoEvents(midi.header.tempos);
-    this._scheduleCanvasEvents(midi.tracks);
     this._setPpq(midi.header.ppq);
     this._setUpLoop(midi.durationTicks);
     myCanvas.setupCanvasNoteScale(midi.header.ppq);
     // only set up notes in transport last. there will be bug if not (notes release pre-maturely)
-    this.scheduleNotesToPlay();
+    if (!this.practiceMode) {
+      this._scheduleCanvasEvents(midi.tracks);
+      this.scheduleNotesToPlay();
+    }
     this.updateCanvas(0);
   }
 
@@ -380,17 +385,26 @@ export default class MyMidiPlayer {
 
   _scheduleCanvasEvents(tracks: Track[]) {
     // flash and unflash
+    this.clearCanvasEvents();
     tracks.forEach((track) => {
       track.notes.forEach((note) => {
         const column = PIANO_TUNING[note.name];
-        Transport.schedule(() => {
+        const id1 = Transport.schedule(() => {
           myCanvas.flash(column);
         }, `${note.ticks}i`);
-        Transport.schedule(() => {
+        this._canvasEventsScheduleIds.push(id1);
+        const id2 = Transport.schedule(() => {
           myCanvas.unflash(column);
         }, `${note.ticks + note.durationTicks}i`);
+        this._canvasEventsScheduleIds.push(id2);
       });
     });
+  }
+
+  clearCanvasEvents() {
+    this._canvasEventsScheduleIds.forEach(id => {
+      Transport.clear(id);
+    })
   }
 
   _scheduleTempoEvents(tempos: TempoEvent[]) {
@@ -411,23 +425,21 @@ export default class MyMidiPlayer {
 
   enablePracticeMode() {
     this.practiceMode = true;
+    instruments.unsync();
     myCanvas.background.bottomTiles.showText();
     myCanvas.flashingColumns.unFlashAll();
     myCanvas.flashingBottomTiles.unFlashAll();
-    this.resetPlayingNotes();
+    this.clearCanvasEvents();
     game.enable();
     this.eventListeners.actioned();
   }
 
   disablePracticeMode() {
     this.practiceMode = false;
+    this.scheduleNotesToPlay();
     myCanvas.background.bottomTiles.hideText();
     game.disable();
     this.eventListeners.actioned();
-  }
-
-  resetPlayingNotes() {
-    this.playingNotes = new Set();
   }
 
   setVolume(value: number) {
@@ -456,13 +468,17 @@ export default class MyMidiPlayer {
 
   async activateSampler() {
     await instruments.activateSampler();
-    this.scheduleNotesToPlay();
+    if (!this.practiceMode) {
+      this.scheduleNotesToPlay();
+    }
     this.eventListeners.actioned();
   }
 
   activatePolySynth() {
     instruments.activatePolySynth();
-    this.scheduleNotesToPlay();  // synth -> sampler -> synth may cause synth to have 2 duplicate events
+    if (!this.practiceMode) {
+      this.scheduleNotesToPlay(); // synth -> sampler -> synth may cause synth to have 2 duplicate events
+    }
     this.eventListeners.actioned();
   }
 

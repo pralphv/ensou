@@ -62,14 +62,6 @@ export default class FlashingBottomTiles {
     this._columns[i].visible = false;
   }
 
-  draw() {
-    for (let i = 0; i < this._columns.length - 1; i++) {
-      // flash and unflash tiles
-      const flash: boolean = myMidiPlayer.playingNotes.has(i) ? true : false;
-      this._columns[i].visible = flash;
-    }
-  }
-
   unFlashAll() {
     for (let i = 0; i < this._columns.length - 1; i++) {
       this._columns[i].visible = false;

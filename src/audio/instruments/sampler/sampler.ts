@@ -111,7 +111,7 @@ export default class MySampler {
   }
 
   deactivate() {
-    this.samplers.forEach((sampler) => {sampler.toDestination(); sampler.disconnect()});
+    this.samplers.forEach((sampler) => {sampler.disconnect()});
   }
 
   _setSamplerSource(source: types.SamplerSource) {
@@ -154,7 +154,6 @@ export default class MySampler {
     const cachedSample: types.ArrayBufferMap =
       await indexedDbUtils.getLocalSamplerArrayBuffer();
     if (cachedSample) {
-      console.log({ cachedSample });
       await this.processArrayBufferMap(cachedSample);
       return true;
     }

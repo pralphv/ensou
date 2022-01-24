@@ -33,7 +33,6 @@ export default class Instruments {
     this.scheduleNotesToPlay = this.scheduleNotesToPlay.bind(this);
     this.mySampler.on("onActivate", (samplers: Sampler[]) => {
       samplers.forEach((sampler) => {
-        sampler.disconnect();
         if (myEffects.activated) {
           sampler.chain(...myEffects.effectChain, Destination);
         } else {
@@ -121,7 +120,6 @@ export default class Instruments {
 
   triggerAttack(note: string, velocity: number) {
     this._getInstruments().forEach((instrument: Sampler | PolySynth) => {
-      console.log({ instrument });
       instrument.triggerAttack(note, 0.01, velocity);
     });
   }
@@ -136,6 +134,13 @@ export default class Instruments {
     return this.useSampler
       ? this.mySampler.samplers
       : this.myPolySynth.polySynths;
+  }
+
+  unsync() {
+    // will make player only be able to play player's inputs
+    this._getInstruments().forEach((instrument: Sampler | PolySynth) => {
+      instrument.unsync();
+    })
   }
 
   play() {
@@ -197,26 +202,6 @@ export default class Instruments {
   cancelEvents() {
     Transport.cancel(0);
   }
-
-  /**
-   * will load synth settings if synthIndex
-   */
-  // async _buildTrack(synthIndex?: number): Promise<Sampler | PolySynth> {
-  //   if (this._useSampler) {
-  //     const sampler = await this.mySampler.getInstrument();
-  //     return sampler;
-  //   } else {
-  //     let polySynth = synthsApi.initSynths(
-  //       synthIndex !== undefined
-  //         ? this.synthNames[synthIndex]
-  //         : types.AvailableSynthsEnum.Synth,
-  //       synthIndex
-  //     );
-  //     return polySynth;
-  //   }
-  //   const savedVolume = localStorageUtils.getVolume();
-  //   savedVolume && this.setVolume(savedVolume);
-  // }
 
   // on<K extends keyof ISampleEventsMap>(event: K, callback: ISampleEventsMap[K]) {
   //   this._eventListeners[event] = callback;

@@ -51,19 +51,6 @@ export default class FlashingLightsBottomTiles {
     });
   }
 
-  draw() {
-    for (let i = 0; i < this._columns.length - 1; i++) {
-      // flash and unflash tiles
-      const spriteToFlash = getRandomInt(0, 2);
-      const targetNote: boolean = myMidiPlayer.playingNotes.has(i)
-        ? true
-        : false;
-      for (let j = 0; j < this._columns[i].length; j++) {
-        this._columns[i][j].visible = targetNote && j === spriteToFlash;
-      }
-    }
-  }
-
   destroy() {
     this._container.destroy({
       children: true,
