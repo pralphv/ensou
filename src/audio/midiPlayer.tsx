@@ -402,9 +402,9 @@ export default class MyMidiPlayer {
   }
 
   clearCanvasEvents() {
-    this._canvasEventsScheduleIds.forEach(id => {
+    this._canvasEventsScheduleIds.forEach((id) => {
       Transport.clear(id);
-    })
+    });
   }
 
   _scheduleTempoEvents(tempos: TempoEvent[]) {
@@ -436,6 +436,7 @@ export default class MyMidiPlayer {
 
   disablePracticeMode() {
     this.practiceMode = false;
+    this._scheduleCanvasEvents(this.midi.tracks);
     this.scheduleNotesToPlay();
     myCanvas.background.bottomTiles.hideText();
     game.disable();

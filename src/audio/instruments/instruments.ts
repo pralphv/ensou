@@ -120,13 +120,13 @@ export default class Instruments {
 
   triggerAttack(note: string, velocity: number) {
     this._getInstruments().forEach((instrument: Sampler | PolySynth) => {
-      instrument.triggerAttack(note, 0.01, velocity);
+      instrument.triggerAttack(note, undefined, velocity);
     });
   }
 
   triggerRelease(note: string) {
     this._getInstruments().forEach((instrument: Sampler | PolySynth) => {
-      instrument.triggerRelease(note, 0.01);
+      instrument.triggerRelease(note);
     });
   }
 
