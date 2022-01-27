@@ -106,6 +106,11 @@ export default class MySampler {
   async activate() {
     if (this.samplers.length === 0) {
       await this.add();
+    } else {
+      // there should only be 1 sampler
+      this.samplers[0].unsync().disconnect().dispose();
+      const sampler = await this.getInstrument();
+      this.samplers[0] = sampler;
     }
     this._eventListeners.onActivate?.(this.samplers);
   }
