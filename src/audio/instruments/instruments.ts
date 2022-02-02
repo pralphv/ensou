@@ -200,7 +200,7 @@ export default class Instruments {
   }
 
   cancelEvents() {
-    Transport.cancel(0);
+    Transport.cancel();
   }
 
   // on<K extends keyof ISampleEventsMap>(event: K, callback: ISampleEventsMap[K]) {

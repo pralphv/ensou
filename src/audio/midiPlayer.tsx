@@ -52,7 +52,6 @@ export default class MyMidiPlayer {
   notes: Note[];
   durationTicks: number;
   originalBpm: number;
-  fps: number;
   scheduleId: number;
   _canvasEventsScheduleIds: number[];
 
@@ -80,7 +79,6 @@ export default class MyMidiPlayer {
     this.ppq = 0; // for cache
     this.durationTicks = 0; // for cache
     this.originalBpm = 0;
-    this.fps = 30;
     this.scheduleId = 0;
     this._canvasEventsScheduleIds = [];
 
@@ -108,6 +106,7 @@ export default class MyMidiPlayer {
     this.getTotalTicks = this.getTotalTicks.bind(this);
     this.getPPQ = this.getPPQ.bind(this);
     this._setUpNewMidi = this._setUpNewMidi.bind(this);
+    this._scheduleDraw = this._scheduleDraw.bind(this);
     Transport.on("loopEnd", () => {
       this.restartStates();
       if (!this.isLoop) {
@@ -174,7 +173,7 @@ export default class MyMidiPlayer {
     const tempos = this.midi.header.tempos;
     for (let i = 0; i < tempos.length; i++) {
       if (tempos[i].ticks <= tick) {
-        this._setBpm(tempos[i].bpm, tempos[i].ticks);
+        this._setBpm(tempos[i].bpm);
       } else {
         break;
       }
@@ -187,6 +186,7 @@ export default class MyMidiPlayer {
     this.skipToTick(this.loopPoints.startTick); // always start at loop start
     this._sweepTempoEvents();
     // need to read tempo adjustments before this start tick
+    this.startDrawing();
     instruments.play();
     this.eventListeners.actioned();
     game.resetGame();
@@ -194,12 +194,14 @@ export default class MyMidiPlayer {
 
   stop() {
     this.isPlaying = false;
+    this.stopDrawing();
     instruments.stop();
     this.eventListeners.actioned();
   }
 
   pause() {
     this.isPlaying = false;
+    this.stopDrawing();
     instruments.pause();
     this.eventListeners.actioned();
   }
@@ -317,7 +319,6 @@ export default class MyMidiPlayer {
 
   async readArrayBuffer(arrayBuffer: ArrayBuffer) {
     this.skipToTick(0);
-    instruments.cancelEvents();
     this.midi = new Midi(arrayBuffer);
     this._setUpNewMidi(this.midi);
     this.eventListeners?.import();
@@ -342,8 +343,7 @@ export default class MyMidiPlayer {
   }
 
   _setUpNewMidi(midi: Midi) {
-    Transport.cancel();
-    this._scheduleDrawing();
+    this.cleanup();
     this.notes = midi.tracks.map((track) => track.notes).flat();
     this.durationTicks = midi.durationTicks;
     this._scheduleTempoEvents(midi.header.tempos);
@@ -358,14 +358,20 @@ export default class MyMidiPlayer {
     this.updateCanvas(0);
   }
 
-  _scheduleDrawing() {
-    Transport.cancel(this.scheduleId);
-    this.scheduleId = Transport.scheduleRepeat((time) => {
-      Draw.schedule(() => {
-        const tick = Transport.ticks;
-        this.updateCanvas(tick);
-      }, time);
-    }, `${this.fps}hz`);
+  _scheduleDraw() {
+      this.updateCanvas(Transport.ticks);
+      this.scheduleId = requestAnimationFrame(this._scheduleDraw);
+}
+
+  startDrawing() {
+    // dont use Transport.scheduleRepeat because it
+    // sets the points along the Transport time
+    // so the fps changes along with the song speed
+    requestAnimationFrame(this._scheduleDraw);
+  }
+
+  stopDrawing() {
+    cancelAnimationFrame(this.scheduleId);
   }
 
   updateCanvas(tick: number) {
@@ -410,17 +416,14 @@ export default class MyMidiPlayer {
   _scheduleTempoEvents(tempos: TempoEvent[]) {
     tempos.forEach((tempoObj) => {
       Transport.schedule(() => {
-        this._setBpm(tempoObj.bpm, tempoObj.ticks);
+        this._setBpm(tempoObj.bpm);
       }, `${tempoObj.ticks}i`);
     });
   }
 
-  _setBpm(bpm: number, startTick: number) {
+  _setBpm(bpm: number) {
     Transport.bpm.value = bpm * this.tempoPercent;
     this.originalBpm = bpm;
-    if (metronome.activated) {
-      metronome.activate(startTick); // reset metronome to new tempo
-    }
   }
 
   enablePracticeMode() {
@@ -485,8 +488,10 @@ export default class MyMidiPlayer {
 
   cleanup() {
     this.stop();
-    // this.midiPlayer.on("playing", () => {});
-    // this.myTonejs?.cleanUp();
+    Draw.cancel(0);
+    instruments.cancelEvents();
+    instruments.unsync();
+    // this.disablePracticeMode();
     console.log("Cleaned Midi Player");
   }
 }

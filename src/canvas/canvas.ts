@@ -198,11 +198,11 @@ class MyCanvas {
     this.highlighter.draw(0); // just reseting the highlighter
     this.pixiCanvas?.removeChild(this.app.view);
     this.pixiCanvas = undefined;
-    this.flashingColumns.destroy();
-    this.flashingBottomTiles.destroy();
-    this.flashingLightsBottomTiles.destroy();
-    this.fallingNotes?.destroy();
-    this.beatLines?.destroy();
+    // this.flashingColumns.destroy();
+    // this.flashingBottomTiles.destroy();
+    // this.flashingLightsBottomTiles.destroy();
+    // this.fallingNotes?.destroy();
+    // this.beatLines?.destroy();
     window.removeEventListener("keydown", this.handleKeyDownListener, false);
     window.removeEventListener("keyup", this.handleKeyUpListener, false);
     window.removeEventListener("wheel", this.handleWheel, false);
@@ -230,10 +230,11 @@ class MyCanvas {
 
   destroy() {
     if (this.app.view) {
+      this.disconnectHTML();
       this.background.destroy();
       this.flashingColumns.destroy();
       this.beatLines.destroy();
-      this.disconnectHTML();
+      this.highlighter.destroy();
       this.interaction.destroy();
       this.app.destroy();
     }
@@ -337,5 +338,4 @@ class MyCanvas {
   }
 }
 
-const myCanvas = new MyCanvas(window.innerWidth, window.innerHeight);
-export default myCanvas;
+export default MyCanvas;

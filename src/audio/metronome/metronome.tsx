@@ -12,7 +12,7 @@ export default class Metronome {
     this.activated = false;
   }
 
-  activate(startTick?: number) {
+  activate() {
     if (this.scheduleId !== 0) {
       // 0 means no previous schedules
       Transport.clear(this.scheduleId);
@@ -22,7 +22,7 @@ export default class Metronome {
         this.metronomeSynth.triggerAttackRelease("A1", 0.5, time, 5);
       },
       "4n",
-      `${startTick}i`
+      0
     );
     this.activated = true;
   }

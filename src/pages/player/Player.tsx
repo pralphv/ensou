@@ -119,7 +119,6 @@ export default function Player(): JSX.Element {
         // leave some buffer so all scheduled events stop
         myCanvas.disconnectHTML();
         progressBar.disconnectHTML();
-        midiPlayer.disablePracticeMode();
       }, 500);
     };
   }, []);
