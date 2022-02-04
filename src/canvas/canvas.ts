@@ -320,12 +320,14 @@ class MyCanvas {
   }
 
   increaseCanvasNoteScale() {
-    this.config.canvasNoteScale++;
-    this._rescale();
+    if (!myMidiPlayer.getIsPlaying()) {
+      this.config.canvasNoteScale++;
+      this._rescale();
+    }
   }
 
   decreaseCanvasNoteScale() {
-    if (this.config.canvasNoteScale > 1) {
+    if (!myMidiPlayer.getIsPlaying() && this.config.canvasNoteScale > 1) {
       this.config.canvasNoteScale--;
       this._rescale();
     }

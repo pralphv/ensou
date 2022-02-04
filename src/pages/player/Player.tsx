@@ -98,7 +98,7 @@ export default function Player(): JSX.Element {
       myCanvas.on(
         "pointermove",
         debounce(() => {
-          setIsHovering(false);
+          handleOnLeave();
         }, 2000)
       );
     }
@@ -162,20 +162,22 @@ export default function Player(): JSX.Element {
   );
   const progressBarMemo = useMemo(
     () => (
-      <div className="progress-bar">
-        <div
-          ref={(thisDiv: HTMLDivElement) => {
-            if (thisDiv) {
-              // undefined on cleanup
-              progressBar.connectHTML(thisDiv);
-            }
-          }}
-          onMouseEnter={handleOnEnter}
-          onMouseLeave={handleOnLeave}
-        ></div>
-      </div>
+      <div
+        className={clsx({
+          "progress-bar": true,
+          "progress-bar-fullscreen": isFullscreen,
+        })}
+        ref={(thisDiv: HTMLDivElement) => {
+          if (thisDiv) {
+            // undefined on cleanup
+            progressBar.connectHTML(thisDiv);
+          }
+        }}
+        onMouseEnter={handleOnEnter}
+        onMouseLeave={handleOnLeave}
+      ></div>
     ),
-    [isFullscreen]
+    [isFullscreen, isHovering]
   );
   const toolbarMemo = useMemo(() => {
     let opacity = myMidiPlayer.getIsPlaying() ? 0 : 1;
@@ -240,7 +242,7 @@ export default function Player(): JSX.Element {
 
   function handleOnEnter() {
     setIsHovering(true);
-    progressBar.hide(false);
+    progressBar.show();
   }
 
   function handleOnLeave() {
@@ -251,9 +253,12 @@ export default function Player(): JSX.Element {
   }
 
   return (
-    <div className="player">
+    <div>
       {helmentMemo}
-      <div ref={maximizableElement}>
+      <div
+        ref={maximizableElement}
+        className={clsx({ "parent-container": isFullscreen })}
+      >
         {canvasMemo}
         {progressBarMemo}
         {toolbarMemo}

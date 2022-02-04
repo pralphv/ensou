@@ -72,7 +72,6 @@ export default class FallingNotes {
       // text.anchor.x = 0.5;
       text.position.x = width / 2;
       text.position.y = height - 12 - 5;
-      text.visible = false;
       this._container.addChild(rectSprite);
       this._fallingNotes.push({ rectSprite, on, off, height, x });
     });

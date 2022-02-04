@@ -160,8 +160,14 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
         </ListItem>
         <ListItem button>
           <ListItemText primary="Zoom" />
-          <RemoveIcon onClick={myCanvas.increaseCanvasNoteScale} />
-          <AddIcon onClick={myCanvas.decreaseCanvasNoteScale} />
+          <RemoveIcon
+            onClick={myCanvas.increaseCanvasNoteScale}
+            color={myMidiPlayer.getIsPlaying() ? "disabled" : undefined}
+          />
+          <AddIcon
+            onClick={myCanvas.decreaseCanvasNoteScale}
+            color={myMidiPlayer.getIsPlaying() ? "disabled" : undefined}
+          />
         </ListItem>
         <ListItem
           button

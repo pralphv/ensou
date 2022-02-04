@@ -105,6 +105,7 @@ export default class MyPolySynth {
       // causing bugs. so just init a new one
       this.replaceSynth(value, synthIndex);
       this.eventListeners.restart?.();
+      this.eventListeners.needsConnection?.(this.polySynths);
     }
     // this.publishingChanges = false;
   }
@@ -213,19 +214,8 @@ export default class MyPolySynth {
     this._setSynthName(synthIndex, synthName);
     this.replaceSynth(synthName, synthIndex);
     this.eventListeners.restart?.();
+    this.eventListeners.needsConnection?.(this.polySynths);
     this.saveState();
-
-    // let polySynth = await this._buildTrack(
-    //   synthIndex // not here originally
-    // );
-    // if (this._effectChainsNames.length > 0) {
-    //   // const effectsChain = buildEffectsChain(this._effectChainsNames);
-    //   polySynth = polySynth.chain(...this._effectChains, Destination);
-    // } else {
-    //   polySynth = polySynth.toDestination();
-    // }
-    // this.polySynths[synthIndex] = polySynth as PolySynth;
-    // this.publishingChanges = false;
   }
 
   replaceSynth(synthName: types.AvailableSynthsEnum, synthIndex: number) {

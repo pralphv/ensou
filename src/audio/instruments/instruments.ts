@@ -171,9 +171,6 @@ export default class Instruments {
   }
 
   setVolume(volume: number) {
-    if (volume <= -15) {
-      volume = -1000;
-    }
     this._getInstruments().forEach((instrument: Sampler | PolySynth) => {
       instrument.volume.value = volume;
     });
@@ -185,7 +182,8 @@ export default class Instruments {
   }
 
   async activateSampler() {
-    // need activate and deactivate events on both
+    // bug: if polysynth is overloaded, because polysynth is just disconnecting
+    // not destroyed, sampler will also be affected
     this.myPolySynth.deactivate();
     await this.mySampler.activate();
     this.useSampler = true;

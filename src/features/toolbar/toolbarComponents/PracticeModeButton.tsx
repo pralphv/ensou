@@ -16,7 +16,7 @@ export default function PracticeModeButton(): JSX.Element {
     <CustomButton
       onClick={handleOnClick}
       size="small"
-      disabled={myMidiPlayer.getIsPlaying()}
+      disabled={!myMidiPlayer.isReady || myMidiPlayer.getIsPlaying()}
       selected={myMidiPlayer.practiceMode}
     >
       <FitnessCenterIcon />

@@ -101,17 +101,6 @@ export default class BottomTiles {
     this._container.addChild(whiteKeyContainer);
     this._container.addChild(blackKeyContainer);
 
-    // black top overlay. should not be here
-    const blackRect = initBlackColorOverlay(
-      app.screen.width,
-      app.screen.height * 0.3
-    );
-    // @ts-ignore
-    const blackTexture = app.generateTexture(blackRect);
-    const sprite = new PIXI.Sprite(blackTexture);
-    sprite.position.x = 0;
-    sprite.position.y = 0;
-    this._container.addChild(sprite);
     whiteKey.destroy({ children: true, baseTexture: true, texture: true });
     blackKey.destroy({ children: true, baseTexture: true, texture: true });
   }

@@ -39,11 +39,8 @@ export default class MyMidiPlayer {
   samplerSource?: types.SamplerSource;
   loopPoints: types.loopPoints;
   ticksPerBeat: number;
-  // _setPlayerStatus: (status: string) => void;
   _synthOptions?: ISynthOptions;
   _samplerOptions?: ISamplerOptions;
-  // _setInstrumentLoading: (loading: boolean) => void;
-  // _forceCanvasRerender: () => void;
   eventListeners: IMyMidiPlayerEvents;
   practiceMode: boolean;
   pressedKeys: Set<string>;
@@ -56,13 +53,7 @@ export default class MyMidiPlayer {
   _canvasEventsScheduleIds: number[];
 
   constructor() {
-    // _forceCanvasRerender: () => void // ) => void, //   groupedNotes: types.IGroupedNotes[] //   ticksPerBeat: number, //   currentTick: number, // onPlaying: ( // setInstrumentLoading: (loading: boolean) => void, // setPlayerStatus: (status: string) => void,
     console.log("Constructing new midi player");
-    // for getLocalSampler because of async
-    // this._setPlayerStatus = setPlayerStatus;
-    // this._setInstrumentLoading = setInstrumentLoading;
-    // this._forceCanvasRerender = _forceCanvasRerender;
-
     this.isReady = false; // for blocking play button. etc. no file loaded
     this.isPlaying = false;
     this.isLoop = isLoopLocalStorage.getIsLoop() || false;
@@ -82,9 +73,6 @@ export default class MyMidiPlayer {
     this.scheduleId = 0;
     this._canvasEventsScheduleIds = [];
 
-    // init should be here but its await so it cant
-    // should be safe to say string because when useSample is chosen it would save to local storage
-
     this._handleFileLoaded = this._handleFileLoaded.bind(this);
     this.play = this.play.bind(this);
     this.pause = this.pause.bind(this);
@@ -96,7 +84,6 @@ export default class MyMidiPlayer {
     this.readArrayBuffer = this.readArrayBuffer.bind(this);
     this.setTempoPercent = this.setTempoPercent.bind(this);
     this.checkIfSampler = this.checkIfSampler.bind(this);
-    // this._initToneJs = this._initToneJs.bind(this);
     this.handleOnDownloaded = this.handleOnDownloaded.bind(this);
     this.on = this.on.bind(this);
     this.enablePracticeMode = this.enablePracticeMode.bind(this);
@@ -280,43 +267,6 @@ export default class MyMidiPlayer {
     this.eventListeners?.downloadedMidi();
   }
 
-  // async _initToneJs() {
-  //   this.eventListeners.willSetTone();
-  //   const pastEventListeners = this.myTonejs?.eventListeners;
-  //   this.myTonejs?.destroy();
-  //   if (this.samplerSource === types.SamplerSourceEnum.server) {
-  //     // if its useSample, then it must have this.sampleName
-  //     this.myTonejs = new Instruments(true, undefined, {
-  //       instrument: this.instrument,
-  //       sample: this.sampleName as string,
-  //     });
-  //   } else if (
-  //     this.samplerSource === types.SamplerSourceEnum.local ||
-  //     this.samplerSource === types.SamplerSourceEnum.cachedLocal ||
-  //     this.samplerSource === types.SamplerSourceEnum.recorded
-  //   ) {
-  //     const sampleMap = this.localSampler;
-  //     this.myTonejs = new Instruments(true, undefined, {
-  //       instrument: this.instrument,
-  //       sample: this.sampleName as string,
-  //       sampleMap,
-  //     });
-  //   } else {
-  //     this.myTonejs = new Instruments(false);
-  //   }
-  //   this.myTonejs.on(
-  //     "downloadingSamples",
-  //     this.eventListeners?.downloadingSamples
-  //   );
-  //   await this.myTonejs.init(); // must be here because construct cannot be async
-  //   if (pastEventListeners) {
-  //     Object.entries(pastEventListeners).forEach(([event, func]) => {
-  //       this.myTonejs?.on(event, func);
-  //     });
-  //   }
-  //   this.eventListeners.toneSet();
-  // }
-
   async readArrayBuffer(arrayBuffer: ArrayBuffer) {
     this.skipToTick(0);
     this.midi = new Midi(arrayBuffer);
@@ -355,7 +305,8 @@ export default class MyMidiPlayer {
       this._scheduleCanvasEvents(midi.tracks);
       this.scheduleNotesToPlay();
     }
-    this.updateCanvas(0);
+    // hack: not sure why timeout is needed;
+    setTimeout(this.restart, 100)
   }
 
   _scheduleDraw() {
@@ -447,8 +398,12 @@ export default class MyMidiPlayer {
   }
 
   setVolume(value: number) {
+    if (value <= -15) {
+      value = -1000;
+    }
+    console.log({value})
     instruments.setVolume(value);
-    metronome.setVolume(value - 5);
+    metronome.setVolume(value);
     this.eventListeners.actioned();
   }
 

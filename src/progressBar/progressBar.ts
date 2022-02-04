@@ -17,14 +17,14 @@ class ProgressBar {
     this.app = new PIXI.Renderer({
       width: window.innerWidth,
       height: 8,
-      transparent: false,
-      antialias: true,
+      transparent: true,
+      antialias: false,
       clearBeforeRender: true,
     });
     this.stage = new PIXI.Container();
 
     const realProgressRect = initRectangle(this.app.screen.width, 8, 0x90eefe);
-    const backgroundRect = initRectangle(this.app.screen.width, 8, 0x5c969f);
+    const backgroundRect = initRectangle(this.app.screen.width, 8, 0x858585);
     // @ts-ignore
     const realProgressTexture = this.app.generateTexture(realProgressRect);
     // @ts-ignore
@@ -85,6 +85,7 @@ class ProgressBar {
     const pct = x / this.app.screen.width;
     myMidiPlayer.skipToPercent(pct);
     const tick = Transport.ticks;
+    myMidiPlayer.setLoopPoints(tick, tick);
     this.render(tick);
     myCanvas.render(tick);
   }
@@ -109,17 +110,20 @@ class ProgressBar {
     this.interaction.on(event, func);
   }
 
-  hide(value?: boolean) {
-    value = value === undefined ? true : value;
-    this.container.visible = !value;
+  show() {
+    this.stage.alpha = 0.8;
     this.app.render(this.stage); // the render function only renders if container is visible
+  }
+
+  hide() {
+    this.stage.alpha = 0;
+    this.app.render(this.stage);
   }
 }
 
 function initRectangle(width: number, height: number, color: number) {
   const rect = new PIXI.Graphics();
-  rect.lineStyle(height, color);
-  //   rect.beginFill(0x000000);
+  rect.beginFill(color, 0.8);
   rect.drawRect(0, 0, width, height);
   return rect;
 }
