@@ -25,7 +25,7 @@ export default class Instruments {
   constructor() {
     this.myPolySynth = new MyPolySynth();
     this.mySampler = new MySampler();
-    this.useSampler = false;
+    this.useSampler = samplerLocalStorage.getUseSampler() || false;
     this.loadSavedSettings();
     // this._eventListeners = {};
 
@@ -68,10 +68,6 @@ export default class Instruments {
     const savedVolume = volumeLocalStorage.getVolume();
     savedVolume && this.setVolume(savedVolume);
     if (samplerLocalStorage.getUseSampler()) {
-      const cacheLoaded = await this.mySampler.loadLocalSampler();
-      if (!cacheLoaded) {
-        throw Error("useSampler in localStorage is true but sampler not found");
-      }
       await this.activateSampler();
     } else {
       this.activatePolySynth();

@@ -401,7 +401,6 @@ export default class MyMidiPlayer {
     if (value <= -15) {
       value = -1000;
     }
-    console.log({value})
     instruments.setVolume(value);
     metronome.setVolume(value);
     this.eventListeners.actioned();
@@ -416,8 +415,8 @@ export default class MyMidiPlayer {
     await this.activateSampler();
   }
 
-  async useDownloadedSample() {
-    instruments.mySampler.processDownloadedSample();
+  async useOnlineSample(value: string) {
+    instruments.mySampler.processOnlineSample(value);
     await this.activateSampler();
   }
 

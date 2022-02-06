@@ -10,6 +10,7 @@ import myCanvas from "canvas";
 import progressBar from "progressBar";
 import Toolbar from "features/toolbar/Toolbar";
 
+import instruments from "audio/instruments";
 import myMidiPlayer from "audio";
 import { useParams } from "react-router";
 
@@ -27,6 +28,11 @@ interface ISongMetaData {
   transcribedBy: string;
   uploader: string;
   date: Date;
+}
+
+function formatProgress(value: number): string{
+  // 0.01 -> 1%
+  return `${Math.round(value * 100)}%`;
 }
 
 export default function Player(): JSX.Element {
@@ -78,22 +84,35 @@ export default function Player(): JSX.Element {
         setInstrumentLoading(true);
         setPlayerStatus("0%"); // reset
       });
+
       myMidiPlayer.on("mounted", () => {
         setInstrumentLoading(false);
         setPlayerStatus("");
       });
+
       myMidiPlayer.on("import", () => {
+        // bug: does not show loading spinner because main thread is occupied by loading midi
         setPlayerStatus("Importing...");
       });
+
       myMidiPlayer.on("imported", () => {
-        // need to rebuild notes here assuming this is import midi
         setPlayerStatus("");
       });
+
       myMidiPlayer.on("downloadingSamples", (status: string) => {
         setPlayerStatus(status);
       });
-      // await myMidiPlayer.init();
-      // myMidiPlayer.myTonejs?.on("actioned", () => forceRerenderRef.current());
+
+      instruments.mySampler.on("onSampleDownloading", (progress) => {
+        setPlayerStatus(`Downloading samples... ${formatProgress(progress)}`);
+      });
+
+      instruments.mySampler.on("onApplyingSamples", (progress) => {
+        setPlayerStatus(`Applying samples. This may take a while... ${formatProgress(progress)}`);
+      });
+      instruments.mySampler.on("onAppliedSamples", () => {
+        setPlayerStatus("");
+      });
 
       myCanvas.on(
         "pointermove",

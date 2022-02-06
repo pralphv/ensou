@@ -1,4 +1,4 @@
-import { Sampler, Destination, SamplerOptions } from "tone";
+import { Sampler, SamplerOptions } from "tone";
 import * as types from "types";
 import { ISampleEventsMap } from "./types";
 import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
@@ -25,7 +25,7 @@ export default class MySampler {
     this._eventListeners = {};
     this.samplers = [];
     this.instrument = "piano";
-    this.sample = ""; // should be samples saved in firebase
+    this.sample = samplerLocalStorage.getSampleName() || ""; // should be samples saved in firebase
     this.samplerSource = samplerLocalStorage.getSamplerSource();
   }
 
@@ -42,8 +42,16 @@ export default class MySampler {
   }
 
   async _fetchInstruments() {
-    const cacheKey: string = `${this.instrument}_${this.sample}`;
-    const cache: types.ArrayBufferMap = await indexedDbUtils.getServerSampler(
+    // [{"method": ["GET", "POST"], "origin": ["https://ensoumidi.com"]}]
+    if (!this.sample) {
+      throw Error(
+        "this.sample is empty. Please specify before calling this function"
+      );
+    }
+    // const cacheKey: string = `${this.instrument}_${this.sample}`;
+    const cacheKey: string = `${this.sample}`;
+    const cache: types.ArrayBufferMap = await indexedDbUtils.getSample(
+      indexedDbUtils.IndexedDbKeys.online,
       cacheKey
     );
     let arrayBufferMap: types.ArrayBufferMap = {}; // {A1: AudioBuffer}
@@ -74,32 +82,46 @@ export default class MySampler {
         })
       );
       console.log(`Finished downloading ${cacheKey}. Saving...`);
-      await indexedDbUtils.setServerSampler(cacheKey, arrayBufferMap);
+      await indexedDbUtils.setSample(
+        indexedDbUtils.IndexedDbKeys.online,
+        cacheKey,
+        arrayBufferMap
+      );
       console.log(`Saved ${cacheKey}`);
     }
-    console.log("Converting to AudioBuffer...");
-    this._eventListeners.onApplyingSamples?.();
-    const sampleMap = convertArrayBufferToAudioContext(arrayBufferMap);
-    console.log(`Converted ${cacheKey} to AudioBuffer!`);
-    return sampleMap;
+    return arrayBufferMap;
   }
 
   async getInstrument() {
-    let sampleMap;
+    let arrayBufferMap;
     switch (this.samplerSource) {
       case types.SamplerSourceEnum.recorded:
-        sampleMap = this.localSampleMap;
+        arrayBufferMap = await indexedDbUtils.getSample(
+          indexedDbUtils.IndexedDbKeys.recorded,
+          "filler"
+        );
         break;
       case types.SamplerSourceEnum.local:
-        sampleMap = this.localSampleMap;
+        arrayBufferMap = await indexedDbUtils.getSample(
+          indexedDbUtils.IndexedDbKeys.local,
+          "filler"
+        );
         break;
       case types.SamplerSourceEnum.server:
-        sampleMap = await this._fetchInstruments();
+        arrayBufferMap = await this._fetchInstruments();
+        break;
+      default:
+        throw Error(`samplerSource ${this.samplerSource} is not supported`);
     }
+    console.log("Converting to AudioBuffer...");
+    const sampleMap = await convertArrayBufferToAudioContext(
+      arrayBufferMap,
+      this._eventListeners.onApplyingSamples
+    );
     let sampler = new Sampler(sampleMap, {
       attack: 0.01,
     });
-    // this._setPlayerStatus("");
+    this._eventListeners.onAppliedSamples?.();
     return sampler;
   }
 
@@ -116,7 +138,9 @@ export default class MySampler {
   }
 
   deactivate() {
-    this.samplers.forEach((sampler) => {sampler.disconnect()});
+    this.samplers.forEach((sampler) => {
+      sampler.disconnect();
+    });
   }
 
   _setSamplerSource(source: types.SamplerSource) {
@@ -125,43 +149,42 @@ export default class MySampler {
   }
 
   async processLocalSample(arrayBufferMap: types.ArrayBufferMap) {
-    await this.processArrayBufferMap(arrayBufferMap);
+    await indexedDbUtils.setSample(
+      indexedDbUtils.IndexedDbKeys.local,
+      "filler",
+      arrayBufferMap
+    );
     this._setSamplerSource(types.SamplerSourceEnum.local);
   }
 
-  async processDownloadedSample() {
+  async processOnlineSample(value: string) {
+    // actual downloading is in getInstrument
+    this.sample = value;
+    samplerLocalStorage.setSampleName(value);
     this._setSamplerSource(types.SamplerSourceEnum.server);
   }
 
   async processRecordedSound(note: string, arrayBuffer: ArrayBuffer) {
     const arrayBufferMap = { [note]: arrayBuffer };
-    await this.processArrayBufferMap(arrayBufferMap);
+    await indexedDbUtils.setSample(
+      indexedDbUtils.IndexedDbKeys.recorded,
+      "filler",
+      arrayBufferMap
+    );
     this._setSamplerSource(types.SamplerSourceEnum.recorded);
   }
 
-  async processArrayBufferMap(arrayBufferMap: types.ArrayBufferMap) {
-    await indexedDbUtils.setLocalSamplerArrayBuffer(arrayBufferMap);
-    const sampleMap: SamplerOptions["urls"] =
-      await convertArrayBufferToAudioContext(arrayBufferMap);
-    this.setLocalSampleMap(sampleMap);
-  }
-
-  setLocalSampleMap(sampleMap: SamplerOptions["urls"]) {
-    this.localSampleMap = sampleMap;
-  }
-
   saveUserUploadSample(sampleMap: SamplerOptions["urls"]) {
-    this.setLocalSampleMap(sampleMap);
+    // this.setLocalSampleMap(sampleMap);
     this._setSamplerSource(types.SamplerSourceEnum.local);
   }
 
-  async loadLocalSampler() {
-    const cachedSample: types.ArrayBufferMap =
-      await indexedDbUtils.getLocalSamplerArrayBuffer();
-    if (cachedSample) {
-      await this.processArrayBufferMap(cachedSample);
-      return true;
-    }
-    return false;
-  }
+  // async loadLocalSampler(): Promise<SamplerOptions["urls"] | null> {
+  //   const cachedSample: types.ArrayBufferMap =
+  //     await indexedDbUtils.getLocalSamplerArrayBuffer();
+  //   if (cachedSample) {
+  //     return await convertArrayBufferToAudioContext(cachedSample);
+  //   }
+  //   return null;
+  // }
 }

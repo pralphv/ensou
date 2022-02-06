@@ -52,8 +52,8 @@ export default function DownloadTab({ setOpen }: IDownloadTabProps) {
   }
 
   async function handleOnSubmit() {
-    await myMidiPlayer.useDownloadedSample();
     setOpen(false);
+    await myMidiPlayer.useOnlineSample(chosenSample);
   }
   // http://ivyaudio.com/Piano-in-162
   return (
