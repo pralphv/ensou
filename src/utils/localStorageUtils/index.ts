@@ -5,6 +5,7 @@ import * as keyBindingsLocalStorage from "./keyBindings";
 import * as isLoopLocalStorage from "./isLoop";
 import * as volumeLocalStorage from "./volume";
 import * as synthLocalStorage from "./synth";
+import * as noteTextLocalStorage from "./noteText";
 export {
   effectsLocalStorage,
   effectsSettingsLocalStorage,
@@ -13,4 +14,5 @@ export {
   isLoopLocalStorage,
   volumeLocalStorage,
   synthLocalStorage,
+  noteTextLocalStorage,
 };

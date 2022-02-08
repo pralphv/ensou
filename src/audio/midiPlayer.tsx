@@ -1,7 +1,6 @@
 import { SamplerOptions, Transport, Draw } from "tone";
 
 import * as types from "types";
-import * as localStorageUtils from "utils/localStorageUtils/localStorageUtils";
 import { isLoopLocalStorage } from "utils/localStorageUtils";
 import instruments from "./instruments";
 import { storageRef } from "firebaseApi/firebase";

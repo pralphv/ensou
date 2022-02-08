@@ -75,6 +75,13 @@ export default class Instruments {
   }
 
   scheduleNotesToPlay(notes: Note[]) {
+    if (this.useSampler && !this.mySampler.ready) {
+      // only schedule if sampler is ready
+      setTimeout(() => {
+        this.scheduleNotesToPlay(notes);
+        console.log("Sampler not ready. Waiting...")
+      }, 1000)
+    }
     this._getInstruments().forEach((instrument: Sampler | PolySynth) => {
       instrument.sync();
       notes.forEach((note) => {
@@ -163,7 +170,7 @@ export default class Instruments {
   }
 
   getVolume() {
-    return this._getInstruments()[0].volume.value;
+    return this._getInstruments()[0]?.volume.value || 0;
   }
 
   setVolume(volume: number) {

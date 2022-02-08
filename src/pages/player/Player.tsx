@@ -30,7 +30,7 @@ interface ISongMetaData {
   date: Date;
 }
 
-function formatProgress(value: number): string{
+function formatProgress(value: number): string {
   // 0.01 -> 1%
   return `${Math.round(value * 100)}%`;
 }
@@ -72,24 +72,10 @@ export default function Player(): JSX.Element {
         setPlayerStatus("");
         setMidiLoading(false);
       });
-      // download midi first
-      await myMidiPlayer.downloadMidiFromFirebase(songId);
 
       myMidiPlayer.on("actioned", () => {
         forceRerenderRef.current();
       });
-      myMidiPlayer.on("willSetTone", () => setPlayerStatus("Setting tone..."));
-      myMidiPlayer.on("toneSet", () => setPlayerStatus(""));
-      myMidiPlayer.on("willMount", () => {
-        setInstrumentLoading(true);
-        setPlayerStatus("0%"); // reset
-      });
-
-      myMidiPlayer.on("mounted", () => {
-        setInstrumentLoading(false);
-        setPlayerStatus("");
-      });
-
       myMidiPlayer.on("import", () => {
         // bug: does not show loading spinner because main thread is occupied by loading midi
         setPlayerStatus("Importing...");
@@ -99,19 +85,21 @@ export default function Player(): JSX.Element {
         setPlayerStatus("");
       });
 
-      myMidiPlayer.on("downloadingSamples", (status: string) => {
-        setPlayerStatus(status);
-      });
-
       instruments.mySampler.on("onSampleDownloading", (progress) => {
         setPlayerStatus(`Downloading samples... ${formatProgress(progress)}`);
+        setInstrumentLoading(true);
       });
 
       instruments.mySampler.on("onApplyingSamples", (progress) => {
-        setPlayerStatus(`Applying samples. This may take a while... ${formatProgress(progress)}`);
+        setPlayerStatus(
+          `Applying samples. This may take a while... ${formatProgress(
+            progress
+          )}`
+        );
       });
       instruments.mySampler.on("onAppliedSamples", () => {
         setPlayerStatus("");
+        setInstrumentLoading(false);
       });
 
       myCanvas.on(
@@ -120,6 +108,8 @@ export default function Player(): JSX.Element {
           handleOnLeave();
         }, 2000)
       );
+      // download midi first. do this after the download events are set
+      await myMidiPlayer.downloadMidiFromFirebase(songId);
     }
     async function fetchSongDetails() {
       const ref = await firestore.collection("midi").doc(songId);

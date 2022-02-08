@@ -1,9 +1,8 @@
 import * as PIXI from "pixi.js";
-import * as types from "audio/types";
 import { PIANO_TUNING } from "audio/constants";
 import { IMyCanvasConfig } from "../types";
 import myMidiPlayer from "audio";
-
+import {noteTextLocalStorage} from "utils/localStorageUtils"
 export default class FallingNotes {
   _app: PIXI.Renderer;
   _container: PIXI.Container;
@@ -33,7 +32,7 @@ export default class FallingNotes {
     this._screenHeight = app.screen.height;
     this._container = new PIXI.Container();
     this._textArray = [];
-    this.isTextOn = false;
+    this.isTextOn = noteTextLocalStorage.getNoteText() || false;  // need to be in localstorage
 
     this._fallingNotes = [];
     this._totalFallingNotes = 0;
@@ -67,6 +66,9 @@ export default class FallingNotes {
         align: "center",
         fontWeight: 600,
       });
+      if (!this.isTextOn) {
+        text.visible = false;
+      }
       this._textArray.push(text);
       rectSprite.addChild(text);
       // text.anchor.x = 0.5;
@@ -105,6 +107,7 @@ export default class FallingNotes {
     }
     this.isTextOn = true;
     this.onChange();
+    noteTextLocalStorage.setNoteText(true);
   }
 
   hideText() {
@@ -113,6 +116,7 @@ export default class FallingNotes {
     }
     this.isTextOn = false;
     this.onChange();
+    noteTextLocalStorage.setNoteText(false);
   }
 
   getIsTextOn() {

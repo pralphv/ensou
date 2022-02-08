@@ -20,11 +20,13 @@ export default class MySampler {
   // sampleMap?: SamplerOptions["urls"];
   localSampleMap?: SamplerOptions["urls"];
   samplerSource: types.SamplerSource | null;
+  ready: boolean;
 
   constructor() {
     this._eventListeners = {};
     this.samplers = [];
     this.instrument = "piano";
+    this.ready = false;
     this.sample = samplerLocalStorage.getSampleName() || ""; // should be samples saved in firebase
     this.samplerSource = samplerLocalStorage.getSamplerSource();
   }
@@ -54,6 +56,7 @@ export default class MySampler {
       indexedDbUtils.IndexedDbKeys.online,
       cacheKey
     );
+    this.ready = false;
     let arrayBufferMap: types.ArrayBufferMap = {}; // {A1: AudioBuffer}
     if (cache) {
       console.log(`Getting ${cacheKey} from cache`);
@@ -122,6 +125,7 @@ export default class MySampler {
       attack: 0.01,
     });
     this._eventListeners.onAppliedSamples?.();
+    this.ready = true;
     return sampler;
   }
 
