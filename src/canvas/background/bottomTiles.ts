@@ -5,23 +5,25 @@ import * as types from "../types";
 import game from "game";
 
 export default class BottomTiles {
-  _app: PIXI.Application;
+  _app: PIXI.Renderer;
   _container: PIXI.Container;
   leftPadding: number;
   whiteKeyWidth: number;
   blackKeyWidth: number;
   _config: types.IMyCanvasConfig;
   _textArray: PIXI.Text[];
+  onTextChange: () => void;
 
-  constructor(app: PIXI.Application, config: types.IMyCanvasConfig) {
+  constructor(app: PIXI.Renderer, stage: PIXI.Container, config: types.IMyCanvasConfig, onTextChange: () => void) {
     this._app = app;
     this._container = new PIXI.Container();
     this._config = config;
+    this.onTextChange = onTextChange;
 
-    this._app.stage.addChild(this._container);
-    this._app.stage.setChildIndex(
+    stage.addChild(this._container);
+    stage.setChildIndex(
       this._container,
-      this._app.stage.children.length - 1
+      stage.children.length - 1
     );
 
     this._textArray = [];
@@ -45,9 +47,9 @@ export default class BottomTiles {
     );
 
     // @ts-ignore
-    const whiteKeyTexture = this._app.renderer.generateTexture(whiteKey);
+    const whiteKeyTexture = this._app.generateTexture(whiteKey);
     // @ts-ignore
-    const blackKeyTexture = this._app.renderer.generateTexture(blackKey);
+    const blackKeyTexture = this._app.generateTexture(blackKey);
     let x: number = leftPadding;
 
     let lastI: number; // to prevent duplicate notes from b and #
@@ -75,6 +77,7 @@ export default class BottomTiles {
           text.anchor.x = 0.5;
           text.position.x = blackKeyWidth / 2;
           text.position.y = tileHeight * 0.66 - text.style.fontSize - 5;
+          text.visible = false;
         } else {
           const text = new PIXI.Text(game.noteLabelMap[key], {
             ...TEXT_CONFIG,
@@ -90,6 +93,7 @@ export default class BottomTiles {
           text.position.x = whiteKeyWidth / 2;
           text.position.y = tileHeight - text.style.fontSize - 5;
           x += whiteKeyWidth;
+          text.visible = false;
         }
         sprite.position.y = screenHeight - tileHeight - 1;
       }
@@ -97,36 +101,25 @@ export default class BottomTiles {
     this._container.addChild(whiteKeyContainer);
     this._container.addChild(blackKeyContainer);
 
-    // black top overlay. should not be here
-    const blackRect = initBlackColorOverlay(
-      app.screen.width,
-      app.screen.height * 0.3
-    );
-    // @ts-ignore
-    const blackTexture = app.renderer.generateTexture(blackRect);
-    const sprite = new PIXI.Sprite(blackTexture);
-    sprite.position.x = 0;
-    sprite.position.y = 0;
-    this._container.addChild(sprite);
     whiteKey.destroy({ children: true, baseTexture: true, texture: true });
     blackKey.destroy({ children: true, baseTexture: true, texture: true });
-    this.hideText();
   }
 
   showText() {
     for (const text of this._textArray) {
       text.visible = true;
     }
+    this.onTextChange();
   }
 
   hideText() {
     for (const text of this._textArray) {
       text.visible = false;
     }
+    this.onTextChange();
   }
 
   destroy() {
-    console.log("Destroying beat lines");
     this._container.destroy({
       children: true,
       texture: true,

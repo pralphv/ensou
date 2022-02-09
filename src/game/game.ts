@@ -1,9 +1,11 @@
+import { Transport } from "tone";
+
 import * as constants from "./constants";
 import myCanvas from "canvas";
 import { PIANO_TUNING, NOTE_NUMBER_TO_NOTE } from "audio/constants";
-import myMidiPlayer from "audio";
+import myInstruments from "audio/instruments";
 import * as types from "./types";
-import { getKeyBindings } from "utils/localStorageUtils/localStorageUtils";
+import { keyBindingsLocalStorage } from "utils/localStorageUtils";
 import * as midiKeyboard from "./midiKeyboard";
 
 interface IPlayMap {
@@ -53,7 +55,7 @@ class Game {
   }
 
   loadKeyNoteMap() {
-    this.keyNoteMap = getKeyBindings() || constants.DEFAULT_KEY_NOTE_MAP;
+    this.keyNoteMap = keyBindingsLocalStorage.getKeyBindings() || constants.DEFAULT_KEY_NOTE_MAP;
     this.availableKeys = new Set(Object.keys(this.keyNoteMap));
 
     this.noteLabelMap = {};
@@ -86,7 +88,6 @@ class Game {
     window.addEventListener("keyup", this.handleOnKeyUp);
     const midiKeyboardEnabled = await midiKeyboard.enableMidiKeyboard();
     if (midiKeyboardEnabled) {
-
     }
     midiKeyboard.onClick(this.handleMidiPlayerOnClick);
   }
@@ -114,23 +115,23 @@ class Game {
     const playMap: IPlayMap = {};
     const notesToBePlayed: INotesToBePlayed = {};
 
-    for (const note of myMidiPlayer.groupedNotes) {
-      notesToBePlayed[note.id] = {
-        played: false,
-        note: note.noteName,
-        lastTick: note.on + 99,
-      };
-      for (let i = -100; i < 120; i++) {
-        if (!playMap[i + note.on]) {
-          playMap[i + note.on] = [note.id];
-        } else {
-          playMap[i + note.on].push(note.id);
-        }
-      }
-    }
-    this.playMap = playMap;
-    this.notesToBePlayed = notesToBePlayed;
-    this.originalNotesToBePlayed = JSON.parse(JSON.stringify(notesToBePlayed));
+    // for (const note of myMidiPlayer.groupedNotes) {
+    //   notesToBePlayed[note.id] = {
+    //     played: false,
+    //     note: note.noteName,
+    //     lastTick: note.on + 99,
+    //   };
+    //   for (let i = -100; i < 120; i++) {
+    //     if (!playMap[i + note.on]) {
+    //       playMap[i + note.on] = [note.id];
+    //     } else {
+    //       playMap[i + note.on].push(note.id);
+    //     }
+    //   }
+    // }
+    // this.playMap = playMap;
+    // this.notesToBePlayed = notesToBePlayed;
+    // this.originalNotesToBePlayed = JSON.parse(JSON.stringify(notesToBePlayed));
   }
 
   disable() {
@@ -155,37 +156,37 @@ class Game {
   }
 
   triggerAttack(note: string, velocity: number = 1) {
-    myMidiPlayer.myTonejs?.triggerAttack(note, velocity);
-    myMidiPlayer.playingNotes.add(PIANO_TUNING[note]);
-    myCanvas.render();
-    if (this.playMap[myMidiPlayer.getCurrentTick()]) {
-      for (const id of this.playMap[myMidiPlayer.getCurrentTick()]) {
-        if (
-          this.notesToBePlayed[id].note === note &&
-          !this.notesToBePlayed[id].played
-        ) {
-          this.notesToBePlayed[id].played = true;
-          this.addScore();
-          myCanvas.comboDisplay.draw(this.score);
-          break;
-        }
-      }
-    }
+    myInstruments.triggerAttack(note, velocity);
+    myCanvas.flash(PIANO_TUNING[note]);
+    myCanvas.runRender();
+    // if (this.playMap[Transport.ticks]) {
+    //   for (const id of this.playMap[Transport.ticks]) {
+    //     if (
+    //       this.notesToBePlayed[id].note === note &&
+    //       !this.notesToBePlayed[id].played
+    //     ) {
+    //       this.notesToBePlayed[id].played = true;
+    //       this.addScore();
+    //       myCanvas.comboDisplay.draw(this.score);
+    //       break;
+    //     }
+    //   }
+    // }
   }
 
   triggerRelease(note: string) {
-    myMidiPlayer.myTonejs?.triggerRelease(note);
-    myMidiPlayer.playingNotes.delete(PIANO_TUNING[note]);
-    myCanvas.render();
+    myInstruments.triggerRelease(note);
+    myCanvas.unflash(PIANO_TUNING[note]);
+    myCanvas.runRender();
   }
 
   render() {
     // used in midiPlayer handleOnPlaying
-    if (this.playMap[myMidiPlayer.getCurrentTick() - 1]) {
-      for (const id of this.playMap[myMidiPlayer.getCurrentTick() - 1]) {
+    if (this.playMap[Transport.ticks - 1]) {
+      for (const id of this.playMap[Transport.ticks - 1]) {
         if (
           this.notesToBePlayed[id].played === false && // not played
-          myMidiPlayer.getCurrentTick() >= this.notesToBePlayed[id].lastTick // passed timing
+          Transport.ticks >= this.notesToBePlayed[id].lastTick // passed timing
         ) {
           this.resetScore();
           myCanvas.comboDisplay.draw(this.score);

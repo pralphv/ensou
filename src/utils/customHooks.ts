@@ -49,7 +49,7 @@ export function useUserId(): string {
 // }
 
 export function useLoadLocal(
-  loadArrayBuffer: (blob: XMLHttpRequest["response"]) => void
+  readArrayBuffer: (blob: XMLHttpRequest["response"]) => void
 ): [(acceptedFiles: any) => void] {
   const { enqueueSnackbar } = useSnackbar();
 
@@ -66,7 +66,7 @@ export function useLoadLocal(
       reader.onload = (r: any) => {
         const data: any = r.target.result;
         if (data) {
-          loadArrayBuffer(data);
+          readArrayBuffer(data);
         }
       };
       try {
@@ -83,12 +83,14 @@ export function useLoadLocal(
           reader.readAsArrayBuffer(readFile);
           handleNotification(`Successfully read: ${file.name}`, "success");
         }
-      } catch (error: unknown) {
-        handleNotification(error.toString(), "error");
-        console.error(error);
+      } catch (error) {
+        if (error instanceof Error) {
+          handleNotification(error.toString(), "error");
+          console.error(error);
+        }
       }
     },
-    [enqueueSnackbar, loadArrayBuffer]
+    [enqueueSnackbar, readArrayBuffer]
   );
   return [onDrop];
 }

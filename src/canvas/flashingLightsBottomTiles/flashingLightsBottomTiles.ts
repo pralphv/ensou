@@ -4,11 +4,12 @@ import myMidiPlayer from "audio";
 import * as types from "../types";
 
 export default class FlashingLightsBottomTiles {
-  _app: PIXI.Application;
+  _app: PIXI.Renderer;
   _container: PIXI.Container;
   _columns: PIXI.Sprite[][];
   constructor(
-    app: PIXI.Application,
+    app: PIXI.Renderer,
+    stage: PIXI.Container,
     config: types.IMyCanvasConfig,
     leftPadding: number,
     whiteKeyWidth: number,
@@ -18,9 +19,8 @@ export default class FlashingLightsBottomTiles {
     this._container = new PIXI.Container();
     this._columns = [];
 
-    console.log("Constructing new Flashing Lights Bottom Tiles");
-    this._app.stage.addChild(this._container);
-    this._app.stage.setChildIndex(this._container, 4);
+    stage.addChild(this._container);
+    stage.setChildIndex(this._container, 4);
 
     const circle0 = initCircle(whiteKeyWidth * 5, 0.7, this._app);
     const circle1 = initCircle(whiteKeyWidth * 5, 0.9, this._app);
@@ -51,21 +51,7 @@ export default class FlashingLightsBottomTiles {
     });
   }
 
-  draw() {
-    for (let i = 0; i < this._columns.length - 1; i++) {
-      // flash and unflash tiles
-      const spriteToFlash = getRandomInt(0, 2);
-      const targetNote: boolean = myMidiPlayer.playingNotes.has(i)
-        ? true
-        : false;
-      for (let j = 0; j < this._columns[i].length; j++) {
-        this._columns[i][j].visible = targetNote && j === spriteToFlash;
-      }
-    }
-  }
-
   destroy() {
-    console.log("Destroying flashing bottom tiles");
     this._container.destroy({
       children: true,
       texture: true,
@@ -102,7 +88,7 @@ function gradient(
 function initCircle(
   width: number,
   widthPercent: number,
-  app: PIXI.Application
+  app: PIXI.Renderer
 ): PIXI.Texture {
   const circle = new PIXI.Graphics();
   circle.beginTextureFill({
@@ -116,7 +102,7 @@ function initCircle(
   circle.alpha = 0.6;
   circle.drawRect(0, 0, width, width);
   // @ts-ignore
-  const texture = app.renderer.generateTexture(circle);
+  const texture = app.generateTexture(circle);
   circle.destroy({ children: true, texture: true, baseTexture: true });
   return texture;
 }

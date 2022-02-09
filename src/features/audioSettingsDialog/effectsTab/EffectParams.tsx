@@ -8,6 +8,7 @@ import MenuItem from "@mui/material/MenuItem";
 
 import * as types from "types";
 import myMidiPlayer from "audio";
+import myEffects from "audio/instruments/effects";
 
 interface IRange {
   min: number;
@@ -103,14 +104,14 @@ interface IEffectParams {
   effectName: types.AvailableEffectsNames;
   fx: types.AvailableEffects;
   fxIndex: number;
-  forceLocalRender: types.forceLocalRender;
+  requireRender: Function;
 }
 
 export default function EffectParams({
   effectName,
   fx,
   fxIndex,
-  forceLocalRender,
+  requireRender,
 }: IEffectParams): JSX.Element {
   return (
     <div>
@@ -136,12 +137,12 @@ export default function EffectParams({
                 <CustomSelect
                   value={value}
                   onChange={(e) => {
-                    myMidiPlayer.myTonejs?.changeFxSettings(
+                    myEffects.changeFxSettings(
                       fxIndex,
                       param,
                       e.target.value
                     );
-                    forceLocalRender(true);
+                    requireRender();
                   }}
                   items={SELECT_OPTIONS_MAP[param]}
                 />
@@ -161,12 +162,12 @@ export default function EffectParams({
                   // }
                   valueLabelFormat={(x) => x.toFixed(2)}
                   onChange={(e, newValue) => {
-                    myMidiPlayer.myTonejs?.changeFxSettings(
+                    myEffects.changeFxSettings(
                       fxIndex,
                       param,
                       newValue
                     );
-                    forceLocalRender(true);
+                    requireRender();
                   }}
                 />
               )}

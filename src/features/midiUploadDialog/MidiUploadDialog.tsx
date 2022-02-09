@@ -88,9 +88,11 @@ export default function MidiUploadDialog({
       await storageRef.child(`midi/${resp.id}.mid`).put(acceptedFiles[0]);
       enqueueSnackbar("Upload successful", { variant: "success" });
       history.push(`${Pages.Player}/${resp.id}`);
-    } catch (e: any) {
+    } catch (e) {
       console.error({ e });
-      enqueueSnackbar(e.message, { variant: "error" });
+      if (e instanceof Error) {
+        enqueueSnackbar(e.message, { variant: "error" });
+      }
     }
     setOpen(false);
   }

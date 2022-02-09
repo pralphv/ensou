@@ -1,27 +1,28 @@
 import * as PIXI from "pixi.js";
+import { Transport } from "tone";
 
 import { convertMidiTickToCanvasHeight } from "../utils";
 import { IMyCanvasConfig } from "../types";
 import myMidiPlayer from "audio";
 
 export default class BeatLines {
-  _app: PIXI.Application;
+  _app: PIXI.Renderer;
   _container: PIXI.Container;
   _sprites: PIXI.Sprite[];
   _config: IMyCanvasConfig;
   _noOfSprites: number;
 
-  constructor(app: PIXI.Application, config: IMyCanvasConfig) {
+  constructor(app: PIXI.Renderer, stage: PIXI.Container, config: IMyCanvasConfig) {
     // probably should calculate how many beat lines there would be on the screen given a song
     this._app = app;
     this._container = new PIXI.Container();
     this._config = config;
-    this._app.stage.addChild(this._container);
-    this._app.stage.setChildIndex(this._container, 0);
+    stage.addChild(this._container);
+    stage.setChildIndex(this._container, 0);
 
     const line = drawLine(app.screen.width);
     // @ts-ignore
-    const texture = app.renderer.generateTexture(line);
+    const texture = app.generateTexture(line);
     this._sprites = [];
 
     for (let i = 0; i < 20; i++) {
@@ -37,12 +38,12 @@ export default class BeatLines {
     line.destroy({ children: true, baseTexture: true, texture: true });
   }
 
-  draw(currentTick: number) {
-    const ticksPerBar = myMidiPlayer.getTicksPerBeat() * 4;
+  draw(tick: number) {
+    const ticksPerBar = myMidiPlayer.getPPQ() * 4;
     const startTick =
-      Math.ceil(currentTick / ticksPerBar) * ticksPerBar;
+      Math.ceil(tick / ticksPerBar) * ticksPerBar;
     for (let i = 0; i < this._noOfSprites; i++) {
-      const y = convertMidiTickToCanvasHeight(startTick + ticksPerBar * i);
+      const y = convertMidiTickToCanvasHeight(startTick + ticksPerBar * i, tick);
       this._sprites[i].position.y = y;
 
       if (y < 0) {
@@ -52,7 +53,6 @@ export default class BeatLines {
   }
 
   destroy() {
-    // console.log("Destroying beat lines");
     this._container.destroy({
       baseTexture: true,
       children: true,

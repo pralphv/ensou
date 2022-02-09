@@ -6,20 +6,20 @@ import AddCircleIcon from "@mui/icons-material/AddCircle";
 import * as types from "types";
 
 export interface IAddInstrumentButtonProps {
-  forceLocalRender: types.forceLocalRender;
+  requireRender: Function;
   addInstrument: types.IMidiFunctions["trackFxApi"]["addInstrument"];
 }
 
 export default function AddInstrumentButton({
   addInstrument,
-  forceLocalRender,
+  requireRender,
 }: IAddInstrumentButtonProps): JSX.Element {
   return (
     <IconButton
       size="small"
       onClick={() => {
         addInstrument();
-        forceLocalRender();
+        requireRender();
       }}
     >
       <AddCircleIcon />

@@ -4,19 +4,18 @@ import { Typography } from "@mui/material";
 import InputLabel from "@mui/material/InputLabel";
 import Slider from "@mui/material/Slider";
 
-import myMidiPlayer from "audio";
-import * as types from "types";
+import instruments from "audio/instruments";
 
 interface IOtherSettingsProps {
-  forceLocalRender: types.forceLocalRender;
+  requireLocal: Function;
   synthIndex: number;
 }
 
 export default function OtherSettings({
-  forceLocalRender,
+  requireLocal,
   synthIndex,
 }: IOtherSettingsProps) {
-  const settings = myMidiPlayer.myTonejs?.getSynthSettings(synthIndex)?.others;
+  const settings = instruments.myPolySynth.getSynthSettings(synthIndex).others;
 
   return (
     <div>
@@ -31,12 +30,12 @@ export default function OtherSettings({
             step={1}
             max={60}
             onChange={(e, newValue) => {
-              myMidiPlayer.myTonejs?.setSynthSettingsOther(
+              instruments.myPolySynth.setSynthSettingsOther(
                 "detune",
                 newValue,
                 synthIndex
               );
-              forceLocalRender();
+              requireLocal();
             }}
             valueLabelDisplay="auto"
           />
@@ -48,12 +47,12 @@ export default function OtherSettings({
             step={1}
             max={30}
             onChange={(e, newValue) => {
-              myMidiPlayer.myTonejs?.setSynthSettingsOther(
+              instruments.myPolySynth.setSynthSettingsOther(
                 "volume",
                 newValue,
                 synthIndex
               );
-              forceLocalRender();
+              requireLocal();
             }}
             valueLabelDisplay="auto"
           />

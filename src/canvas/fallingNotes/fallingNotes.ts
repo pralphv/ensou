@@ -1,11 +1,10 @@
 import * as PIXI from "pixi.js";
-import * as types from "audio/types";
 import { PIANO_TUNING } from "audio/constants";
 import { IMyCanvasConfig } from "../types";
 import myMidiPlayer from "audio";
-
+import {noteTextLocalStorage} from "utils/localStorageUtils"
 export default class FallingNotes {
-  _app: PIXI.Application;
+  _app: PIXI.Renderer;
   _container: PIXI.Container;
   _fallingNotes: IFallingNotes[];
   _totalFallingNotes: number;
@@ -14,57 +13,62 @@ export default class FallingNotes {
   _canvasNoteScale: number;
   _textArray: PIXI.Text[];
   isTextOn: boolean;
+  upperLimit: number;
+  onChange: () => void;
 
   constructor(
-    app: PIXI.Application,
-    groupedNotes: types.GroupedNotes[],
+    app: PIXI.Renderer,
+    stage: PIXI.Container,
     config: IMyCanvasConfig,
     leftPadding: number,
     whiteKeyWidth: number,
-    blackKeyWidth: number
+    blackKeyWidth: number,
+    onChange: () => void
   ) {
     this._app = app;
     this._bottomTileHeight = config.bottomTileHeight;
     this._canvasNoteScale = config.canvasNoteScale;
+    this.onChange = onChange;
     this._screenHeight = app.screen.height;
     this._container = new PIXI.Container();
     this._textArray = [];
-    this.isTextOn = false;
+    this.isTextOn = noteTextLocalStorage.getNoteText() || false;  // need to be in localstorage
 
     this._fallingNotes = [];
     this._totalFallingNotes = 0;
-    console.log("Constructing new Falling Notes");
     // setIsLoading(true);
     const color1 = "#63F0FF";
     const color2 = "#35D1FC";
 
-    this._app.stage.addChild(this._container);
-    this._app.stage.setChildIndex(this._container, 2);
+    stage.addChild(this._container);
+    stage.setChildIndex(this._container, 2);
     const pianoNoteXMap = createPianoNoteXMap(whiteKeyWidth, blackKeyWidth);
-
     const rectCached: RectCache = {};
-    groupedNotes.forEach((note) => {
-      const on = note.on / this._canvasNoteScale;
-      const off = note.off / this._canvasNoteScale;
+    myMidiPlayer.notes.forEach((note) => {
+      const on = note.ticks / this._canvasNoteScale;
+      const off = (note.ticks + note.durationTicks) / this._canvasNoteScale;
       const height = off - on;
-      const x = pianoNoteXMap[note.noteName].x + leftPadding;
-      const width = pianoNoteXMap[note.noteName].width;
+      const x = pianoNoteXMap[note.name].x + leftPadding;
+      const width = pianoNoteXMap[note.name].width;
       const cacheKey = `${height}_${width}`;
       if (!rectCached[cacheKey]) {
         const rect = initRectangle(width + 1, height, color1, color2);
         rectCached[cacheKey] = rect;
       }
       // @ts-ignore
-      const texture = app.renderer.generateTexture(rectCached[cacheKey]);
+      const texture = app.generateTexture(rectCached[cacheKey]);
       const rectSprite = new PIXI.Sprite(texture);
       rectSprite.visible = false;
-      const text = new PIXI.Text(note.noteName.slice(0, -1), {
+      const text = new PIXI.Text(note.name.slice(0, -1), {
         fontFamily: "Helvetica",
         fontSize: Math.min(width * 0.8, 12),
         fill: "#2D353F",
         align: "center",
         fontWeight: 600,
       });
+      if (!this.isTextOn) {
+        text.visible = false;
+      }
       this._textArray.push(text);
       rectSprite.addChild(text);
       // text.anchor.x = 0.5;
@@ -77,19 +81,16 @@ export default class FallingNotes {
       rect.destroy({ children: true, texture: true, baseTexture: true });
     });
     this._totalFallingNotes = this._fallingNotes.length;
-    this.hideText();
+    this.upperLimit = myMidiPlayer.getPPQ() * 4 * 8; // assume 4 beats per bar, show 3 bars
   }
 
-  draw(currentTick: number) {
-    const upperLimit = myMidiPlayer.ticksPerBeat * 4 * 8; // assume 4 beats per bar, show 3 bars
+  draw(tick: number) {
     for (const note of this._fallingNotes) {
       if (
-        currentTick >=
-        note.on * this._canvasNoteScale - upperLimit &&
-        currentTick <= note.off * this._canvasNoteScale
+        tick >= note.on * this._canvasNoteScale - this.upperLimit &&
+        tick <= note.off * this._canvasNoteScale
       ) {
-        const on =
-          note.on - currentTick / this._canvasNoteScale;
+        const on = note.on - tick / this._canvasNoteScale;
         note.rectSprite.position.x = note.x;
         note.rectSprite.position.y =
           this._screenHeight - on - note.height - this._bottomTileHeight;
@@ -105,6 +106,8 @@ export default class FallingNotes {
       text.visible = true;
     }
     this.isTextOn = true;
+    this.onChange();
+    noteTextLocalStorage.setNoteText(true);
   }
 
   hideText() {
@@ -112,6 +115,8 @@ export default class FallingNotes {
       text.visible = false;
     }
     this.isTextOn = false;
+    this.onChange();
+    noteTextLocalStorage.setNoteText(false);
   }
 
   getIsTextOn() {
@@ -119,7 +124,6 @@ export default class FallingNotes {
   }
 
   destroy() {
-    console.log("Destroying falling notes");
     this._container.destroy({
       children: true,
       texture: true,
@@ -137,7 +141,7 @@ interface IFallingNotes {
 }
 
 interface IPianoNoteXMap {
-  [note: string]: IPianoNote;
+  [key: string]: IPianoNote;
 }
 
 interface IPianoNote {

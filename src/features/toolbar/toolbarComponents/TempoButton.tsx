@@ -26,9 +26,8 @@ export default function TempoButton(): JSX.Element {
     <div>
       <CustomButton
         onClick={handleClick}
-        // style={{ width: BUTTON_WIDTH, height: BUTTON_HEIGHT }}
         size="small"
-        disabled={myMidiPlayer.getIsPlaying() === true}
+        disabled={!myMidiPlayer.isReady || myMidiPlayer.getIsPlaying() === true}
       >
         <Typography variant="body2">{value}%</Typography>
       </CustomButton>

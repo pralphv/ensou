@@ -14,7 +14,7 @@ export default function VolumeButton(): JSX.Element {
 
   let IconToShow;
 
-  const volume = myMidiPlayer?.myTonejs?.getVolume() || 0;
+  const volume = myMidiPlayer?.getVolume() || 0;
 
   if (volume <= -15) {
     IconToShow = VolumeOffIcon;
@@ -27,9 +27,9 @@ export default function VolumeButton(): JSX.Element {
   function onClickVolume() {
     if (volume >= -15) {
       setMuteVolume(volume);
-      myMidiPlayer?.myTonejs?.changeVolume(-16);
+      myMidiPlayer?.setVolume(-16);
     } else {
-      myMidiPlayer?.myTonejs?.changeVolume(muteVolume);
+      myMidiPlayer?.setVolume(muteVolume);
     }
   }
 
@@ -51,7 +51,7 @@ export default function VolumeButton(): JSX.Element {
           size="small"
           color="secondary"
           onChange={(event: any, newValue: number | number[]) => {
-            myMidiPlayer?.myTonejs?.changeVolume(newValue as number);
+            myMidiPlayer?.setVolume(newValue as number);
           }}
           max={0}
           min={-15}

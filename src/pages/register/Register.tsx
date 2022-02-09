@@ -71,9 +71,11 @@ export default function Register({ history }: HistoryProps) {
         variant: "success",
       });
       history.push(Pages.Home);
-    } catch (e: any) {
-      console.error(e);
-      setError(e.message);
+    } catch (e) {
+      if (e instanceof Error) {
+        console.error(e);
+        setError(e.message);
+      }
     }
     setRegistering(false);
   }

@@ -12,14 +12,10 @@ import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 
-import { SamplerOptions, Synth } from "tone";
-import { useSnackbar } from "notistack";
+import { Synth } from "tone";
 
-import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
-import { convertArrayBufferToAudioContext } from "utils/helper";
 import { PIANO_TUNING } from "audio/constants";
 import myMidiPlayer from "audio";
-import * as types from "types";
 
 let audioCtx;
 const HAS_MEDIA_SUPPORT: boolean = !!navigator.mediaDevices.getUserMedia;
@@ -76,7 +72,6 @@ class MyMediaRecorder {
     this.mediaRecorder = new MediaRecorder(stream);
     this.chunks = [];
     this.mediaRecorder.ondataavailable = (e: BlobEvent) => {
-      console.log(e.data)
       this.chunks.push(e.data);
     };
     this.mediaRecorder.onstop = (e) => {
@@ -154,7 +149,7 @@ function Accepted({
   mediaRecorderRef,
 }: IAcceptedProps): JSX.Element {
   const [recording, setRecording] = useState<boolean>(false);
-  const [chosenNote, setChosenNote] = useState<string>("A5");
+  const [chosenNote, setChosenNote] = useState<string>("C4");
   const synth = new Synth().toDestination();
 
   function handleChange(event: SelectChangeEvent<string>): void {
@@ -184,13 +179,7 @@ function Accepted({
   async function handleOnApply() {
     if (mediaRecorderRef.current?.blob) {
       const arrayBuffer = await mediaRecorderRef.current.blob.arrayBuffer();
-      const arrayBufferMap = { [chosenNote]: arrayBuffer };
-      await indexedDbUtils.setLocalSamplerArrayBuffer(arrayBufferMap);
-      const sampleMap: SamplerOptions["urls"] =
-      await convertArrayBufferToAudioContext(arrayBufferMap);
-      console.log({arrayBufferMap, sampleMap})
-      myMidiPlayer.setLocalSampler(sampleMap);
-      myMidiPlayer.setSamplerSource(types.SamplerSourceEnum.recorded);
+      await myMidiPlayer.useRecordedSound(chosenNote, arrayBuffer);
       onOk();
     }
   }

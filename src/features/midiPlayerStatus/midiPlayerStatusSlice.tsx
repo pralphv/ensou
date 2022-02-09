@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { MidiStatus } from "./constants";
-import { MidiPlayerStatus, PlayRange } from "./types";
+import { MidiPlayerStatus, loopPoints } from "./types";
 
 const initialState: MidiPlayerStatus = {
   status: MidiStatus.MidiNotLoaded,

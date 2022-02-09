@@ -1,25 +1,25 @@
 import React from "react";
 
-import grey from "@mui/material/colors/grey";
 import Grid from "@mui/material/Grid";
 import DialogContent from "@mui/material/DialogContent";
 import * as types from "types";
-import DelaySlider from "../DelaySlider";
+// import DelaySlider from "../DelaySlider";
+import instruments from "audio/instruments";
 import myMidiPlayer from "audio";
 
 import EnvelopeSettings from "./EnvelopeSettings";
 import OscillatorSettings from "./OscillatorSettings";
-import OtherSettings from "../OtherSettings";
+// import OtherSettings from "../OtherSettings";
 import SynthesizerSettings from "./SynthesizerSettings";
 import AddButton from "features/addButton/AddButton";
 import RemoveButton from "features/removeButton/RemoveButton";
 import { range } from "lodash";
 
 export interface ISynthTab {
-  forceLocalRender: types.forceLocalRender;
+  requireRender: Function;
 }
 
-export default function SynthTab({ forceLocalRender }: ISynthTab) {
+export default function SynthTab({ requireRender }: ISynthTab) {
   return (
     <DialogContent>
       <Grid
@@ -29,48 +29,36 @@ export default function SynthTab({ forceLocalRender }: ISynthTab) {
         justifyContent="center"
         alignItems="stretch"
       >
-        {myMidiPlayer.myTonejs &&
-          range(myMidiPlayer.myTonejs?.polySynths.length).map((i) => (
-            <div key={i}>
-              <Grid
-                item
-                sx={{
-                  width: "160px",
+        {range(instruments.myPolySynth.polySynths.length).map((i) => (
+          <div key={i}>
+            <Grid
+              item
+              sx={{
+                width: "160px",
+              }}
+            >
+              <SynthesizerSettings
+                requireRender={requireRender}
+                synthIndex={i}
+              />
+              <EnvelopeSettings requireRender={requireRender} synthIndex={i} />
+              <OscillatorSettings
+                requireRender={requireRender}
+                synthIndex={i}
+              />
+              <RemoveButton
+                onClick={() => {
+                  instruments.myPolySynth.remove(i);
+                  requireRender();
                 }}
-              >
-                <SynthesizerSettings
-                  forceLocalRender={forceLocalRender}
-                  synthIndex={i}
-                />
-                <EnvelopeSettings
-                  forceLocalRender={forceLocalRender}
-                  synthIndex={i}
-                />
-                <OscillatorSettings
-                  forceLocalRender={forceLocalRender}
-                  synthIndex={i}
-                />
-                <DelaySlider
-                  forceLocalRender={forceLocalRender}
-                  synthIndex={i}
-                />
-                <OtherSettings
-                  forceLocalRender={forceLocalRender}
-                  synthIndex={i}
-                />
-                <RemoveButton
-                  onClick={() => {
-                    myMidiPlayer.myTonejs?.removeInstrument(i);
-                    forceLocalRender();
-                  }}
-                />
-              </Grid>
-            </div>
-          ))}
+              />
+            </Grid>
+          </div>
+        ))}
         <AddButton
           onClick={() => {
-            myMidiPlayer.myTonejs?.addInstrument();
-            forceLocalRender();
+            myMidiPlayer.addSynth();
+            requireRender();
           }}
         />
       </Grid>

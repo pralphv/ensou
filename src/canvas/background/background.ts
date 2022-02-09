@@ -5,14 +5,23 @@ import BottomTiles from "./bottomTiles";
 import * as types from "../types";
 
 export default class Background {
-  _app: PIXI.Application;
+  _app: PIXI.Renderer;
+  _stage: PIXI.Container;
   _container: PIXI.Container;
   bottomTiles: BottomTiles;
   _config: types.IMyCanvasConfig;
+  onChange: () => void;  // might be bad idea. should refactor
 
-  constructor(app: PIXI.Application, config: types.IMyCanvasConfig) {
+  constructor(
+    app: PIXI.Renderer,
+    stage: PIXI.Container,
+    config: types.IMyCanvasConfig,
+    onChange: () => void
+  ) {
     this._app = app;
-    this.bottomTiles = new BottomTiles(this._app, config);
+    this._stage = stage;
+    this.onChange = onChange;
+    this.bottomTiles = new BottomTiles(this._app, this._stage, config, onChange);
     this.drawGuidingLines();
     this._container = new PIXI.Container();
     this._config = config;
@@ -23,7 +32,7 @@ export default class Background {
   resetBottomTiles(textOn: boolean = false) {
     this.bottomTiles.destroy();
     // recreate bottom tiles with latest key bindings
-    this.bottomTiles = new BottomTiles(this._app, this._config);
+    this.bottomTiles = new BottomTiles(this._app, this._stage, this._config, this.onChange);
     if (textOn) {
       this.bottomTiles.showText();
     }
@@ -31,12 +40,12 @@ export default class Background {
 
   drawGuidingLines() {
     let container = new PIXI.Container();
-    this._app.stage.addChild(container);
-    this._app.stage.setChildIndex(container, 0);
+    this._stage.addChild(container);
+    this._stage.setChildIndex(container, 0);
 
     const horizontalLine = drawLine(this._app.screen.height);
     // @ts-ignore
-    const texture = this._app.renderer.generateTexture(horizontalLine);
+    const texture = this._app.generateTexture(horizontalLine);
 
     let x: number = 0;
     let lastI: number; // to prevent duplicate notes from b and #
@@ -66,7 +75,6 @@ export default class Background {
   }
 
   destroy() {
-    console.log("Destroying beat lines");
     this._container.destroy({
       children: true,
       texture: true,

@@ -4,26 +4,21 @@ import myMidiPlayer from "audio";
 import * as types from "../types";
 
 export default class FlashingBottomTiles {
-  _app: PIXI.Application;
   _container: PIXI.Container;
   _columns: PIXI.Sprite[];
   constructor(
-    app: PIXI.Application,
+    app: PIXI.Renderer,
+    stage: PIXI.Container,
     config: types.IMyCanvasConfig,
     leftPadding: number,
     whiteKeyWidth: number,
     blackKeyWidth: number
   ) {
-    this._app = app;
     this._container = new PIXI.Container();
     this._columns = [];
-    console.log("Constructing new Flashing Bottom Tiles");
 
-    this._app.stage.addChild(this._container);
-    this._app.stage.setChildIndex(
-      this._container,
-      this._app.stage.children.length - 1
-    );
+    stage.addChild(this._container);
+    stage.setChildIndex(this._container, stage.children.length - 1);
 
     const whiteKey = initRectangle(whiteKeyWidth + 1, config.bottomTileHeight);
     const blackKey = initRectangle(
@@ -31,9 +26,9 @@ export default class FlashingBottomTiles {
       config.bottomTileHeight * 0.66
     );
     // @ts-ignore
-    const whiteKeyTexture = this._app.renderer.generateTexture(whiteKey);
+    const whiteKeyTexture = app.generateTexture(whiteKey);
     // @ts-ignore
-    const blackKeyTexture = this._app.renderer.generateTexture(blackKey);
+    const blackKeyTexture = app.generateTexture(blackKey);
     let x: number = leftPadding;
     let lastI: number; // to prevent duplicate notes from b and #
     Object.entries(PIANO_TUNING).forEach(([key, i]: [string, number]) => {
@@ -59,12 +54,12 @@ export default class FlashingBottomTiles {
     blackKey.destroy({ children: true, baseTexture: true, texture: true });
   }
 
-  draw() {
-    for (let i = 0; i < this._columns.length - 1; i++) {
-      // flash and unflash tiles
-      const flash: boolean = myMidiPlayer.playingNotes.has(i) ? true : false;
-      this._columns[i].visible = flash;
-    }
+  flash(i: number) {
+    this._columns[i].visible = true;
+  }
+
+  unflash(i: number) {
+    this._columns[i].visible = false;
   }
 
   unFlashAll() {
@@ -74,7 +69,6 @@ export default class FlashingBottomTiles {
   }
 
   destroy() {
-    console.log("Destroying flashing bottom tiles");
     this._container.destroy({
       children: true,
       texture: true,

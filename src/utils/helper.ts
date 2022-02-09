@@ -2,7 +2,8 @@ import { SamplerOptions } from "tone";
 import * as types from "types";
 
 export function validateEmail(value: string): string | undefined {
-  const regExRequirement = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+  const regExRequirement =
+    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
   const correct = regExRequirement.test(value);
   let error;
   if (!correct) {
@@ -23,17 +24,20 @@ export function getAudioContext(): AudioContext {
 }
 
 export async function convertArrayBufferToAudioContext(
-  arrayBufferMap: types.ArrayBufferMap
+  arrayBufferMap: types.ArrayBufferMap,
+  onProcessing?: (process: number) => void
 ) {
   const keys = Object.keys(arrayBufferMap);
   const sampleMap: SamplerOptions["urls"] = {};
-  for (let i = 0; i < keys.length; i++) {
+  const context = getAudioContext();
+  const total = keys.length;
+  for (let i = 0; i < total; i++) {
     const key = keys[i];
     // @ts-ignore
     const arrayBuffer = arrayBufferMap[key];
-    const context = getAudioContext();
     const audio = await context.decodeAudioData(arrayBuffer);
     sampleMap[key] = audio;
+    onProcessing?.(i / total);
   }
   return sampleMap;
 }

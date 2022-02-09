@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 
 import Button from "@mui/material/Button";
 import DialogActions from "@mui/material/DialogActions";
@@ -9,10 +9,8 @@ import { useSnackbar } from "notistack";
 import { useDropzone } from "react-dropzone";
 
 import * as types from "types";
-import * as indexedDbUtils from "utils/indexedDbUtils/indexedDbUtils";
-import { SamplerOptions } from "tone";
-import { convertArrayBufferToAudioContext } from "utils/helper";
 import myMidiPlayer from "audio";
+import instruments from "audio/instruments";
 
 interface ILocalSamplesTabProps {
   setOpen: (bool: boolean) => void;
@@ -35,7 +33,6 @@ function checkValidMusicNote(note: string) {
 }
 
 export default function LocalSamplesTab({ setOpen }: ILocalSamplesTabProps) {
-  const [sampleMap, setSampleMap] = useState<SamplerOptions["urls"]>();
   const { enqueueSnackbar } = useSnackbar();
 
   async function handleOnDropAccepted(e: any) {
@@ -51,10 +48,8 @@ export default function LocalSamplesTab({ setOpen }: ILocalSamplesTabProps) {
       arrayBufferMap[note] = arrayBuffer;
     }
     if (Object.keys(arrayBufferMap).length >= 1) {
-      await indexedDbUtils.setLocalSamplerArrayBuffer(arrayBufferMap);
-      const sampleMap: SamplerOptions["urls"] =
-        await convertArrayBufferToAudioContext(arrayBufferMap);
-      setSampleMap(sampleMap);
+      await instruments.mySampler.processLocalSample(arrayBufferMap);
+      myMidiPlayer.useLocalSample();
       enqueueSnackbar("Successfully loaded samples", { variant: "success" });
     } else {
       enqueueSnackbar("No valid samples were loaded", { variant: "warning" });
@@ -64,14 +59,6 @@ export default function LocalSamplesTab({ setOpen }: ILocalSamplesTabProps) {
   function handleOnDropRejected(e: any) {
     const errorMsg: string = e[0].errors[0].message;
     enqueueSnackbar(errorMsg, { variant: "error" });
-  }
-
-  function handleOnSubmit() {
-    if (sampleMap) {
-      myMidiPlayer.setLocalSampler(sampleMap);
-      myMidiPlayer.setSamplerSource(types.SamplerSourceEnum.local);
-      setOpen(false);
-    }
   }
 
   const { acceptedFiles, getRootProps, getInputProps, isDragActive } =
@@ -108,10 +95,7 @@ export default function LocalSamplesTab({ setOpen }: ILocalSamplesTabProps) {
       </DialogContent>
       <DialogActions>
         <Button onClick={() => setOpen(false)} color="primary">
-          Cancel
-        </Button>
-        <Button onClick={handleOnSubmit} color="primary" variant="contained">
-          OK
+          Close
         </Button>
       </DialogActions>
     </div>

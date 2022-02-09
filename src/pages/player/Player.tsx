@@ -10,8 +10,8 @@ import myCanvas from "canvas";
 import progressBar from "progressBar";
 import Toolbar from "features/toolbar/Toolbar";
 
+import instruments from "audio/instruments";
 import myMidiPlayer from "audio";
-import game from "game";
 import { useParams } from "react-router";
 
 import { Helmet } from "react-helmet";
@@ -30,6 +30,11 @@ interface ISongMetaData {
   date: Date;
 }
 
+function formatProgress(value: number): string {
+  // 0.01 -> 1%
+  return `${Math.round(value * 100)}%`;
+}
+
 export default function Player(): JSX.Element {
   const [instrumentLoading, setInstrumentLoading] = useState<boolean>(false);
   const [midiLoading, setMidiLoading] = useState<boolean>(false);
@@ -39,9 +44,8 @@ export default function Player(): JSX.Element {
   const [isHorizontal, setIsHorizontal] = useState<boolean>(false);
   const [forceRender, setForceRender] = useState<number>(0); // for re-render on volume change
   const maximizableElement = React.useRef(null);
-  const [isFullscreen, setIsFullscreen, isError] = useFullscreenStatus(
-    maximizableElement
-  );
+  const [isFullscreen, setIsFullscreen, isError] =
+    useFullscreenStatus(maximizableElement);
   const urlParams: any = useParams();
   const firestore = useFirestore();
 
@@ -68,48 +72,44 @@ export default function Player(): JSX.Element {
         setPlayerStatus("");
         setMidiLoading(false);
       });
-      // download midi first
-      await myMidiPlayer.downloadMidiFromFirebase(songId);
 
-      myMidiPlayer.on("playing", () => {
-        myCanvas.render();
-        progressBar.render();
-        if (myMidiPlayer.practiceMode) {
-          game.render();
-        }
-      });
       myMidiPlayer.on("actioned", () => {
         forceRerenderRef.current();
       });
-      myMidiPlayer.on("willSetTone", () => setPlayerStatus("Setting tone..."));
-      myMidiPlayer.on("toneSet", () => setPlayerStatus(""));
-      myMidiPlayer.on("willMount", () => {
-        setInstrumentLoading(true);
-        setPlayerStatus("0%"); // reset
-      });
-      myMidiPlayer.on("mounted", () => {
-        setInstrumentLoading(false);
-        setPlayerStatus("");
-      });
       myMidiPlayer.on("import", () => {
+        // bug: does not show loading spinner because main thread is occupied by loading midi
         setPlayerStatus("Importing...");
       });
+
       myMidiPlayer.on("imported", () => {
-        // need to rebuild notes here assuming this is import midi
         setPlayerStatus("");
       });
-      myMidiPlayer.on("downloadingSamples", (status: string) => {
-        setPlayerStatus(status);
+
+      instruments.mySampler.on("onSampleDownloading", (progress) => {
+        setPlayerStatus(`Downloading samples... ${formatProgress(progress)}`);
+        setInstrumentLoading(true);
       });
-      await myMidiPlayer.init();
-      myMidiPlayer.myTonejs?.on("actioned", () => forceRerenderRef.current());
+
+      instruments.mySampler.on("onApplyingSamples", (progress) => {
+        setPlayerStatus(
+          `Applying samples. This may take a while... ${formatProgress(
+            progress
+          )}`
+        );
+      });
+      instruments.mySampler.on("onAppliedSamples", () => {
+        setPlayerStatus("");
+        setInstrumentLoading(false);
+      });
 
       myCanvas.on(
         "pointermove",
         debounce(() => {
-          setIsHovering(false);
+          handleOnLeave();
         }, 2000)
       );
+      // download midi first. do this after the download events are set
+      await myMidiPlayer.downloadMidiFromFirebase(songId);
     }
     async function fetchSongDetails() {
       const ref = await firestore.collection("midi").doc(songId);
@@ -123,10 +123,12 @@ export default function Player(): JSX.Element {
     initMidiPlayer();
     fetchSongDetails();
     return function cleanup() {
-      myCanvas.disconnectHTML();
-      progressBar.disconnectHTML();
-      midiPlayer.stop();
-      midiPlayer.disablePracticeMode();
+      midiPlayer.cleanup();
+      setTimeout(() => {
+        // leave some buffer so all scheduled events stop
+        myCanvas.disconnectHTML();
+        progressBar.disconnectHTML();
+      }, 500);
     };
   }, []);
 
@@ -169,20 +171,22 @@ export default function Player(): JSX.Element {
   );
   const progressBarMemo = useMemo(
     () => (
-      <div className="progress-bar">
-        <div
-          ref={(thisDiv: HTMLDivElement) => {
-            if (thisDiv) {
-              // undefined on cleanup
-              progressBar.connectHTML(thisDiv);
-            }
-          }}
-          onMouseEnter={handleOnEnter}
-          onMouseLeave={handleOnLeave}
-        ></div>
-      </div>
+      <div
+        className={clsx({
+          "progress-bar": true,
+          "progress-bar-fullscreen": isFullscreen,
+        })}
+        ref={(thisDiv: HTMLDivElement) => {
+          if (thisDiv) {
+            // undefined on cleanup
+            progressBar.connectHTML(thisDiv);
+          }
+        }}
+        onMouseEnter={handleOnEnter}
+        onMouseLeave={handleOnLeave}
+      ></div>
     ),
-    [isFullscreen]
+    [isFullscreen, isHovering]
   );
   const toolbarMemo = useMemo(() => {
     let opacity = myMidiPlayer.getIsPlaying() ? 0 : 1;
@@ -247,7 +251,7 @@ export default function Player(): JSX.Element {
 
   function handleOnEnter() {
     setIsHovering(true);
-    progressBar.hide(false);
+    progressBar.show();
   }
 
   function handleOnLeave() {
@@ -258,9 +262,12 @@ export default function Player(): JSX.Element {
   }
 
   return (
-    <div className="player">
+    <div>
       {helmentMemo}
-      <div ref={maximizableElement}>
+      <div
+        ref={maximizableElement}
+        className={clsx({ "parent-container": isFullscreen })}
+      >
         {canvasMemo}
         {progressBarMemo}
         {toolbarMemo}

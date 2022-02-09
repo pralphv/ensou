@@ -1,15 +1,13 @@
-.player {
-  width: 100vw;
-  left: 0;
-  position: absolute;
-  /* padding: 0.5%; */
+.parent-container {
+  display: flex;
+  align-items: center
 }
 
 .progress-bar {
   margin: 0.5em 0em 0.1em 0em;
   width: 100vw;
   transform: scaleY(0.5);
-  top: 50%;
+  /* top: 50%; */
 }
 
 .progress-bar:hover {
@@ -17,15 +15,20 @@
   transform: scaleY(1);
 }
 
+.progress-bar-fullscreen {
+  position:absolute;
+  bottom: 2.5em;
+}
+
 .fullscreen-enabled canvas {
-  height: 95vh;
+  aspect-ratio: 16 / 9;
   width: 100vw;
 }
 
 .fullscreen-enabled .horizontal canvas {
-  height: 100vw !important;
-  width: 95vh !important;
-  margin-top: -5vh !important;
+  /* height: 100vw !important; */
+  /* width: 95vh !important; */
+  /* margin-top: -5vh !important; */
 }
 
 .vertical canvas {

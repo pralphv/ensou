@@ -4,11 +4,12 @@ import myMidiPlayer from "audio";
 import * as types from "../types";
 
 export default class FlashingColumns {
-  _app: PIXI.Application;
+  _app: PIXI.Renderer;
   _container: PIXI.Container;
   _columns: PIXI.Sprite[];
   constructor(
-    app: PIXI.Application,
+    app: PIXI.Renderer,
+    stage: PIXI.Container,
     isHorizontal: boolean = false,
     config: types.IMyCanvasConfig,
     leftPadding: number,
@@ -18,23 +19,22 @@ export default class FlashingColumns {
     this._app = app;
     this._container = new PIXI.Container();
     this._columns = [];
-    console.log("Constructing new Flashing Columns");
     const height = isHorizontal
       ? this._app.screen.width
       : this._app.screen.height;
     // const width = isHorizontal
       // ? this._app.screen.height
       // : this._app.screen.width;
-    this._app.stage.addChild(this._container);
-    this._app.stage.setChildIndex(this._container, 1);
+    stage.addChild(this._container);
+    stage.setChildIndex(this._container, 1);
 
     const whiteKeyRect = initRectangle(whiteKeyWidth, height);
     const blackKeyRect = initRectangle(blackKeyWidth, height);
 
     // @ts-ignore
-    const whiteKeyTexture = this._app.renderer.generateTexture(whiteKeyRect);
+    const whiteKeyTexture = this._app.generateTexture(whiteKeyRect);
     // @ts-ignore
-    const blackKeyTexture = this._app.renderer.generateTexture(blackKeyRect);
+    const blackKeyTexture = this._app.generateTexture(blackKeyRect);
     let x: number = leftPadding;
     let lastI: number; // to prevent duplicate notes from b and #
 
@@ -63,12 +63,12 @@ export default class FlashingColumns {
     blackKeyRect.destroy({ children: true, texture: true, baseTexture: true });
   }
 
-  draw() {
-    for (let i = 0; i < this._columns.length - 1; i++) {
-      // flash and unflash tiles
-      const flash: boolean = myMidiPlayer.playingNotes.has(i) ? true : false;
-      this._columns[i].visible = flash;
-    }
+  flash(i: number) {
+    this._columns[i].visible = true;
+  }
+
+  unflash(i: number) {
+    this._columns[i].visible = false;
   }
 
   unFlashAll() {
@@ -78,8 +78,6 @@ export default class FlashingColumns {
   }
 
   destroy() {
-    console.log("Destroying flashing columns");
-
     this._container.destroy({
       children: true,
       texture: true,

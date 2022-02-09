@@ -15,6 +15,7 @@ import AudioSettingsDialog from "features/audioSettingsDialog/AudioSettingsDialo
 import KeyBindingsDialog from "../keyBindingsDialog/KeyBindingsDialog";
 import myMidiPlayer from "audio";
 import myCanvas from "canvas";
+import metronome from "audio/metronome";
 
 interface ISettingsMenu {
   open: boolean;
@@ -23,13 +24,10 @@ interface ISettingsMenu {
 export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
   const [forceLocalRenderDummy, setForceLocalRenderDummy] = useState<number>(0);
   const [samplerDialogOpen, setSamplerDialogOpen] = useState<boolean>(false);
-  const [
-    audioSettingsDialogOpen,
-    setAudioSettingsDialogOpen,
-  ] = useState<boolean>(false);
-  const [keySettingsDialogOpen, setKeySettingsDialogOpen] = useState<boolean>(
-    false
-  );
+  const [audioSettingsDialogOpen, setAudioSettingsDialogOpen] =
+    useState<boolean>(false);
+  const [keySettingsDialogOpen, setKeySettingsDialogOpen] =
+    useState<boolean>(false);
 
   /**
    * for rerendering settings because checking objects
@@ -37,24 +35,26 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
    * hacky i know
    */
   function forceLocalRender(skipWait?: boolean) {
-    if (skipWait) {
-      setForceLocalRenderDummy(forceLocalRenderDummy + 1);
-    } else {
-      setTimeout(() => {
-        if (!myMidiPlayer.myTonejs?.publishingChanges) {
-          console.log("waiting for change...");
-          setForceLocalRenderDummy(forceLocalRenderDummy + 1);
-          return;
-        } else {
-          forceLocalRender(false);
-        }
-      }, 100);
-    }
+    setForceLocalRenderDummy(forceLocalRenderDummy + 1);
+
+    // if (skipWait) {
+    //   setForceLocalRenderDummy(forceLocalRenderDummy + 1);
+    // } else {
+    //   setTimeout(() => {
+    //     if (!myMidiPlayer.myTonejs?.publishingChanges) {
+    //       console.log("waiting for change...");
+    //       setForceLocalRenderDummy(forceLocalRenderDummy + 1);
+    //       return;
+    //     } else {
+    //       forceLocalRender(false);
+    //     }
+    //   }, 100);
+    // }
   }
 
-  async function handleOnChangeDialog() {
+  function handleOnChangeDialog() {
     if (myMidiPlayer.checkIfSampler()) {
-      myMidiPlayer.setSamplerSource(types.SamplerSourceEnum.synth);
+      myMidiPlayer.activatePolySynth();
     } else {
       setSamplerDialogOpen(true);
     }
@@ -62,10 +62,10 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
   }
 
   function handleOnChangeMetronome() {
-    if (myMidiPlayer.getIsMetronome()) {
-      myMidiPlayer.setIsMetronome(false);
+    if (metronome.activated) {
+      metronome.deactivate();
     } else {
-      myMidiPlayer.setIsMetronome(true);
+      metronome.activate();
     }
     forceLocalRender();
   }
@@ -81,8 +81,8 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
     () => (
       <AudioSettingsDialog
         open={audioSettingsDialogOpen}
-        setOpen={setAudioSettingsDialogOpen}
-        forceLocalRender={forceLocalRender}
+        onClose={() => setAudioSettingsDialogOpen(false)}
+        requireRender={forceLocalRender}
       />
     ),
     [
@@ -153,14 +153,21 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
         <ListItem button>
           <ListItemText primary="Metronome" />
           <Switch
-            checked={myMidiPlayer.getIsMetronome()}
+            checked={metronome.activated}
             onChange={handleOnChangeMetronome}
+            disabled={myMidiPlayer.getIsPlaying()}
           />
         </ListItem>
         <ListItem button>
           <ListItemText primary="Zoom" />
-          <RemoveIcon onClick={myCanvas.increaseCanvasNoteScale} />
-          <AddIcon onClick={myCanvas.decreaseCanvasNoteScale} />
+          <RemoveIcon
+            onClick={myCanvas.increaseCanvasNoteScale}
+            color={myMidiPlayer.getIsPlaying() ? "disabled" : undefined}
+          />
+          <AddIcon
+            onClick={myCanvas.decreaseCanvasNoteScale}
+            color={myMidiPlayer.getIsPlaying() ? "disabled" : undefined}
+          />
         </ListItem>
         <ListItem
           button

@@ -5,25 +5,26 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 
 import myMidiPlayer from "audio";
+import instruments from "audio/instruments";
 import * as types from "types";
 
 interface ISynthesizerSettingsProps {
-  forceLocalRender: types.forceLocalRender;
+  requireRender: Function;
   synthIndex: number;
 }
 
 export default function SynthesizerSettings({
-  forceLocalRender,
+  requireRender,
   synthIndex,
 }: ISynthesizerSettingsProps) {
   return (
     <div>
       <InputLabel>Synthesizer</InputLabel>
       <Select
-        value={myMidiPlayer.myTonejs?.getSynthName(synthIndex)}
+        value={instruments.myPolySynth.getSynthName(synthIndex)}
         onChange={(e: any) => {
-          myMidiPlayer.myTonejs?.setSynthName(e.target.value, synthIndex);
-          setTimeout(forceLocalRender, 500);
+          instruments.myPolySynth?.setSynthName(e.target.value, synthIndex);
+          setTimeout(requireRender, 500);
         }}
       >
         {Object.keys(types.AvailableSynthsEnum).map((value) => (

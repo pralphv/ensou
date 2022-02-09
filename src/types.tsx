@@ -24,15 +24,14 @@ export interface IMidiFunctions {
   skipToTick: (tick: number) => void;
   restart: () => void;
   getIsPlaying: () => boolean | undefined;
-  getCurrentTick: () => number | undefined;
   getTicksPerBeat: () => number | undefined;
   getTotalTicks: () => number | undefined;
   getSongPercentRemaining: () => number | undefined;
-  loadArrayBuffer: (blob: XMLHttpRequest["response"]) => void;
+  readArrayBuffer: (blob: XMLHttpRequest["response"]) => void;
   changeVolume: (volume: number) => void;
   getVolumeDb: () => number | undefined;
   instrumentLoading: boolean;
-  playRangeApi: IPlayRangeApi;
+  loopPointsApi: IloopPointsApi;
   metronomeApi: MetronomeApi;
   loopApi: LoopApi;
   tempoApi: TempoApi;
@@ -79,9 +78,9 @@ interface ISamplerSource {
   setLocalSampler: (sampler: SamplerOptions["urls"]) => void;
 }
 
-export interface IPlayRangeApi {
-  getPlayRange: () => PlayRange;
-  setPlayRange: (playRange: PlayRange) => void;
+export interface IloopPointsApi {
+  getloopPoints: () => loopPoints;
+  setloopPoints: (loopPoints: loopPoints) => void;
 }
 
 export interface TempoApi {
@@ -101,7 +100,7 @@ export interface IGroupedNotes {
 
 export type forceRerender = () => void;
 
-export interface PlayRange {
+export interface loopPoints {
   startTick: number;
   endTick: number;
 }
@@ -278,8 +277,6 @@ export interface ITrackComponents {
   effectChain: AvailableEffects[];
   track: Track;
 }
-
-export type forceLocalRender = (skipWait?: boolean) => void;
 
 export interface IExtraConnection {
   toMaster: boolean;

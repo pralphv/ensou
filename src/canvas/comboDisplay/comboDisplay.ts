@@ -1,11 +1,11 @@
 import * as PIXI from "pixi.js";
 
 export default class ComboDisplay {
-  _app: PIXI.Application;
+  _app: PIXI.Renderer;
   _container: PIXI.Container;
   _text: PIXI.Text;
 
-  constructor(app: PIXI.Application) {
+  constructor(app: PIXI.Renderer, stage: PIXI.Container) {
     this._app = app;
     this._container = new PIXI.Container();
     this._text = new PIXI.Text("", {
@@ -22,7 +22,7 @@ export default class ComboDisplay {
     this._container.position.x = this._app.screen.width / 2;
     this._container.position.y = this._container.height;
     this._text.anchor.set(0.5);
-    this._app.stage.addChild(this._container);
+    stage.addChild(this._container);
     this._container.zIndex = 1000;
     // this.draw(100)
   }

@@ -46,8 +46,10 @@ export default function ForgotPassword({ history }: ForgotPasswordProps) {
       enqueueSnackbar("Email has been sent succesffully", {
         variant: "success",
       });
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      if (e instanceof Error) {
+        setError(e.message);
+      }
     }
     setSubmitting(false);
   }
