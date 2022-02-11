@@ -1,6 +1,7 @@
 import * as PIXI from "pixi.js";
 import { Transport } from "tone";
 import BeatLines from "./beatLines/beatlines";
+import Fps from "./fps/fps";
 import Background from "./background/background";
 import FlashingColumns from "./flashingColumns/flashingColumns";
 import FallingNotes from "./fallingNotes/fallingNotes";
@@ -32,7 +33,8 @@ class MyCanvas {
   isHovering: boolean;
   isHorizontal: boolean;
   comboDisplay: ComboDisplay;
-
+  fps: Fps;
+  
   constructor(width: number, height: number) {
     this.app = new PIXI.Renderer({
       resolution: window.devicePixelRatio || 1,
@@ -72,6 +74,7 @@ class MyCanvas {
     );
     this.highlighter = new Highlighter(this.app, this.stage, this.config);
     this.comboDisplay = new ComboDisplay(this.app, this.stage);
+    this.fps = new Fps(this.app, this.stage);
   }
 
   flash(columnIndex: number) {
@@ -245,6 +248,7 @@ class MyCanvas {
     // for flashes, see _scheduleCanvasEvents
     this.beatLines?.draw(tick);
     this.highlighter.draw(tick);
+    this.fps.draw();
     this.app.render(this.stage);
   }
 
