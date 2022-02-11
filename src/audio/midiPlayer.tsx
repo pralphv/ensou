@@ -13,6 +13,7 @@ import { Note } from "@tonejs/midi/dist/Note";
 import { TempoEvent } from "@tonejs/midi/dist/Header";
 import { PIANO_TUNING } from "../audio/constants";
 import metronome from "./metronome";
+import Fps from "./fps";
 
 // needs to be in global types
 interface ISynthOptions {
@@ -50,6 +51,7 @@ export default class MyMidiPlayer {
   originalBpm: number;
   scheduleId: number;
   _canvasEventsScheduleIds: number[];
+  fps: Fps;
 
   constructor() {
     console.log("Constructing new midi player");
@@ -104,6 +106,7 @@ export default class MyMidiPlayer {
         this.scheduleNotesToPlay();
       }
     });
+    this.fps = new Fps();
   }
 
   restartStates() {
@@ -305,13 +308,14 @@ export default class MyMidiPlayer {
       this.scheduleNotesToPlay();
     }
     // hack: not sure why timeout is needed;
-    setTimeout(this.restart, 100)
+    setTimeout(this.restart, 100);
   }
 
   _scheduleDraw() {
-      this.updateCanvas(Transport.ticks);
-      this.scheduleId = requestAnimationFrame(this._scheduleDraw);
-}
+    this.fps.calculateFps();
+    this.updateCanvas(Transport.ticks);
+    this.scheduleId = requestAnimationFrame(this._scheduleDraw);
+  }
 
   startDrawing() {
     // dont use Transport.scheduleRepeat because it
