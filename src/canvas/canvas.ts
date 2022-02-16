@@ -12,6 +12,8 @@ import ComboDisplay from "./comboDisplay/comboDisplay";
 import * as types from "./types";
 import myMidiPlayer from "audio";
 import progressBar from "progressBar";
+import Particles from "./particles";
+
 import { convertCanvasHeightToMidiTick } from "./utils";
 
 class MyCanvas {
@@ -24,6 +26,7 @@ class MyCanvas {
   fallingNotes!: FallingNotes;
   flashingBottomTiles!: FlashingBottomTiles;
   flashingLightsBottomTiles!: FlashingLightsBottomTiles;
+  particles: Particles;
   highlighter: Highlighter;
   config: types.IMyCanvasConfig;
   isShift: boolean;
@@ -34,21 +37,26 @@ class MyCanvas {
   isHorizontal: boolean;
   comboDisplay: ComboDisplay;
   fps: Fps;
-  
+
   constructor(width: number, height: number) {
     this.app = new PIXI.Renderer({
       resolution: window.devicePixelRatio || 1,
       // autoDensity: true,
-      width: width,
-      height: height,
+      width,
+      height,
       transparent: false,
       antialias: true,
       clearBeforeRender: true,
     });
     this.stage = new PIXI.Container();
+    const whiteKeyWidth = Math.floor(this.app.screen.width / 52);
     this.config = {
       canvasNoteScale: 10,
       bottomTileHeight: this.app.screen.height * 0.08,
+      whiteKeyWidth,
+      blackKeyWidth: Math.floor(whiteKeyWidth * 0.55),
+      leftPadding: (this.app.screen.width - whiteKeyWidth * 52) * 0.75,
+      screenHeight: this.app.screen.height
     };
 
     this.isShift = false;
@@ -74,17 +82,28 @@ class MyCanvas {
     );
     this.highlighter = new Highlighter(this.app, this.stage, this.config);
     this.comboDisplay = new ComboDisplay(this.app, this.stage);
-    this.fps = new Fps(this.app, this.stage);
+    this.fps = new Fps(this.stage, this.runRender);
+    this.particles = new Particles(
+      this.stage,
+      this.config.whiteKeyWidth,
+      this.config.blackKeyWidth,
+      this.config.leftPadding,
+      this.config.screenHeight,
+      this.config.bottomTileHeight,  
+      this.runRender,
+    );
   }
 
   flash(columnIndex: number) {
     this.flashingBottomTiles.flash(columnIndex);
     this.flashingColumns.flash(columnIndex);
+    this.particles.emit(columnIndex);
   }
 
   unflash(columnIndex: number) {
     this.flashingBottomTiles.unflash(columnIndex);
     this.flashingColumns.unflash(columnIndex);
+    this.particles.stopEmit(columnIndex);
   }
 
   runRender() {
@@ -238,17 +257,21 @@ class MyCanvas {
       this.flashingColumns.destroy();
       this.beatLines.destroy();
       this.highlighter.destroy();
+      this.particles.destroy();
       this.interaction.destroy();
       this.app.destroy();
     }
   }
 
   render(tick: number) {
+    const time = performance.now();
+
     this.fallingNotes?.draw(tick);
     // for flashes, see _scheduleCanvasEvents
     this.beatLines?.draw(tick);
     this.highlighter.draw(tick);
-    this.fps.draw();
+    this.particles.draw(time);
+    this.fps.draw(time);
     this.app.render(this.stage);
   }
 
@@ -262,6 +285,7 @@ class MyCanvas {
     // remove past flashes
     this.flashingBottomTiles.unFlashAll();
     this.flashingColumns.unFlashAll();
+    this.particles.stopEmitAll();
   }
 
   handleKeyDownListener(e: any) {

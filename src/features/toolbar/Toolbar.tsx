@@ -10,6 +10,7 @@ import SettingsButton from "./toolbarComponents/SettingsButton";
 import FullScreenButton from "./toolbarComponents/FullScreenButton";
 import PracticeModeButton from "./toolbarComponents/PracticeModeButton";
 import MusicNotesToggleButton from "./toolbarComponents/MusicNotesToggleButton";
+import FpsButton from "./toolbarComponents/FpsButton";
 import LoopButton from "./toolbarComponents/LoopButton";
 import "./styles.css";
 
@@ -30,6 +31,7 @@ export default function ToolBar({
         <MusicNotesToggleButton key="musicnote" />,
         <PracticeModeButton key="practiceMode" />,
         <LoopButton key="loop" />,
+        <FpsButton key="fps" />,
         <SettingsButton key="settings" />,
       ]
     : [];

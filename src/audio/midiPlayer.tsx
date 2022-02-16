@@ -13,7 +13,7 @@ import { Note } from "@tonejs/midi/dist/Note";
 import { TempoEvent } from "@tonejs/midi/dist/Header";
 import { PIANO_TUNING } from "../audio/constants";
 import metronome from "./metronome";
-import Fps from "./fps";
+import { PARTICLE_MAX_LIFETIME } from "canvas/particles/constants";
 
 // needs to be in global types
 interface ISynthOptions {
@@ -51,7 +51,8 @@ export default class MyMidiPlayer {
   originalBpm: number;
   scheduleId: number;
   _canvasEventsScheduleIds: number[];
-  fps: Fps;
+  _startedDrawing: boolean;
+  _timeoutId: number;
 
   constructor() {
     console.log("Constructing new midi player");
@@ -73,6 +74,8 @@ export default class MyMidiPlayer {
     this.originalBpm = 0;
     this.scheduleId = 0;
     this._canvasEventsScheduleIds = [];
+    this._startedDrawing = false;
+    this._timeoutId = 1; // for stopping stopDrawing when user attacks again
 
     this._handleFileLoaded = this._handleFileLoaded.bind(this);
     this.play = this.play.bind(this);
@@ -106,7 +109,6 @@ export default class MyMidiPlayer {
         this.scheduleNotesToPlay();
       }
     });
-    this.fps = new Fps();
   }
 
   restartStates() {
@@ -185,6 +187,7 @@ export default class MyMidiPlayer {
     this.isPlaying = false;
     this.stopDrawing();
     instruments.stop();
+    myCanvas.particles.stopEmitAll();
     this.eventListeners.actioned();
   }
 
@@ -192,12 +195,14 @@ export default class MyMidiPlayer {
     this.isPlaying = false;
     this.stopDrawing();
     instruments.pause();
+    myCanvas.particles.stopEmitAll();
     this.eventListeners.actioned();
   }
 
   restart() {
     this.skipToPercent(0);
     this.setLoopPoints(0, 0);
+    myCanvas.particles.stopEmitAll();
     myCanvas.highlighter.disable();
     this.eventListeners.actioned();
     this.updateCanvas(0);
@@ -312,7 +317,6 @@ export default class MyMidiPlayer {
   }
 
   _scheduleDraw() {
-    this.fps.calculateFps();
     this.updateCanvas(Transport.ticks);
     this.scheduleId = requestAnimationFrame(this._scheduleDraw);
   }
@@ -321,11 +325,26 @@ export default class MyMidiPlayer {
     // dont use Transport.scheduleRepeat because it
     // sets the points along the Transport time
     // so the fps changes along with the song speed
-    requestAnimationFrame(this._scheduleDraw);
+
+    // please make sure there is only 1 requestAnimationFrame.
+    // we can know this by checking if fps is over 60
+    // if fps is etc. 120, then there must be 2 requestAnimationFrame running
+
+    // to avoid re-requesting by accident
+    if (!this._startedDrawing) {
+      cancelAnimationFrame(this.scheduleId); //clear accidental re-draws
+      requestAnimationFrame(this._scheduleDraw);
+      this._startedDrawing = true;
+      clearTimeout(this._timeoutId);
+    }
   }
 
   stopDrawing() {
-    cancelAnimationFrame(this.scheduleId);
+    this._startedDrawing = false;
+    this._timeoutId = window.setTimeout(() => {
+      // for particles to finish emitting
+      cancelAnimationFrame(this.scheduleId);
+    }, PARTICLE_MAX_LIFETIME * 1000);
   }
 
   updateCanvas(tick: number) {
@@ -383,6 +402,7 @@ export default class MyMidiPlayer {
   enablePracticeMode() {
     this.practiceMode = true;
     instruments.unsync();
+    myCanvas.particles.stopEmitAll(); // stop emitting b4 doing anything else
     myCanvas.background.bottomTiles.showText();
     myCanvas.flashingColumns.unFlashAll();
     myCanvas.flashingBottomTiles.unFlashAll();

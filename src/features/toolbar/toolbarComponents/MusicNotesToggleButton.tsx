@@ -20,7 +20,7 @@ export default function MusicNotesToggleButton(): JSX.Element {
       onClick={handleOnClick}
       size="small"
       selected={myCanvas.fallingNotes?.getIsTextOn()}
-      disabled={!myMidiPlayer.isReady ||　myMidiPlayer.getIsPlaying()}
+      disabled={!myMidiPlayer.isReady || myMidiPlayer.getIsPlaying()}
     >
       <TextFieldsIcon />
     </CustomButton>
