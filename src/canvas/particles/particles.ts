@@ -22,7 +22,7 @@ export default class Particles {
     this._container = new Container();
     this.onChange = onChange;
     this.lastUpdateTime = performance.now();
-    this.emitters = []; 
+    this.emitters = [];
     this.enabled = true;
     this.toggle = this.toggle.bind(this);
     let x = leftPadding;
@@ -53,17 +53,26 @@ export default class Particles {
   }
 
   disable() {
+    for (let i = 0; i < this.emitters.length; i++) {
+      this.emitters[i].cleanup();
+      // update to remove particles from screen
+      this.emitters[i].update(1);
+    }
     this.enabled = false;
   }
 
   toggle() {
-    this.enabled = !this.enabled;
+    // use if else so that the functions are used
+    if (this.enabled) {
+      this.disable();
+    } else {
+      this.enable();
+    }
   }
-
 
   draw(newTime: number) {
     if (!this.enabled) {
-      return
+      return;
     }
     for (let i = 0; i < this.emitters.length; i++) {
       try {
@@ -81,22 +90,19 @@ export default class Particles {
 
   emit(columnIndex: number) {
     if (!this.enabled) {
-      return
+      return;
     }
     this.emitters[columnIndex].emit = true;
   }
 
   stopEmit(columnIndex: number) {
     if (!this.enabled) {
-      return
+      return;
     }
     this.emitters[columnIndex].emit = false;
   }
 
   stopEmitAll() {
-    if (!this.enabled) {
-      return
-    }
     for (let i = 0; i < this.emitters.length; i++) {
       this.emitters[i].emit = false;
     }

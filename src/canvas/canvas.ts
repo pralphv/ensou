@@ -12,7 +12,7 @@ import ComboDisplay from "./comboDisplay/comboDisplay";
 import * as types from "./types";
 import myMidiPlayer from "audio";
 import progressBar from "progressBar";
-import Particles from "./particles";
+import Particles, { PARTICLE_MAX_LIFETIME } from "./particles";
 
 import { convertCanvasHeightToMidiTick } from "./utils";
 
@@ -56,7 +56,7 @@ class MyCanvas {
       whiteKeyWidth,
       blackKeyWidth: Math.floor(whiteKeyWidth * 0.55),
       leftPadding: (this.app.screen.width - whiteKeyWidth * 52) * 0.75,
-      screenHeight: this.app.screen.height
+      screenHeight: this.app.screen.height,
     };
 
     this.isShift = false;
@@ -89,8 +89,8 @@ class MyCanvas {
       this.config.blackKeyWidth,
       this.config.leftPadding,
       this.config.screenHeight,
-      this.config.bottomTileHeight,  
-      this.runRender,
+      this.config.bottomTileHeight,
+      this.runRender
     );
   }
 
@@ -103,7 +103,10 @@ class MyCanvas {
   unflash(columnIndex: number) {
     this.flashingBottomTiles.unflash(columnIndex);
     this.flashingColumns.unflash(columnIndex);
-    this.particles.stopEmit(columnIndex);
+    setTimeout(() => {
+      // wait till particles die
+      this.particles.stopEmit(columnIndex);
+    }, PARTICLE_MAX_LIFETIME);
   }
 
   runRender() {
