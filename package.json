@@ -10,6 +10,7 @@
     "@mui/material": "^5.0.2",
     "@mui/styles": "^5.0.1",
     "@mui/x-data-grid": "^5.0.0-beta.2",
+    "@pixi/particle-emitter": "^5.0.3",
     "@reduxjs/toolkit": "^1.6.1",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
@@ -49,7 +50,7 @@
   "scripts": {
     "start": "set BABEL_ENV=development && set PORT=5000 && react-scripts start",
     "build": "set BABEL_ENV=production && react-scripts build",
-    "deploy": "set BABEL_ENV=production && react-scripts build && firebase deploy",
+    "deploy": "set BABEL_ENV=production && react-scripts build && Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass && firebase deploy",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

@@ -7,6 +7,7 @@ import myInstruments from "audio/instruments";
 import * as types from "./types";
 import { keyBindingsLocalStorage } from "utils/localStorageUtils";
 import * as midiKeyboard from "./midiKeyboard";
+import myMidiPlayer from "audio";
 
 interface IPlayMap {
   [key: number]: number[];
@@ -55,7 +56,9 @@ class Game {
   }
 
   loadKeyNoteMap() {
-    this.keyNoteMap = keyBindingsLocalStorage.getKeyBindings() || constants.DEFAULT_KEY_NOTE_MAP;
+    this.keyNoteMap =
+      keyBindingsLocalStorage.getKeyBindings() ||
+      constants.DEFAULT_KEY_NOTE_MAP;
     this.availableKeys = new Set(Object.keys(this.keyNoteMap));
 
     this.noteLabelMap = {};
@@ -87,6 +90,7 @@ class Game {
     window.addEventListener("keydown", this.handleOnKeyDown);
     window.addEventListener("keyup", this.handleOnKeyUp);
     const midiKeyboardEnabled = await midiKeyboard.enableMidiKeyboard();
+    console.log({ midiKeyboardEnabled });
     if (midiKeyboardEnabled) {
     }
     midiKeyboard.onClick(this.handleMidiPlayerOnClick);
@@ -158,7 +162,11 @@ class Game {
   triggerAttack(note: string, velocity: number = 1) {
     myInstruments.triggerAttack(note, velocity);
     myCanvas.flash(PIANO_TUNING[note]);
-    myCanvas.runRender();
+    if (myCanvas.particles.enabled && !myMidiPlayer.isPlaying) {
+      myMidiPlayer.startDrawing();
+    } else {
+      myCanvas.runRender();
+    }
     // if (this.playMap[Transport.ticks]) {
     //   for (const id of this.playMap[Transport.ticks]) {
     //     if (
@@ -177,7 +185,15 @@ class Game {
   triggerRelease(note: string) {
     myInstruments.triggerRelease(note);
     myCanvas.unflash(PIANO_TUNING[note]);
-    myCanvas.runRender();
+    if (myCanvas.particles.enabled && !myMidiPlayer.isPlaying) {
+      if (this.pressedKeys.size === 0) {
+        // use window.setTimeout because it returns a number.
+        // easier for typing
+        myMidiPlayer.stopDrawing();
+      }
+    } else {
+      myCanvas.runRender();
+    }
   }
 
   render() {

@@ -10,40 +10,37 @@ export default class BottomTiles {
   leftPadding: number;
   whiteKeyWidth: number;
   blackKeyWidth: number;
-  _config: types.IMyCanvasConfig;
   _textArray: PIXI.Text[];
   onTextChange: () => void;
 
-  constructor(app: PIXI.Renderer, stage: PIXI.Container, config: types.IMyCanvasConfig, onTextChange: () => void) {
+  constructor(
+    app: PIXI.Renderer,
+    stage: PIXI.Container,
+    leftPadding: number,
+    blackKeyWidth: number,
+    whiteKeyWidth: number,
+    bottomTileHeight: number,
+    screenHeight: number,
+    onTextChange: () => void
+  ) {
     this._app = app;
     this._container = new PIXI.Container();
-    this._config = config;
     this.onTextChange = onTextChange;
 
     stage.addChild(this._container);
-    stage.setChildIndex(
-      this._container,
-      stage.children.length - 1
-    );
+    stage.setChildIndex(this._container, stage.children.length - 1);
 
     this._textArray = [];
-    const whiteKeyWidth = Math.floor(this._app.screen.width / 52);
-    const blackKeyWidth = Math.floor(whiteKeyWidth * 0.55);
 
-    const leftPadding = (this._app.screen.width - whiteKeyWidth * 52) * 0.75;
     this.leftPadding = leftPadding;
     this.whiteKeyWidth = whiteKeyWidth;
     this.blackKeyWidth = blackKeyWidth;
 
-    const whiteKey = initRectangle(
-      whiteKeyWidth,
-      this._config.bottomTileHeight,
-      true
-    );
+    const whiteKey = initRectangle(whiteKeyWidth, bottomTileHeight, 0x000000);
     const blackKey = initRectangle(
       blackKeyWidth,
-      this._config.bottomTileHeight * 0.66,
-      true
+      bottomTileHeight * 0.66,
+      0x7fdded
     );
 
     // @ts-ignore
@@ -55,8 +52,6 @@ export default class BottomTiles {
     let lastI: number; // to prevent duplicate notes from b and #
     const whiteKeyContainer = new PIXI.Container();
     const blackKeyContainer = new PIXI.Container();
-    const screenHeight = app.screen.height;
-    const tileHeight = this._config.bottomTileHeight;
 
     Object.entries(PIANO_TUNING).forEach(([key, i]: [string, number]) => {
       if (i !== lastI) {
@@ -67,16 +62,18 @@ export default class BottomTiles {
           const text = new PIXI.Text(game.noteLabelMap[key], {
             ...TEXT_CONFIG,
             fontSize: Math.min(12, blackKeyWidth * 0.8),
+            fill: 0x2d353f,
+            fontWeight: 800,
           });
           this._textArray.push(text);
           sprite = new PIXI.Sprite(blackKeyTexture);
           sprite.addChild(text);
           blackKeyContainer.addChild(sprite);
-          sprite.position.x = x;
+          // sprite.position.x = x;
           sprite.position.x = x - blackKeyWidth / 2;
           text.anchor.x = 0.5;
           text.position.x = blackKeyWidth / 2;
-          text.position.y = tileHeight * 0.66 - text.style.fontSize - 5;
+          text.position.y = bottomTileHeight * 0.66 - text.style.fontSize - 5;
           text.visible = false;
         } else {
           const text = new PIXI.Text(game.noteLabelMap[key], {
@@ -91,11 +88,11 @@ export default class BottomTiles {
           sprite.position.x = x;
           text.anchor.x = 0.5;
           text.position.x = whiteKeyWidth / 2;
-          text.position.y = tileHeight - text.style.fontSize - 5;
+          text.position.y = bottomTileHeight - text.style.fontSize - 5;
           x += whiteKeyWidth;
           text.visible = false;
         }
-        sprite.position.y = screenHeight - tileHeight - 1;
+        sprite.position.y = screenHeight - bottomTileHeight - 1;
       }
     });
     this._container.addChild(whiteKeyContainer);
@@ -141,20 +138,11 @@ function gradient(from: string, to: string, width: number, height: number) {
   return texture;
 }
 
-function initBlackColorOverlay(width: number, height: number): PIXI.Graphics {
-  const rect = new PIXI.Graphics();
-  rect.beginTextureFill({
-    texture: gradient("#000000", "rgba(0, 0, 0, 0)", width, height),
-  });
-  rect.drawRect(0, 0, width, height);
-  return rect;
-}
-
-function initRectangle(width: number, height: number, fill: boolean) {
+function initRectangle(width: number, height: number, fill: number) {
   const rect = new PIXI.Graphics();
   rect.lineStyle(1.5, 0x7fdded);
-  if (fill) {
-    rect.beginFill(0x000000);
+  if (fill !== undefined) {
+    rect.beginFill(fill);
   }
   rect.drawRect(0, 0, width, height);
   return rect;
