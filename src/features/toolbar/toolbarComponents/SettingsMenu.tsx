@@ -9,7 +9,6 @@ import KeyboardIcon from "@mui/icons-material/Keyboard";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 
-import * as types from "types";
 import SamplesDialog from "features/samplesDialog/SamplesDialog";
 import AudioSettingsDialog from "features/audioSettingsDialog/AudioSettingsDialog";
 import KeyBindingsDialog from "../keyBindingsDialog/KeyBindingsDialog";
@@ -181,6 +180,17 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
         <ListItem button onClick={() => setKeySettingsDialogOpen(true)}>
           <ListItemText primary="Keyboard Settings" />
           <KeyboardIcon />
+        </ListItem>
+        <ListItem button>
+          <ListItemText primary="Particles" />
+          <Switch
+            checked={myCanvas.particles.enabled}
+            onChange={() => {
+              myCanvas.particles.toggle();
+              forceLocalRender();
+            }}
+            disabled={myMidiPlayer.getIsPlaying()}
+          />
         </ListItem>
       </List>
 

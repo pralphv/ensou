@@ -1,14 +1,11 @@
-import { Container, Text } from "pixi.js";
-import myMidiPlayer from "audio";
-import { LinkedListContainer, Emitter } from "@pixi/particle-emitter";
+import { Container } from "pixi.js";
+import { Emitter } from "@pixi/particle-emitter";
 import { createConfig } from "./constants";
 import { PIANO_TUNING } from "audio/constants";
 
 export default class Particles {
-  //   _container: LinkedListContainer;
   _container: Container;
   onChange: Function;
-  //   emitter: Emitter;
   lastUpdateTime: number;
   emitters: Emitter[];
   enabled: boolean;
@@ -22,13 +19,14 @@ export default class Particles {
     bottomTileHeight: number,
     onChange: Function
   ) {
-    // this._container = new LinkedListContainer();
     this._container = new Container();
     this.onChange = onChange;
     this.lastUpdateTime = performance.now();
-    this.emitters = [];
-    let x = leftPadding;
+    this.emitters = []; 
     this.enabled = true;
+    this.toggle = this.toggle.bind(this);
+    let x = leftPadding;
+
     let lastI: number; // to prevent duplicate notes from b and #
     Object.entries(PIANO_TUNING).forEach(([key, i]: [string, number]) => {
       if (i !== lastI) {
@@ -47,55 +45,68 @@ export default class Particles {
         }
       }
     });
-    // this.emitter.emit = true;
     stage.addChild(this._container);
   }
 
-  get visible() {
-    return true;
-    // return this._container.visible;
+  enable() {
+    this.enabled = true;
   }
 
-  show() {
-    // this._container.visible = true;
-    this.onChange();
+  disable() {
+    this.enabled = false;
   }
 
-  hide() {
-    // this._container.visible = false;
-    this.onChange();
+  toggle() {
+    this.enabled = !this.enabled;
   }
+
 
   draw(newTime: number) {
+    if (!this.enabled) {
+      return
+    }
     for (let i = 0; i < this.emitters.length; i++) {
       try {
         // Because particles-emitter may not be ready to use
-        // but user is already playing music. 
-        // If particles-emitter has a ready state 
+        // but user is already playing music.
+        // If particles-emitter has a ready state
         // we could avoid doing this try catch
         this.emitters[i].update((newTime - this.lastUpdateTime) * 0.001);
-      } catch(error) {
-        console.log({error})
+      } catch (e) {
+        // expected error dont need to do anything
       }
     }
     this.lastUpdateTime = newTime;
   }
 
   emit(columnIndex: number) {
+    if (!this.enabled) {
+      return
+    }
     this.emitters[columnIndex].emit = true;
   }
 
   stopEmit(columnIndex: number) {
+    if (!this.enabled) {
+      return
+    }
     this.emitters[columnIndex].emit = false;
   }
 
   stopEmitAll() {
+    if (!this.enabled) {
+      return
+    }
     for (let i = 0; i < this.emitters.length; i++) {
       this.emitters[i].emit = false;
     }
   }
 
   destroy() {
+    for (let i = 0; i < this.emitters.length; i++) {
+      this.emitters[i].cleanup();
+      this.emitters[i].destroy();
+    }
     this._container.destroy({
       children: true,
       texture: true,
