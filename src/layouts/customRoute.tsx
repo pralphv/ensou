@@ -3,6 +3,7 @@ import { Route, Redirect } from "react-router-dom";
 
 import Navigation from "./navigation";
 import { Pages } from "./constants";
+
 export interface CustomRouteProps {
   Component: React.ElementType;
   isPrivate: boolean;

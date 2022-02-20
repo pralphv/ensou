@@ -9,8 +9,6 @@ export default function LoadingSpinner() {
         position: "absolute",
         top: "50%",
         left: "50%",
-        marginLeft: -25,
-        marginTop: -25,
       }}
     />
   );

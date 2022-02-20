@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from "react";
 
 import { useFirestore } from "react-redux-firebase";
-import InputBase from "@mui/material/InputBase";
-import IconButton from "@mui/material/IconButton";
-import SearchIcon from "@mui/icons-material/Search";
-import Paper from "@mui/material/Paper";
 
 import SongTable from "features/songTable/SongTable";
 import LoadingSpinner from "features/loadingSpinner/LoadingSpinner";
 import * as types from "features/songTable/types";
+import SearchBar from "./searchBar";
 
 export default function Home(): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -56,40 +53,5 @@ export default function Home(): JSX.Element {
         </React.Fragment>
       )}
     </React.Fragment>
-  );
-}
-
-interface ISearchBarProps {
-  onChange:
-    | React.ChangeEventHandler<HTMLTextAreaElement | HTMLInputElement>
-    | undefined;
-}
-
-function SearchBar({ onChange }: ISearchBarProps) {
-  return (
-    <Paper
-      component="form"
-      sx={{
-        py: 0.5,
-        px: 1,
-        display: "flex",
-        alignItems: "center",
-        marginTop: 2,
-        marginBottom: 4,
-      }}
-      variant="outlined"
-    >
-      <InputBase
-        placeholder="Search for a song"
-        onChange={onChange}
-        sx={{
-          marginLeft: 1,
-          flex: 1,
-        }}
-      />
-      <IconButton>
-        <SearchIcon />
-      </IconButton>
-    </Paper>
   );
 }

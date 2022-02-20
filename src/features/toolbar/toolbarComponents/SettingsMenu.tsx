@@ -193,7 +193,6 @@ export default function SettingsMenu({ open }: ISettingsMenu): JSX.Element {
           />
         </ListItem>
       </List>
-
       {sampleDialogMemo}
       {audioSettingsDialogMemo}
       {keySettingsDialogMemo}
