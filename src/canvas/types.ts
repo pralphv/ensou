@@ -1,4 +1,6 @@
 export interface IMyCanvasConfig {
+  coreCanvasWidth: number;
+  coreCanvasHeight: number;
   canvasNoteScale: number;
   bottomTileHeight: number;
   whiteKeyWidth: number;

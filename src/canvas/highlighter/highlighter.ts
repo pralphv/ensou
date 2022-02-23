@@ -1,27 +1,21 @@
 import * as PIXI from "pixi.js";
-import * as types from "../types";
 import myMidiPlayer from "audio";
 import { convertMidiTickToCanvasHeight } from "../utils";
+import MyCanvas from "../canvas";
 
 export default class Highlighter {
-  _app: PIXI.Renderer;
   _texture!: PIXI.Texture;
   _sprite!: PIXI.Sprite;
-  _config: types.IMyCanvasConfig;
   active: boolean;
   constructor(
-    app: PIXI.Renderer,
-    stage: PIXI.Container,
-    config: types.IMyCanvasConfig
+    myCanvas: MyCanvas
   ) {
     this.active = false;
-    this._app = app;
-    this._config = config;
-    const rect = initRectangle(this._app.screen.width, this._app.screen.height);
+    const rect = initRectangle(myCanvas.config.coreCanvasWidth, myCanvas.config.coreCanvasHeight);
     // @ts-ignore
-    this._texture = this._app.generateTexture(rect);
+    this._texture = myCanvas.app.generateTexture(rect);
     this._sprite = new PIXI.Sprite(this._texture);
-    stage.addChild(this._sprite);
+    myCanvas.stage.addChild(this._sprite);
     this._sprite.visible = false;
     this._sprite.position.y = 0;
     this._sprite.height = 0;

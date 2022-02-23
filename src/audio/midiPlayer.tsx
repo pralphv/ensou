@@ -53,6 +53,8 @@ export default class MyMidiPlayer {
   _canvasEventsScheduleIds: number[];
   _startedDrawing: boolean;
   _timeoutId: number;
+  playTime: string;
+  totalTime: string;
 
   constructor() {
     console.log("Constructing new midi player");
@@ -76,6 +78,8 @@ export default class MyMidiPlayer {
     this._canvasEventsScheduleIds = [];
     this._startedDrawing = false;
     this._timeoutId = 1; // for stopping stopDrawing when user attacks again
+    this.playTime = "00:00";
+    this.totalTime = "00:00";
 
     this._handleFileLoaded = this._handleFileLoaded.bind(this);
     this.play = this.play.bind(this);
@@ -109,6 +113,15 @@ export default class MyMidiPlayer {
         this.scheduleNotesToPlay();
       }
     });
+    // window.addEventListener("keydown", (e: KeyboardEvent) => {
+    //   if (e.code === "Space") {
+    //     if (this.isPlaying) {
+    //       this.pause();
+    //     } else {
+    //       this.play();
+    //     }
+    //   }
+    // });
   }
 
   restartStates() {
@@ -301,6 +314,7 @@ export default class MyMidiPlayer {
 
   _setUpNewMidi(midi: Midi) {
     this.cleanup();
+    this.totalTime = secTotime(midi.duration);
     this.notes = midi.tracks.map((track) => track.notes).flat();
     this.durationTicks = midi.durationTicks;
     this._scheduleTempoEvents(midi.header.tempos);
@@ -317,6 +331,7 @@ export default class MyMidiPlayer {
   }
 
   _scheduleDraw() {
+    this.playTime = secTotime(Transport.seconds);
     this.updateCanvas(Transport.ticks);
     this.scheduleId = requestAnimationFrame(this._scheduleDraw);
   }
@@ -330,8 +345,8 @@ export default class MyMidiPlayer {
     // we can know this by checking if fps is over 60
     // if fps is etc. 120, then there must be 2 requestAnimationFrame running
 
-    // to avoid re-requesting by accident
     if (!this._startedDrawing) {
+      // to avoid re-requesting by accident
       cancelAnimationFrame(this.scheduleId); //clear accidental re-draws
       requestAnimationFrame(this._scheduleDraw);
       this._startedDrawing = true;
@@ -471,4 +486,14 @@ export default class MyMidiPlayer {
     // this.disablePracticeMode();
     console.log("Cleaned Midi Player");
   }
+}
+
+function minTwoDigits(number: number): string {
+  return number < 10 ? `0${number}` : `${number}`;
+}
+
+function secTotime(seconds: number): string {
+  return `${minTwoDigits(Math.floor(seconds / 60) % 60)}:${minTwoDigits(
+    Math.floor(seconds % 60)
+  )}`;
 }

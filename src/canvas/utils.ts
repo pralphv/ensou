@@ -1,8 +1,11 @@
 import myCanvas from "canvas";
 
-export function convertMidiTickToCanvasHeight(targetTick: number, tick: number): number {
+export function convertMidiTickToCanvasHeight(
+  targetTick: number,
+  tick: number
+): number {
   return (
-    myCanvas.app.screen.height -
+    myCanvas.config.coreCanvasHeight -
     (targetTick - tick) / myCanvas.config.canvasNoteScale -
     myCanvas.config.bottomTileHeight
   );
@@ -10,7 +13,7 @@ export function convertMidiTickToCanvasHeight(targetTick: number, tick: number):
 
 export function convertCanvasHeightToMidiTick(y: number, tick: number): number {
   return (
-    (myCanvas.app.screen.height - myCanvas.config.bottomTileHeight - y) *
+    (myCanvas.config.coreCanvasHeight - myCanvas.config.bottomTileHeight - y) *
       myCanvas.config.canvasNoteScale +
     tick
   );

@@ -1,41 +1,33 @@
 import * as PIXI from "pixi.js";
 import { PIANO_TUNING } from "audio/constants";
-import myMidiPlayer from "audio";
-import * as types from "../types";
+import MyCanvas from "../canvas";
 
 export default class FlashingColumns {
-  _app: PIXI.Renderer;
   _container: PIXI.Container;
   _columns: PIXI.Sprite[];
   constructor(
-    app: PIXI.Renderer,
-    stage: PIXI.Container,
-    isHorizontal: boolean = false,
-    config: types.IMyCanvasConfig,
-    leftPadding: number,
-    whiteKeyWidth: number,
-    blackKeyWidth: number
+    myCanvas: MyCanvas
   ) {
-    this._app = app;
     this._container = new PIXI.Container();
     this._columns = [];
-    const height = isHorizontal
-      ? this._app.screen.width
-      : this._app.screen.height;
+    const height = myCanvas.config.coreCanvasHeight;
+    // const height = isHorizontal
+    //   ? stage.width
+    //   : stage.height;
     // const width = isHorizontal
       // ? this._app.screen.height
       // : this._app.screen.width;
-    stage.addChild(this._container);
-    stage.setChildIndex(this._container, 1);
+    myCanvas.stage.addChild(this._container);
+    myCanvas.stage.setChildIndex(this._container, 1);
 
-    const whiteKeyRect = initRectangle(whiteKeyWidth, height);
-    const blackKeyRect = initRectangle(blackKeyWidth, height);
+    const whiteKeyRect = initRectangle(myCanvas.config.whiteKeyWidth, height);
+    const blackKeyRect = initRectangle(myCanvas.config.blackKeyWidth, height);
 
     // @ts-ignore
-    const whiteKeyTexture = this._app.generateTexture(whiteKeyRect);
+    const whiteKeyTexture = myCanvas.app.generateTexture(whiteKeyRect);
     // @ts-ignore
-    const blackKeyTexture = this._app.generateTexture(blackKeyRect);
-    let x: number = leftPadding;
+    const blackKeyTexture = myCanvas.app.generateTexture(blackKeyRect);
+    let x: number = myCanvas.config.leftPadding;
     let lastI: number; // to prevent duplicate notes from b and #
 
     Object.entries(PIANO_TUNING).forEach(([key, i]: [string, number]) => {
@@ -46,16 +38,16 @@ export default class FlashingColumns {
         const texture = isBlackKey ? blackKeyTexture : whiteKeyTexture;
         sprite = new PIXI.Sprite(texture);
         if (isBlackKey) {
-          sprite.position.x = x - blackKeyWidth / 2;
+          sprite.position.x = x - myCanvas.config.blackKeyWidth / 2;
         } else {
           sprite.position.x = x;
         }
-        sprite.position.y = -config.bottomTileHeight;
+        sprite.position.y = -myCanvas.config.bottomTileHeight;
         sprite.visible = false;
         this._container.addChild(sprite);
         this._columns.push(sprite);
         if (!isBlackKey) {
-          x += whiteKeyWidth;
+          x += myCanvas.config.whiteKeyWidth;
         }
       }
     });

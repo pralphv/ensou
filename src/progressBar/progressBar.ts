@@ -12,6 +12,7 @@ class ProgressBar {
   interaction!: PIXI.InteractionManager;
   progressBar: PIXI.Sprite;
   container: PIXI.Container;
+  playTimetextField: PIXI.Text;
 
   constructor() {
     this.app = new PIXI.Renderer({
@@ -22,6 +23,10 @@ class ProgressBar {
       clearBeforeRender: true,
     });
     this.stage = new PIXI.Container();
+    this.playTimetextField = new PIXI.Text("", {
+      fontSize: 15,
+      fill: 0x000000,
+    });
 
     const realProgressRect = initRectangle(this.app.screen.width, 8, 0x90eefe);
     const backgroundRect = initRectangle(this.app.screen.width, 8, 0x858585);
@@ -41,6 +46,8 @@ class ProgressBar {
     this.handleOnClick = this.handleOnClick.bind(this);
     this.fitWindow = this.fitWindow.bind(this);
     this.skipToPct = this.skipToPct.bind(this);
+    this.handleMouseOver = this.handleMouseOver.bind(this);
+    this.handleMouseOut = this.handleMouseOut.bind(this);
   }
 
   fitWindow() {
@@ -61,25 +68,46 @@ class ProgressBar {
     htmlRef.appendChild(this.app.view);
     this.pixiCanvas = htmlRef;
     this.interaction = new PIXI.InteractionManager(this.app);
-    this.interaction.on("mousedown", this.handleOnClick);
-    this.interaction.on("touchstart", this.handleOnClick);
-    this.interaction.on("pointerup", () => {
-      this.isDragging = false;
-    });
-    this.interaction.on("pointerupoutside", () => {
-      this.isDragging = false;
-    });
-
-    this.interaction.on("pointermove", (e: PIXI.InteractionEvent) => {
-      if (this.isDragging) {
-        this.skipToPct(e.data.global.x);
-      }
-    });
-    this.interaction.on("pointerdown", () => {
-      this.isDragging = true;
-    });
+    this.interaction
+      .on("mousedown", this.handleOnClick)
+      .on("touchstart", this.handleOnClick)
+      .on("pointerdown", () => {
+        this.isDragging = true;
+      })
+      .on("pointerup", () => {
+        this.isDragging = false;
+      })
+      .on("pointerupoutside", () => {
+        this.isDragging = false;
+      })
+      .on("pointermove", (e: PIXI.InteractionEvent) => {
+        if (this.isDragging) {
+          this.skipToPct(e.data.global.x);
+        }
+      })
+      .on("mouseover", this.handleMouseOver)
+      .on("mouseout", this.handleMouseOut);
     window.addEventListener("resize", this.fitWindow, false);
   }
+
+  show() {
+    this.stage.alpha = 0.8;
+    this.minimumRender();
+  }
+
+  hide() {
+    this.stage.alpha = 0;
+    this.minimumRender();
+  }
+
+  handleMouseOver(e: PIXI.InteractionEvent) {
+    this.show();
+    this.playTimetextField.text = "jer";
+    this.playTimetextField.x = e.data.global.x;
+    this.playTimetextField.y = 0;
+  }
+
+  handleMouseOut() {}
 
   skipToPct(x: number) {
     const pct = x / this.app.screen.width;
@@ -98,6 +126,11 @@ class ProgressBar {
     window.removeEventListener("resize", this.fitWindow, false);
   }
 
+  minimumRender() {
+    // only renders show and hide
+    this.app.render(this.stage); // the render function only renders if container is visible
+  }
+
   render(tick: number) {
     if (this.container.visible) {
       const pct = tick / myMidiPlayer.getTotalTicks();
@@ -108,16 +141,6 @@ class ProgressBar {
 
   on(event: string, func: Function) {
     this.interaction.on(event, func);
-  }
-
-  show() {
-    this.stage.alpha = 0.8;
-    this.app.render(this.stage); // the render function only renders if container is visible
-  }
-
-  hide() {
-    this.stage.alpha = 0;
-    this.app.render(this.stage);
   }
 }
 

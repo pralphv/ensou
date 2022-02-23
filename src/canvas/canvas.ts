@@ -41,22 +41,25 @@ class MyCanvas {
   constructor(width: number, height: number) {
     this.app = new PIXI.Renderer({
       resolution: window.devicePixelRatio || 1,
-      // autoDensity: true,
-      width,
-      height,
+      width: 800,
+      height: 600,
       transparent: false,
-      antialias: true,
-      clearBeforeRender: true,
+      // antialias: true,
     });
     this.stage = new PIXI.Container();
-    const whiteKeyWidth = Math.floor(this.app.screen.width / 52);
+    const coreCanvasWidth = this.app.screen.width;
+    const coreCanvasHeight = this.app.screen.height;
+
+    const whiteKeyWidth = Math.floor(coreCanvasWidth / 52);
     this.config = {
+      coreCanvasWidth: coreCanvasWidth,
+      coreCanvasHeight: coreCanvasHeight,
       canvasNoteScale: 10,
-      bottomTileHeight: this.app.screen.height * 0.08,
+      bottomTileHeight: coreCanvasHeight * 0.08,
       whiteKeyWidth,
       blackKeyWidth: Math.floor(whiteKeyWidth * 0.55),
-      leftPadding: (this.app.screen.width - whiteKeyWidth * 52) * 0.75,
-      screenHeight: this.app.screen.height,
+      leftPadding: (coreCanvasWidth - whiteKeyWidth * 52) * 0.75,
+      screenHeight: coreCanvasHeight,
     };
 
     this.isShift = false;
@@ -74,24 +77,11 @@ class MyCanvas {
     this.buildComponents = this.buildComponents.bind(this);
     this.on = this.on.bind(this);
     this.runRender = this.runRender.bind(this);
-    this.background = new Background(
-      this.app,
-      this.stage,
-      this.config,
-      this.runRender
-    );
-    this.highlighter = new Highlighter(this.app, this.stage, this.config);
+    this.background = new Background(this);
+    this.highlighter = new Highlighter(this);
     this.comboDisplay = new ComboDisplay(this.app, this.stage);
-    this.fps = new Fps(this.stage, this.runRender);
-    this.particles = new Particles(
-      this.stage,
-      this.config.whiteKeyWidth,
-      this.config.blackKeyWidth,
-      this.config.leftPadding,
-      this.config.screenHeight,
-      this.config.bottomTileHeight,
-      this.runRender
-    );
+    this.fps = new Fps(this);
+    this.particles = new Particles(this);
   }
 
   flash(columnIndex: number) {
@@ -115,39 +105,19 @@ class MyCanvas {
   }
 
   buildComponents() {
-    if (this.flashingColumns) {
-      this.flashingColumns.destroy();
-    }
-    if (this.flashingBottomTiles) {
-      this.flashingBottomTiles.destroy();
-    }
-    if (this.flashingLightsBottomTiles) {
-      this.flashingLightsBottomTiles.destroy();
-    }
-    this.flashingColumns = new FlashingColumns(
-      this.app,
-      this.stage,
-      undefined,
-      this.config,
-      this.background.bottomTiles.leftPadding,
-      this.background.bottomTiles.whiteKeyWidth,
-      this.background.bottomTiles.blackKeyWidth
-    );
-    this.flashingBottomTiles = new FlashingBottomTiles(
-      this.app,
-      this.stage,
-      this.config,
-      this.background.bottomTiles.leftPadding,
-      this.background.bottomTiles.whiteKeyWidth,
-      this.background.bottomTiles.blackKeyWidth
-    );
+    this.flashingColumns && this.flashingColumns.destroy();
+    this.flashingBottomTiles && this.flashingBottomTiles.destroy();
+    this.flashingLightsBottomTiles && this.flashingLightsBottomTiles.destroy();
+    this.flashingColumns = new FlashingColumns(this);
+    this.flashingBottomTiles = new FlashingBottomTiles(this);
     this.flashingLightsBottomTiles = new FlashingLightsBottomTiles(
-      this.app,
-      this.stage,
-      this.config,
-      this.background.bottomTiles.leftPadding,
-      this.background.bottomTiles.whiteKeyWidth,
-      this.background.bottomTiles.blackKeyWidth
+      this
+      // this.app,
+      // this.stage,
+      // this.config,
+      // this.background.bottomTiles.leftPadding,
+      // this.background.bottomTiles.whiteKeyWidth,
+      // this.background.bottomTiles.blackKeyWidth
     );
   }
 
@@ -177,45 +147,45 @@ class MyCanvas {
         this.highlighter.draw(currentTick);
         this.render(currentTick);
       }
-    });
-    this.on("pointertap", () => {});
-    this.on("pointerdown", (e: PIXI.InteractionEvent) => {
-      if (myMidiPlayer.getIsPlaying()) {
-        myMidiPlayer.pause();
-        return;
-      }
-      this.highlighter.activate();
-      const currentTick = Transport.ticks;
-      this.isDragging = true;
-      const y: number = e.data.global.y;
-      let tick: number = convertCanvasHeightToMidiTick(y, currentTick);
+    })
+      .on("pointertap", () => {})
+      .on("pointerdown", (e: PIXI.InteractionEvent) => {
+        if (myMidiPlayer.getIsPlaying()) {
+          myMidiPlayer.pause();
+          return;
+        }
+        this.highlighter.activate();
+        const currentTick = Transport.ticks;
+        this.isDragging = true;
+        const y: number = e.data.global.y;
+        let tick: number = convertCanvasHeightToMidiTick(y, currentTick);
 
-      const startTick: number = this.isShift
-        ? Math.min(this.lastClickedTick, tick)
-        : tick;
-      const endTick: number = this.isShift
-        ? Math.max(this.lastClickedTick, tick)
-        : tick;
-      myMidiPlayer.setLoopPoints(startTick, endTick);
+        const startTick: number = this.isShift
+          ? Math.min(this.lastClickedTick, tick)
+          : tick;
+        const endTick: number = this.isShift
+          ? Math.max(this.lastClickedTick, tick)
+          : tick;
+        myMidiPlayer.setLoopPoints(startTick, endTick);
 
-      if (!this.isShift) {
-        // for multi shift clicking
-        this.lastClickedTick = convertCanvasHeightToMidiTick(y, currentTick);
-      }
-      this.render(currentTick);
-    });
-    this.on("pointerup", () => {
-      this.isDragging = false;
-    });
-    this.on("pointerout", () => {
-      this.isDragging = false;
-    });
-    this.on("mouseout", () => {
-      this.isHovering = false;
-    });
-    this.on("mouseover", () => {
-      this.isHovering = true;
-    });
+        if (!this.isShift) {
+          // for multi shift clicking
+          this.lastClickedTick = convertCanvasHeightToMidiTick(y, currentTick);
+        }
+        this.render(currentTick);
+      })
+      .on("pointerup", () => {
+        this.isDragging = false;
+      })
+      .on("pointerout", () => {
+        this.isDragging = false;
+      })
+      .on("mouseout", () => {
+        this.isHovering = false;
+      })
+      .on("mouseover", () => {
+        this.isHovering = true;
+      });
   }
 
   disconnectHTML() {
@@ -241,16 +211,8 @@ class MyCanvas {
     if (this.beatLines) {
       this.beatLines.destroy();
     }
-    this.fallingNotes = new FallingNotes(
-      this.app,
-      this.stage,
-      this.config,
-      this.background.bottomTiles.leftPadding,
-      this.background.bottomTiles.whiteKeyWidth,
-      this.background.bottomTiles.blackKeyWidth,
-      this.runRender
-    );
-    this.beatLines = new BeatLines(this.app, this.stage, this.config);
+    this.fallingNotes = new FallingNotes(this);
+    this.beatLines = new BeatLines(this);
   }
 
   destroy() {
@@ -282,6 +244,7 @@ class MyCanvas {
     this.interaction.on(event, (e: PIXI.InteractionEvent) => {
       callback(e);
     });
+    return this;
   }
 
   onBeforePlay() {
