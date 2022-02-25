@@ -40,16 +40,26 @@ class MyCanvas {
 
   constructor(width: number, height: number) {
     this.app = new PIXI.Renderer({
-      resolution: window.devicePixelRatio || 1,
-      width: 800,
-      height: 600,
+      // resolution: window.devicePixelRatio || 1,
+      resolution: 1,
+      width,
+      height,
       transparent: false,
       // antialias: true,
     });
     this.stage = new PIXI.Container();
-    const coreCanvasWidth = this.app.screen.width;
-    const coreCanvasHeight = this.app.screen.height;
-
+    const bigScreenHeight = this.app.screen.height;
+    const bigScreenWidth = (bigScreenHeight * 16) / 9;
+    const smallScreenWidth = this.app.screen.width;
+    const smallScreenHeight = (smallScreenWidth / 16) * 9;
+    const coreCanvasHeight =
+      bigScreenWidth <= this.app.screen.width
+        ? bigScreenHeight
+        : smallScreenHeight;
+    const coreCanvasWidth =
+      bigScreenWidth <= this.app.screen.width
+        ? bigScreenWidth
+        : smallScreenWidth;
     const whiteKeyWidth = Math.floor(coreCanvasWidth / 52);
     this.config = {
       coreCanvasWidth: coreCanvasWidth,
@@ -58,10 +68,15 @@ class MyCanvas {
       bottomTileHeight: coreCanvasHeight * 0.08,
       whiteKeyWidth,
       blackKeyWidth: Math.floor(whiteKeyWidth * 0.55),
-      leftPadding: (coreCanvasWidth - whiteKeyWidth * 52) * 0.75,
-      screenHeight: coreCanvasHeight,
+      // mainly because whiteKeyWidth is floored from a float.
+      // etc. 17.3 -> 17
+      // 0.3 * 52 is still pretty big and causes large gaps
+      leftPadding: ((coreCanvasWidth / 52 - whiteKeyWidth) * 52) / 2,
+      yCenterCompensate: (this.app.screen.height - coreCanvasHeight) / 2
     };
 
+    this.stage.position.x = (this.app.screen.width - coreCanvasWidth) / 2;
+    this.stage.position.y = this.config.yCenterCompensate;
     this.isShift = false;
     this.isDragging = false;
     this.isHovering = false;

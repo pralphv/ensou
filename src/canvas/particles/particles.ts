@@ -31,7 +31,7 @@ export default class Particles {
           this._container,
           createConfig(
             emitterX,
-            myCanvas.config.screenHeight - myCanvas.config.bottomTileHeight,
+            myCanvas.config.coreCanvasHeight - myCanvas.config.bottomTileHeight,
             width
           )
         );

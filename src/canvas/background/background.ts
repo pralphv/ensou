@@ -35,7 +35,7 @@ export default class Background {
     // @ts-ignore
     const texture = this.canvas.app.generateTexture(horizontalLine);
 
-    let x: number = 0;
+    let x: number = this.canvas.config.leftPadding;
     let lastI: number; // to prevent duplicate notes from b and #
     const whiteKeyWidth = this.canvas.config.whiteKeyWidth;
 

@@ -84,7 +84,7 @@ export default class FallingNotes {
         const on = note.on - tick / this.myCanvas.config.canvasNoteScale;
         note.rectSprite.position.x = note.x;
         note.rectSprite.position.y =
-          this.myCanvas.config.screenHeight -
+          this.myCanvas.config.coreCanvasHeight -
           on -
           note.height -
           this.myCanvas.config.bottomTileHeight;

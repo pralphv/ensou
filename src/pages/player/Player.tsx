@@ -144,8 +144,8 @@ export default function Player(): JSX.Element {
     () => (
       <div
         className={clsx({
-          "player-canvas": true,
-          "fullscreen-enabled": isFullscreen,
+          // "player-canvas": true,
+          // "fullscreen-enabled": isFullscreen,
         })}
       >
         <div

@@ -6,5 +6,5 @@ export interface IMyCanvasConfig {
   whiteKeyWidth: number;
   blackKeyWidth: number;
   leftPadding: number;
-  screenHeight: number;
+  yCenterCompensate: number;
 }
