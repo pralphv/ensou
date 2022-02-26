@@ -8,6 +8,8 @@ import FallingNotes from "./fallingNotes/fallingNotes";
 import FlashingBottomTiles from "./flashingBottomTiles/flashingBottomTiles";
 import FlashingLightsBottomTiles from "./flashingLightsBottomTiles/flashingLightsBottomTiles";
 import Highlighter from "./highlighter/highlighter";
+import StupidTopBottomBlockers from "./stupidTopBottomBlockers";
+import DarkBotOverlay from "./darkBotOverlay";
 import ComboDisplay from "./comboDisplay/comboDisplay";
 import * as types from "./types";
 import myMidiPlayer from "audio";
@@ -37,6 +39,8 @@ class MyCanvas {
   isHorizontal: boolean;
   comboDisplay: ComboDisplay;
   fps: Fps;
+  stupidTopBottomBlockers: StupidTopBottomBlockers;
+  darkBotOverlay: DarkBotOverlay;
 
   constructor(width: number, height: number) {
     this.app = new PIXI.Renderer({
@@ -94,6 +98,8 @@ class MyCanvas {
     this.runRender = this.runRender.bind(this);
     this.background = new Background(this);
     this.highlighter = new Highlighter(this);
+    this.stupidTopBottomBlockers = new StupidTopBottomBlockers(this);
+    this.darkBotOverlay = new DarkBotOverlay(this);
     this.comboDisplay = new ComboDisplay(this.app, this.stage);
     this.fps = new Fps(this);
     this.particles = new Particles(this);
@@ -238,6 +244,8 @@ class MyCanvas {
       this.beatLines.destroy();
       this.highlighter.destroy();
       this.particles.destroy();
+      this.stupidTopBottomBlockers.destroy();
+      this.darkBotOverlay.destroy();
       this.interaction.destroy();
       this.app.destroy();
     }

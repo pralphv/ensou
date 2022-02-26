@@ -252,12 +252,14 @@ export default function Player(): JSX.Element {
   function handleOnEnter() {
     setIsHovering(true);
     progressBar.show();
+    myCanvas.darkBotOverlay.show();
   }
 
   function handleOnLeave() {
     setIsHovering(false);
     if (myMidiPlayer.isPlaying) {
       progressBar.hide();
+      myCanvas.darkBotOverlay.hide();
     }
   }
 
