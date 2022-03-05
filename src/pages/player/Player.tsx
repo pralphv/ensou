@@ -7,7 +7,6 @@ import { useFirestore } from "react-redux-firebase";
 
 import LoadingScreen from "features/loadingScreen/LoadingScreen";
 import myCanvas from "canvas";
-import progressBar from "progressBar";
 import Toolbar from "features/toolbar/Toolbar";
 
 import instruments from "audio/instruments";
@@ -127,7 +126,6 @@ export default function Player(): JSX.Element {
       setTimeout(() => {
         // leave some buffer so all scheduled events stop
         myCanvas.disconnectHTML();
-        progressBar.disconnectHTML();
       }, 500);
     };
   }, []);
@@ -168,25 +166,6 @@ export default function Player(): JSX.Element {
       isFullscreen,
       // isHorizontal,
     ]
-  );
-  const progressBarMemo = useMemo(
-    () => (
-      <div
-        className={clsx({
-          "progress-bar": true,
-          "progress-bar-fullscreen": isFullscreen,
-        })}
-        ref={(thisDiv: HTMLDivElement) => {
-          if (thisDiv) {
-            // undefined on cleanup
-            progressBar.connectHTML(thisDiv);
-          }
-        }}
-        onMouseEnter={handleOnEnter}
-        onMouseLeave={handleOnLeave}
-      ></div>
-    ),
-    [isFullscreen, isHovering]
   );
   const toolbarMemo = useMemo(() => {
     let opacity = myMidiPlayer.getIsPlaying() ? 0 : 1;
@@ -251,14 +230,14 @@ export default function Player(): JSX.Element {
 
   function handleOnEnter() {
     setIsHovering(true);
-    progressBar.show();
+    myCanvas.progressBar.show();
     myCanvas.darkBotOverlay.show();
   }
 
   function handleOnLeave() {
     setIsHovering(false);
     if (myMidiPlayer.isPlaying) {
-      progressBar.hide();
+      myCanvas.progressBar.hide();
       myCanvas.darkBotOverlay.hide();
     }
   }
@@ -271,7 +250,6 @@ export default function Player(): JSX.Element {
         className={clsx({ "parent-container": isFullscreen })}
       >
         {canvasMemo}
-        {progressBarMemo}
         {toolbarMemo}
       </div>
       {songNameMemo}

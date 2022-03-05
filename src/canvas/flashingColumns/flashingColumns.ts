@@ -5,9 +5,7 @@ import MyCanvas from "../canvas";
 export default class FlashingColumns {
   _container: PIXI.Container;
   _columns: PIXI.Sprite[];
-  constructor(
-    myCanvas: MyCanvas
-  ) {
+  constructor(myCanvas: MyCanvas) {
     this._container = new PIXI.Container();
     this._columns = [];
     const height = myCanvas.config.coreCanvasHeight;
@@ -15,8 +13,8 @@ export default class FlashingColumns {
     //   ? stage.width
     //   : stage.height;
     // const width = isHorizontal
-      // ? this._app.screen.height
-      // : this._app.screen.width;
+    // ? this._app.screen.height
+    // : this._app.screen.width;
     myCanvas.stage.addChild(this._container);
     myCanvas.stage.setChildIndex(this._container, 1);
 

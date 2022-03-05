@@ -1,4 +1,5 @@
 export interface IMyCanvasConfig {
+  progressBarHeight: number;
   coreCanvasWidth: number;
   coreCanvasHeight: number;
   canvasNoteScale: number;
