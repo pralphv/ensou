@@ -43,6 +43,8 @@ export default class Particles {
       }
     });
     myCanvas.stage.addChild(this._container);
+
+    this.stopEmitAll= this.stopEmitAll.bind(this);
   }
 
   enable() {

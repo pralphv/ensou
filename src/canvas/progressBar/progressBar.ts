@@ -4,6 +4,7 @@ import { Transport } from "tone";
 import myMidiPlayer from "audio";
 import MyCanvas from "../canvas";
 import { BUTTON_HEIGHT } from "features/toolbar/constants";
+import {secTotime} from "utils/helper";
 
 class ProgressBar {
   myCanvas: MyCanvas;
@@ -13,12 +14,14 @@ class ProgressBar {
   background: PIXI.Sprite;
   container: PIXI.Container;
   playTimetextField: PIXI.Text;
+  isHovering: boolean;
 
   constructor(myCanvas: MyCanvas) {
     this.myCanvas = myCanvas;
+    this.isHovering = false;
     this.playTimetextField = new PIXI.Text("", {
       fontSize: 15,
-      fill: 0x000000,
+      fill: 0xffffff,
     });
 
     const realProgressRect = initRectangle(
@@ -40,8 +43,15 @@ class ProgressBar {
     this.background = new PIXI.Sprite(backgroundTexture);
     this.container.addChild(this.background);
     this.container.addChild(this.progressBar);
+    this.container.addChild(this.playTimetextField);
+    this.playTimetextField.anchor.set(0.5);
+    this.progressBar.anchor.y = 0.5;
+    this.background.anchor.y = 0.5;
+
     this.container.position.y =
-      myCanvas.app.screen.height - BUTTON_HEIGHT - myCanvas.config.progressBarHeight;
+      myCanvas.app.screen.height -
+      BUTTON_HEIGHT -
+      myCanvas.config.progressBarHeight;
     myCanvas.wholeCanvasStage.addChild(this.container);
 
     this.isDragging = false;
@@ -74,6 +84,14 @@ class ProgressBar {
           if (this.isDragging) {
             this.skipToPct(e.data.global.x);
           }
+          if (this.isHovering) {
+            const pct = e.data.global.x / this.myCanvas.app.screen.width;
+            this.playTimetextField.text = secTotime(myMidiPlayer.totalTimeSeconds * pct)
+            this.playTimetextField.x = e.data.global.x;
+            this.playTimetextField.y = -20;
+            this.playTimetextField.alpha = 1;
+            this.myCanvas.safeRender();
+          }
         })
         .on("mouseover", this.handleMouseOver)
         .on("mouseout", this.handleMouseOut);
@@ -90,28 +108,36 @@ class ProgressBar {
 
   show() {
     this.container.alpha = 1;
-    this.myCanvas.runRender();
+    this.myCanvas.safeRender();
   }
 
   hide() {
     this.container.alpha = 0;
-    this.myCanvas.runRender();
+    this.myCanvas.safeRender();
   }
 
   handleMouseOver(e: PIXI.InteractionEvent) {
     this.show();
-    this.playTimetextField.text = "jer";
-    this.playTimetextField.x = e.data.global.x;
-    this.playTimetextField.y = 0;
+    this.isHovering = true;
+    this.background.height = this.myCanvas.config.progressBarHeight * 1.5;
+    this.progressBar.height = this.myCanvas.config.progressBarHeight * 1.5;
   }
 
-  handleMouseOut() {}
+  handleMouseOut() {
+    this.isHovering = false;
+    this.playTimetextField.alpha = 0;
+    this.background.height = this.myCanvas.config.progressBarHeight;
+    this.progressBar.height = this.myCanvas.config.progressBarHeight;
+    this.myCanvas.safeRender();
+    // this.show();
+  }
 
   skipToPct(x: number) {
     const pct = x / this.myCanvas.app.screen.width;
     myMidiPlayer.skipToPercent(pct);
     const tick = Transport.ticks;
     myMidiPlayer.setLoopPoints(tick, tick);
+    this.myCanvas.runRender();
   }
 
   disconnectHTML() {

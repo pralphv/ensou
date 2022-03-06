@@ -5,7 +5,6 @@ import { isLoopLocalStorage } from "utils/localStorageUtils";
 import instruments from "./instruments";
 import { storageRef } from "firebaseApi/firebase";
 import myCanvas from "canvas";
-import progressBar from "progressBar";
 import game from "game";
 import { Midi, Track } from "@tonejs/midi";
 import { PlaybackState } from "tone";
@@ -14,6 +13,7 @@ import { TempoEvent } from "@tonejs/midi/dist/Header";
 import { PIANO_TUNING } from "../audio/constants";
 import metronome from "./metronome";
 import { PARTICLE_MAX_LIFETIME } from "canvas/particles/constants";
+import {secTotime} from "utils/helper";
 
 // needs to be in global types
 interface ISynthOptions {
@@ -55,6 +55,7 @@ export default class MyMidiPlayer {
   _timeoutId: number;
   playTime: string;
   totalTime: string;
+  totalTimeSeconds: number;
 
   constructor() {
     console.log("Constructing new midi player");
@@ -80,6 +81,7 @@ export default class MyMidiPlayer {
     this._timeoutId = 1; // for stopping stopDrawing when user attacks again
     this.playTime = "00:00";
     this.totalTime = "00:00";
+    this.totalTimeSeconds = 0;
 
     this._handleFileLoaded = this._handleFileLoaded.bind(this);
     this.play = this.play.bind(this);
@@ -200,8 +202,9 @@ export default class MyMidiPlayer {
     this.isPlaying = false;
     this.stopDrawing();
     instruments.stop();
-    myCanvas.particles.stopEmitAll();
     this.eventListeners.actioned();
+    // make sure nothing is playing anymore
+    setTimeout(myCanvas.particles.stopEmitAll, 500);
   }
 
   pause() {
@@ -315,6 +318,7 @@ export default class MyMidiPlayer {
   _setUpNewMidi(midi: Midi) {
     this.cleanup();
     this.totalTime = secTotime(midi.duration);
+    this.totalTimeSeconds = midi.duration;
     this.notes = midi.tracks.map((track) => track.notes).flat();
     this.durationTicks = midi.durationTicks;
     this._scheduleTempoEvents(midi.header.tempos);
@@ -364,7 +368,6 @@ export default class MyMidiPlayer {
 
   updateCanvas(tick: number) {
     myCanvas.render(tick);
-    progressBar.render(tick);
   }
 
   _setUpLoop(endTick: number) {
@@ -486,14 +489,4 @@ export default class MyMidiPlayer {
     // this.disablePracticeMode();
     console.log("Cleaned Midi Player");
   }
-}
-
-function minTwoDigits(number: number): string {
-  return number < 10 ? `0${number}` : `${number}`;
-}
-
-function secTotime(seconds: number): string {
-  return `${minTwoDigits(Math.floor(seconds / 60) % 60)}:${minTwoDigits(
-    Math.floor(seconds % 60)
-  )}`;
 }

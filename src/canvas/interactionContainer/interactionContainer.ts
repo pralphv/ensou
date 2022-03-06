@@ -15,6 +15,7 @@ export default class InteractionContainer {
   isHovering: boolean;
   isShift: boolean;
   lastClickedTick: number;
+  interactionSprite: PIXI.Sprite;
 
   constructor(myCanvas: MyCanvas) {
     this.isDragging = false;
@@ -32,15 +33,15 @@ export default class InteractionContainer {
     );
     // @ts-ignore
     const fillerTexture = myCanvas.app.generateTexture(filler);
-    const fillerSprite = new PIXI.Sprite(fillerTexture);
-    this._container.addChild(fillerSprite);
+    this.interactionSprite = new PIXI.Sprite(fillerTexture);
+    this._container.addChild(this.interactionSprite);
     myCanvas.wholeCanvasStage.addChild(this._container);
     myCanvas.wholeCanvasStage.setChildIndex(
       this._container,
       myCanvas.wholeCanvasStage.children.length - 1
     );
-    fillerSprite.interactive = true;
-    fillerSprite
+    this.interactionSprite.interactive = true;
+    this.interactionSprite
       .on("pointermove", (e: PIXI.InteractionEvent) => {
         if (this.isDragging) {
           const y: number = e.data.global.y;

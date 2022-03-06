@@ -19,6 +19,7 @@ import useFullscreenStatus from "./fullscreener";
 import "./styles.css";
 import midiPlayer from "audio";
 import { debounce } from "lodash";
+import { BUTTON_HEIGHT } from "features/toolbar/constants";
 
 interface ISongMetaData {
   artist: string;
@@ -101,12 +102,12 @@ export default function Player(): JSX.Element {
         setInstrumentLoading(false);
       });
 
-      myCanvas.on(
-        "pointermove",
-        debounce(() => {
-          handleOnLeave();
-        }, 2000)
-      );
+      // myCanvas.interactionContainer.interactionSprite.on(
+      //   "pointermove",
+      //   debounce(() => {
+      //     handleOnLeave();
+      //   }, 2000)
+      // );
       // download midi first. do this after the download events are set
       await myMidiPlayer.downloadMidiFromFirebase(songId);
     }
@@ -175,6 +176,7 @@ export default function Player(): JSX.Element {
       <div
         style={{
           opacity,
+          marginTop: -BUTTON_HEIGHT
         }}
         className={clsx({ toolbarFullScreen: isFullscreen })}
         onMouseEnter={handleOnEnter}
@@ -196,7 +198,7 @@ export default function Player(): JSX.Element {
 
   const songNameMemo = useMemo(
     () => (
-      <div style={{ paddingLeft: "1%" }}>
+      <div style={{ padding: "1%" }}>
         <Typography variant="h6">
           {songMetaData?.filename} - {songMetaData?.artist}
         </Typography>
@@ -243,7 +245,7 @@ export default function Player(): JSX.Element {
   }
 
   return (
-    <div>
+    <>
       {helmentMemo}
       <div
         ref={maximizableElement}
@@ -254,6 +256,6 @@ export default function Player(): JSX.Element {
       </div>
       {songNameMemo}
       {loadingScreenMemo}
-    </div>
+    </>
   );
 }

@@ -32,13 +32,13 @@ class MyCanvas {
   particles: Particles;
   highlighter: Highlighter;
   config: types.IMyCanvasConfig;
-  interaction!: PIXI.InteractionManager;
   isHorizontal: boolean;
   comboDisplay: ComboDisplay;
   fps: Fps;
   stupidTopBottomBlockers: StupidTopBottomBlockers;
   darkBotOverlay: DarkBotOverlay;
   progressBar: ProgressBar;
+  interactionContainer: InteractionContainer;
 
   constructor(width: number, height: number) {
     this.app = new PIXI.Renderer({
@@ -87,17 +87,16 @@ class MyCanvas {
     this.increaseCanvasNoteScale = this.increaseCanvasNoteScale.bind(this);
     this.decreaseCanvasNoteScale = this.decreaseCanvasNoteScale.bind(this);
     this.buildComponents = this.buildComponents.bind(this);
-    this.on = this.on.bind(this);
     this.runRender = this.runRender.bind(this);
     this.background = new Background(this);
     this.highlighter = new Highlighter(this);
-    this.stupidTopBottomBlockers = new StupidTopBottomBlockers(this);
     this.darkBotOverlay = new DarkBotOverlay(this);
     this.comboDisplay = new ComboDisplay(this.app, this.stage);
     this.fps = new Fps(this);
     this.particles = new Particles(this);
+    this.stupidTopBottomBlockers = new StupidTopBottomBlockers(this);
     this.progressBar = new ProgressBar(this);
-    new InteractionContainer(this);  // must put last for max zindex
+    this.interactionContainer = new InteractionContainer(this);  // must put last for max zindex
   }
 
   flash(columnIndex: number) {
@@ -118,6 +117,13 @@ class MyCanvas {
   runRender() {
     // for child components to render this parent
     this.render(Transport.ticks);
+  }
+
+  safeRender() {
+    // does not render if already rendering
+    if (!myMidiPlayer.isPlaying) {
+    this.render(Transport.ticks);
+    }
   }
 
   buildComponents() {
@@ -143,7 +149,6 @@ class MyCanvas {
     }
     htmlRef.appendChild(this.app.view);
     this.pixiCanvas = htmlRef;
-    this.interaction = new PIXI.InteractionManager(this.app);
     this.buildComponents();
   }
 
@@ -157,7 +162,6 @@ class MyCanvas {
     // this.flashingLightsBottomTiles.destroy();
     // this.fallingNotes?.destroy();
     // this.beatLines?.destroy();
-    this.interaction.destroy();
   }
 
   buildNotes() {
@@ -181,7 +185,7 @@ class MyCanvas {
       this.particles.destroy();
       this.stupidTopBottomBlockers.destroy();
       this.darkBotOverlay.destroy();
-      this.interaction.destroy();
+      this.interactionContainer.destroy();
       this.app.destroy();
     }
   }
@@ -198,13 +202,6 @@ class MyCanvas {
     this.fps.draw(time);
     this.app.render(this.stage);
     this.app.render(this.wholeCanvasStage, undefined, false);
-  }
-
-  on(event: string, callback: Function) {
-    this.interaction.on(event, (e: PIXI.InteractionEvent) => {
-      callback(e);
-    });
-    return this;
   }
 
   onBeforePlay() {
