@@ -144,7 +144,7 @@ export default function Player(): JSX.Element {
       <div
         className={clsx({
           // "player-canvas": true,
-          // "fullscreen-enabled": isFullscreen,
+          "fullscreen-enabled": isFullscreen,
         })}
       >
         <div
@@ -232,6 +232,7 @@ export default function Player(): JSX.Element {
 
   function handleOnEnter() {
     setIsHovering(true);
+    myCanvas.songTime.show();
     myCanvas.progressBar.show();
     myCanvas.darkBotOverlay.show();
   }
@@ -239,6 +240,7 @@ export default function Player(): JSX.Element {
   function handleOnLeave() {
     setIsHovering(false);
     if (myMidiPlayer.isPlaying) {
+      myCanvas.songTime.hide();
       myCanvas.progressBar.hide();
       myCanvas.darkBotOverlay.hide();
     }

@@ -44,4 +44,12 @@ export default class Fps {
     this.fpsCounter.calculateFps(time);
     this._fpsTextField.text = `FPS: ${this.fpsCounter.fps.toFixed(0)}`;
   }
+  
+  destroy() {
+    this._container.destroy({
+      baseTexture: true,
+      children: true,
+      texture: true,
+    });
+  }
 }

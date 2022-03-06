@@ -13,10 +13,10 @@ import DarkBotOverlay from "./darkBotOverlay";
 import ProgressBar from "./progressBar";
 import InteractionContainer from "./interactionContainer";
 import ComboDisplay from "./comboDisplay/comboDisplay";
+import SongTime from "./songTime";
 import * as types from "./types";
 import myMidiPlayer from "audio";
 import Particles, { PARTICLE_MAX_LIFETIME } from "./particles";
-
 
 class MyCanvas {
   pixiCanvas?: HTMLDivElement;
@@ -39,6 +39,7 @@ class MyCanvas {
   darkBotOverlay: DarkBotOverlay;
   progressBar: ProgressBar;
   interactionContainer: InteractionContainer;
+  songTime: SongTime;
 
   constructor(width: number, height: number) {
     this.app = new PIXI.Renderer({
@@ -96,7 +97,8 @@ class MyCanvas {
     this.particles = new Particles(this);
     this.stupidTopBottomBlockers = new StupidTopBottomBlockers(this);
     this.progressBar = new ProgressBar(this);
-    this.interactionContainer = new InteractionContainer(this);  // must put last for max zindex
+    this.interactionContainer = new InteractionContainer(this); // must put last for max zindex
+    this.songTime = new SongTime(this);
   }
 
   flash(columnIndex: number) {
@@ -122,7 +124,7 @@ class MyCanvas {
   safeRender() {
     // does not render if already rendering
     if (!myMidiPlayer.isPlaying) {
-    this.render(Transport.ticks);
+      this.render(Transport.ticks);
     }
   }
 
@@ -183,6 +185,8 @@ class MyCanvas {
       this.beatLines.destroy();
       this.highlighter.destroy();
       this.particles.destroy();
+      this.songTime.destroy();
+      this.progressBar.destroy();
       this.stupidTopBottomBlockers.destroy();
       this.darkBotOverlay.destroy();
       this.interactionContainer.destroy();
@@ -200,6 +204,7 @@ class MyCanvas {
     this.particles.draw(time);
     this.progressBar.draw(tick);
     this.fps.draw(time);
+    this.songTime.draw();
     this.app.render(this.stage);
     this.app.render(this.wholeCanvasStage, undefined, false);
   }

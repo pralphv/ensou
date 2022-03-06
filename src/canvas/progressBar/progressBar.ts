@@ -4,12 +4,11 @@ import { Transport } from "tone";
 import myMidiPlayer from "audio";
 import MyCanvas from "../canvas";
 import { BUTTON_HEIGHT } from "features/toolbar/constants";
-import {secTotime} from "utils/helper";
+import { secTotime } from "utils/helper";
 
 class ProgressBar {
   myCanvas: MyCanvas;
   isDragging: boolean;
-  interaction!: PIXI.InteractionManager;
   progressBar: PIXI.Sprite;
   background: PIXI.Sprite;
   container: PIXI.Container;
@@ -35,7 +34,7 @@ class ProgressBar {
       0x858585
     );
     // @ts-ignore
-    const realProgressTexture = this.myCanvas.app.generateTexture(realProgressRect);
+    const realProgressTexture = myCanvas.app.generateTexture(realProgressRect);
     // @ts-ignore
     const backgroundTexture = this.myCanvas.app.generateTexture(backgroundRect);
     this.container = new PIXI.Container();
@@ -78,18 +77,22 @@ class ProgressBar {
           this.isDragging = false;
         })
         .on("pointerupoutside", () => {
+          this.hideSongTime();
           this.isDragging = false;
+          this.myCanvas.safeRender();
         })
         .on("pointermove", (e: PIXI.InteractionEvent) => {
           if (this.isDragging) {
             this.skipToPct(e.data.global.x);
           }
-          if (this.isHovering) {
+          if (this.isHovering || this.isDragging) {
             const pct = e.data.global.x / this.myCanvas.app.screen.width;
-            this.playTimetextField.text = secTotime(myMidiPlayer.totalTimeSeconds * pct)
+            this.playTimetextField.text = secTotime(
+              myMidiPlayer.totalTimeSeconds * pct
+            );
             this.playTimetextField.x = e.data.global.x;
             this.playTimetextField.y = -20;
-            this.playTimetextField.alpha = 1;
+            this.showSongTime();
             this.myCanvas.safeRender();
           }
         })
@@ -125,11 +128,19 @@ class ProgressBar {
 
   handleMouseOut() {
     this.isHovering = false;
-    this.playTimetextField.alpha = 0;
+    this.hideSongTime();
     this.background.height = this.myCanvas.config.progressBarHeight;
     this.progressBar.height = this.myCanvas.config.progressBarHeight;
     this.myCanvas.safeRender();
     // this.show();
+  }
+
+  showSongTime() {
+    this.playTimetextField.alpha = 1;
+  }
+
+  hideSongTime() {
+    this.playTimetextField.alpha = 0;
   }
 
   skipToPct(x: number) {
@@ -137,7 +148,7 @@ class ProgressBar {
     myMidiPlayer.skipToPercent(pct);
     const tick = Transport.ticks;
     myMidiPlayer.setLoopPoints(tick, tick);
-    this.myCanvas.runRender();
+    this.myCanvas.safeRender();
   }
 
   disconnectHTML() {
@@ -152,8 +163,17 @@ class ProgressBar {
     }
   }
 
-  on(event: string, func: Function) {
-    this.interaction.on(event, func);
+  destroy() {
+    this.progressBar.destroy({
+      baseTexture: true,
+      children: true,
+      texture: true,
+    });
+    this.background.destroy({
+      baseTexture: true,
+      children: true,
+      texture: true,
+    });
   }
 }
 
