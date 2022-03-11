@@ -3,6 +3,7 @@ import React from "react";
 import CustomButton from "./cutomButton/CustomButton";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import myCanvas from "canvas";
 
 interface IFullScreenButton {
   isFullscreen: boolean;
@@ -17,14 +18,18 @@ export default function FullScreenButton({
     <div>
       {isFullscreen ? (
         <CustomButton
-          onClick={() => setIsFullscreen(false)}
+          onClick={() => {
+            setIsFullscreen(false);
+          }}
           size="small"
         >
           <FullscreenExitIcon />
         </CustomButton>
       ) : (
         <CustomButton
-          onClick={() => setIsFullscreen(true)}
+          onClick={() => {
+            setIsFullscreen(true);
+          }}
           size="small"
         >
           <FullscreenIcon />

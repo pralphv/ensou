@@ -20,9 +20,13 @@ export default class SongTime {
     this._container.visible = true;
     this._container.addChild(this._textField);
     this._container.position.x = BUTTON_HEIGHT * 6 + 8;
-    this._container.position.y = myCanvas.app.screen.height - BUTTON_HEIGHT / 2;
+    this.resize();
     this._textField.anchor.set(0.5);
     myCanvas.wholeCanvasStage.addChild(this._container);
+  }
+
+  resize() {
+    this._container.position.y = this.myCanvas.app.screen.height - BUTTON_HEIGHT / 2;
   }
 
   show() {

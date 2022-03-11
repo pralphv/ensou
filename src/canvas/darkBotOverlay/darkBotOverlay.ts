@@ -8,23 +8,28 @@ export default class DarkBotOverlay {
   constructor(myCanvas: MyCanvas) {
     this.myCanvas = myCanvas;
     this._container = new PIXI.Container();
+    this.myCanvas.stage.addChild(this._container);
+    this.myCanvas.stage.setChildIndex(
+      this._container,
+      this.myCanvas.stage.children.length - 1
+    );
+    this.resize();
+  }
+
+  resize() {
+    this._container.children.forEach((child) => child.destroy());
+    this._container.removeChildren();
     const rect = initBlackColorOverlay(
-      myCanvas.config.coreCanvasWidth,
-      myCanvas.config.coreCanvasHeight / 2
+      this.myCanvas.config.coreCanvasWidth,
+      this.myCanvas.config.coreCanvasHeight / 2
     );
     // @ts-ignore
-    const texture = myCanvas.app.generateTexture(rect);
+    const texture = this.myCanvas.app.generateTexture(rect);
     const sprite = new PIXI.Sprite(texture);
     this._container.addChild(sprite);
-    this._container.position.y = myCanvas.config.coreCanvasHeight / 2;
+    this._container.position.y = this.myCanvas.config.coreCanvasHeight / 2;
 
-    myCanvas.stage.addChild(this._container);
-    myCanvas.stage.setChildIndex(
-      this._container,
-      myCanvas.stage.children.length - 1
-    );
     rect.destroy({ children: true, texture: true, baseTexture: true });
-    // texture.destroy();
   }
 
   show() {

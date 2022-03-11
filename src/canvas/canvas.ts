@@ -17,6 +17,7 @@ import SongTime from "./songTime";
 import * as types from "./types";
 import myMidiPlayer from "audio";
 import Particles, { PARTICLE_MAX_LIFETIME } from "./particles";
+import { debounce } from "lodash";
 
 class MyCanvas {
   pixiCanvas?: HTMLDivElement;
@@ -31,7 +32,8 @@ class MyCanvas {
   flashingLightsBottomTiles!: FlashingLightsBottomTiles;
   particles: Particles;
   highlighter: Highlighter;
-  config: types.IMyCanvasConfig;
+  //@ts-ignore
+  config: types.IMyCanvasConfig; // defined in handleResize
   isHorizontal: boolean;
   comboDisplay: ComboDisplay;
   fps: Fps;
@@ -41,47 +43,17 @@ class MyCanvas {
   interactionContainer: InteractionContainer;
   songTime: SongTime;
 
-  constructor(width: number, height: number) {
+  constructor() {
     this.app = new PIXI.Renderer({
       // resolution: window.devicePixelRatio || 1,
       resolution: 1,
-      width,
-      height,
       transparent: false,
-      // antialias: true,
+      antialias: true,
     });
     this.stage = new PIXI.Container();
     this.wholeCanvasStage = new PIXI.Container();
-    const bigScreenHeight = this.app.screen.height;
-    const bigScreenWidth = (bigScreenHeight * 16) / 9;
-    const smallScreenWidth = this.app.screen.width;
-    const smallScreenHeight = (smallScreenWidth / 16) * 9;
-    const coreCanvasHeight =
-      bigScreenWidth <= this.app.screen.width
-        ? bigScreenHeight
-        : smallScreenHeight;
-    const coreCanvasWidth =
-      bigScreenWidth <= this.app.screen.width
-        ? bigScreenWidth
-        : smallScreenWidth;
-    const whiteKeyWidth = Math.floor(coreCanvasWidth / 52);
-    this.config = {
-      progressBarHeight: 4,
-      coreCanvasWidth: coreCanvasWidth,
-      coreCanvasHeight: coreCanvasHeight,
-      canvasNoteScale: 10,
-      bottomTileHeight: coreCanvasHeight * 0.08,
-      whiteKeyWidth,
-      blackKeyWidth: Math.floor(whiteKeyWidth * 0.55),
-      // mainly because whiteKeyWidth is floored from a float.
-      // etc. 17.3 -> 17
-      // 0.3 * 52 is still pretty big and causes large gaps
-      leftPadding: ((coreCanvasWidth / 52 - whiteKeyWidth) * 52) / 2,
-      yCenterCompensate: (this.app.screen.height - coreCanvasHeight) / 2,
-    };
 
-    this.stage.position.x = (this.app.screen.width - coreCanvasWidth) / 2;
-    this.stage.position.y = this.config.yCenterCompensate;
+    this.handleResize();
     this.isHorizontal = false;
     this.render = this.render.bind(this);
     this.setIsHorizontal = this.setIsHorizontal.bind(this);
@@ -99,6 +71,79 @@ class MyCanvas {
     this.progressBar = new ProgressBar(this);
     this.interactionContainer = new InteractionContainer(this); // must put last for max zindex
     this.songTime = new SongTime(this);
+  }
+
+  handleResize(resizeChildren: boolean = false) {
+    let screenWidth;
+    let screenHeight;
+    let bigScreenHeight;
+    let bigScreenWidth;
+    let coreCanvasHeight;
+    let coreCanvasWidth;
+    if (document.fullscreenElement) {
+      screenWidth = window.screen.width;
+      screenHeight = window.screen.height;
+      this.app.resize(screenWidth, screenHeight);
+
+      bigScreenWidth = screenWidth;
+      bigScreenHeight = screenHeight * 0.75;
+      
+      coreCanvasHeight = bigScreenWidth * 9 / 16;
+      coreCanvasWidth = bigScreenWidth;
+
+    } else {
+      let smallScreenWidth;
+      let smallScreenHeight;
+
+      screenWidth = window.innerWidth;
+      screenHeight = window.innerHeight;
+      bigScreenHeight = screenHeight * 0.75;
+      bigScreenWidth = bigScreenHeight * 16 / 9;
+      smallScreenWidth = screenWidth;
+      smallScreenHeight = smallScreenWidth / 16 * 9;
+      this.app.resize(screenWidth, bigScreenHeight);
+      if (bigScreenWidth <= screenWidth) {
+        coreCanvasHeight = bigScreenHeight;
+        coreCanvasWidth = bigScreenWidth;
+      } else {
+        coreCanvasHeight = smallScreenHeight;
+        coreCanvasWidth = smallScreenWidth;
+      }
+    }
+    const whiteKeyWidth = Math.floor(coreCanvasWidth / 52);
+    this.config = {
+      progressBarHeight: 4,
+      coreCanvasWidth: coreCanvasWidth,
+      coreCanvasHeight: coreCanvasHeight,
+      canvasNoteScale: 10,
+      bottomTileHeight: coreCanvasHeight * 0.08,
+      whiteKeyWidth,
+      blackKeyWidth: Math.floor(whiteKeyWidth * 0.55),
+      // mainly because whiteKeyWidth is floored from a float.
+      // etc. 17.3 -> 17
+      // 0.3 * 52 is still pretty big and causes large gaps
+      leftPadding: ((coreCanvasWidth / 52 - whiteKeyWidth) * 52) / 2,
+      yCenterCompensate: (bigScreenHeight - coreCanvasHeight) / 2,
+    };
+
+    this.stage.position.x = (screenWidth - coreCanvasWidth) / 2;
+    this.stage.position.y = this.config.yCenterCompensate;
+    if (resizeChildren) {
+      [
+        this.background,
+        this.highlighter,
+        this.darkBotOverlay,
+        this.flashingColumns,
+        this.particles,
+        this.progressBar,
+        this.flashingBottomTiles,
+        this.stupidTopBottomBlockers,
+        this.beatLines,
+        this.highlighter,
+        this.fallingNotes,
+        this.songTime,
+      ].forEach((obj) => obj?.resize());
+    }
   }
 
   flash(columnIndex: number) {
@@ -149,6 +194,13 @@ class MyCanvas {
     if (this.pixiCanvas) {
       return;
     }
+    window.addEventListener(
+      "resize",
+      debounce(() => {
+        this.handleResize(true);
+        this.safeRender();
+      }, 500)
+    );
     htmlRef.appendChild(this.app.view);
     this.pixiCanvas = htmlRef;
     this.buildComponents();

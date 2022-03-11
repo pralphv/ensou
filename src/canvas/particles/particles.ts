@@ -9,14 +9,29 @@ export default class Particles {
   lastUpdateTime: number;
   emitters: Emitter[];
   enabled: boolean;
+  myCanvas: MyCanvas;
 
   constructor(myCanvas: MyCanvas) {
+    this.myCanvas = myCanvas;
     this._container = new Container();
     this.lastUpdateTime = performance.now();
     this.emitters = [];
     this.enabled = true;
     this.toggle = this.toggle.bind(this);
-    let x = myCanvas.config.leftPadding;
+    myCanvas.stage.addChild(this._container);
+    this.resize();
+    this.stopEmitAll = this.stopEmitAll.bind(this);
+  }
+
+  resize() {
+    this.emitters.forEach((emitter) => emitter.destroy());
+    try {
+      // in case emitter does not destroy stuff
+      this._container.children.forEach((child) => child.destroy());
+    } catch {}
+    this._container.removeChildren();
+    this.emitters = [];
+    let x = this.myCanvas.config.leftPadding;
 
     let lastI: number; // to prevent duplicate notes from b and #
     Object.entries(PIANO_TUNING).forEach(([key, i]: [string, number]) => {
@@ -24,27 +39,25 @@ export default class Particles {
         lastI = i;
         const isBlackKey = key.includes("#") || key.includes("b");
         const width = isBlackKey
-          ? myCanvas.config.blackKeyWidth
-          : myCanvas.config.whiteKeyWidth;
+          ? this.myCanvas.config.blackKeyWidth
+          : this.myCanvas.config.whiteKeyWidth;
         const emitterX = isBlackKey ? x - width / 2 : x;
         const emitter = new Emitter(
           this._container,
           createConfig(
             emitterX,
-            myCanvas.config.coreCanvasHeight - myCanvas.config.bottomTileHeight,
+            this.myCanvas.config.coreCanvasHeight -
+              this.myCanvas.config.bottomTileHeight,
             width
           )
         );
         emitter.emit = false;
         this.emitters.push(emitter);
         if (!isBlackKey) {
-          x += myCanvas.config.whiteKeyWidth;
+          x += this.myCanvas.config.whiteKeyWidth;
         }
       }
     });
-    myCanvas.stage.addChild(this._container);
-
-    this.stopEmitAll= this.stopEmitAll.bind(this);
   }
 
   enable() {

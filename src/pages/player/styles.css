@@ -3,11 +3,6 @@
   align-items: center;
 }
 
-.fullscreen-enabled canvas {
-  aspect-ratio: 16 / 9;
-  width: 100vw;
-}
-
 .fullscreen-enabled .horizontal canvas {
   /* height: 100vw !important; */
   /* width: 95vh !important; */

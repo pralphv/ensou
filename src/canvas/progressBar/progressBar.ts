@@ -47,11 +47,9 @@ class ProgressBar {
     this.progressBar.anchor.y = 0.5;
     this.background.anchor.y = 0.5;
 
-    this.container.position.y =
-      myCanvas.app.screen.height -
-      BUTTON_HEIGHT -
-      myCanvas.config.progressBarHeight;
     myCanvas.wholeCanvasStage.addChild(this.container);
+
+    this.resize();
 
     this.isDragging = false;
     this.draw = this.draw.bind(this);
@@ -61,6 +59,16 @@ class ProgressBar {
     this.handleMouseOver = this.handleMouseOver.bind(this);
     this.handleMouseOut = this.handleMouseOut.bind(this);
     this.startInteraction();
+  }
+
+  resize() {
+    [this.background, this.progressBar].forEach((sprite) => {
+      sprite.width = this.myCanvas.app.screen.width
+    })
+    this.container.position.y =
+    this.myCanvas.app.screen.height -
+    BUTTON_HEIGHT -
+    this.myCanvas.config.progressBarHeight;
   }
 
   startInteraction() {

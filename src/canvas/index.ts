@@ -1,3 +1,3 @@
 import MyCanvas from "./canvas";
-const myCanvas = new MyCanvas(window.innerWidth, window.innerHeight * 0.75);
+const myCanvas = new MyCanvas();
 export default myCanvas;

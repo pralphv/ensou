@@ -18,18 +18,39 @@ export default class FallingNotes {
     this.myCanvas = myCanvas;
     this._container = new PIXI.Container();
     this._textArray = [];
+    this.upperLimit = 0;
     this.isTextOn = noteTextLocalStorage.getNoteText() || false; // need to be in localstorage
 
     this._fallingNotes = [];
     this._totalFallingNotes = 0;
-    const color1 = "#63F0FF";
-    const color2 = "#35D1FC";
-
     myCanvas.stage.addChild(this._container);
     myCanvas.stage.setChildIndex(this._container, 2);
+    this.resize();
+  }
+
+  resize() {
+    this._container.children.forEach((child) => child.destroy());
+    this._container.removeChildren();
+    // this._fallingNotes.forEach((fallingNote) =>
+    //   fallingNote.rectSprite.destroy({
+    //     children: true,
+    //     texture: true,
+    //     baseTexture: true,
+    //   })
+    // );
+    this._textArray.forEach((sprite) =>
+      sprite.destroy({ children: true, texture: true, baseTexture: true })
+    );
+
+    this._fallingNotes = [];
+    this._textArray = [];
+
+    const color1 = "#63F0FF"; // probably better in config
+    const color2 = "#35D1FC";
+
     const pianoNoteXMap = createPianoNoteXMap(
-      myCanvas.config.whiteKeyWidth,
-      myCanvas.config.blackKeyWidth
+      this.myCanvas.config.whiteKeyWidth,
+      this.myCanvas.config.blackKeyWidth
     );
     const rectCached: RectCache = {};
     myMidiPlayer.notes.forEach((note) => {
@@ -38,7 +59,7 @@ export default class FallingNotes {
         (note.ticks + note.durationTicks) /
         this.myCanvas.config.canvasNoteScale;
       const height = off - on;
-      const x = pianoNoteXMap[note.name].x + myCanvas.config.leftPadding;
+      const x = pianoNoteXMap[note.name].x + this.myCanvas.config.leftPadding;
       const width = pianoNoteXMap[note.name].width;
       const cacheKey = `${height}_${width}`;
       if (!rectCached[cacheKey]) {
@@ -46,7 +67,7 @@ export default class FallingNotes {
         rectCached[cacheKey] = rect;
       }
       // @ts-ignore
-      const texture = myCanvas.app.generateTexture(rectCached[cacheKey]);
+      const texture = this.myCanvas.app.generateTexture(rectCached[cacheKey]);
       const rectSprite = new PIXI.Sprite(texture);
       rectSprite.visible = false;
       const text = new PIXI.Text(note.name.slice(0, -1), {
@@ -100,7 +121,7 @@ export default class FallingNotes {
       text.visible = true;
     }
     this.isTextOn = true;
-    this.myCanvas.runRender();
+    this.myCanvas.safeRender();
     noteTextLocalStorage.setNoteText(true);
   }
 
@@ -109,7 +130,7 @@ export default class FallingNotes {
       text.visible = false;
     }
     this.isTextOn = false;
-    this.myCanvas.runRender();
+    this.myCanvas.safeRender();
     noteTextLocalStorage.setNoteText(false);
   }
 

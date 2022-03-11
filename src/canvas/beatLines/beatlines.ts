@@ -8,17 +8,27 @@ export default class BeatLines {
   _container: PIXI.Container;
   _sprites: PIXI.Sprite[];
   _noOfSprites: number;
+  myCanvas: MyCanvas;
 
   constructor(myCanvas: MyCanvas) {
     // probably should calculate how many beat lines there would be on the screen given a song
+    this.myCanvas = myCanvas;
     this._container = new PIXI.Container();
+    this._noOfSprites = 0;
+    this._sprites = [];
     myCanvas.stage.addChild(this._container);
     myCanvas.stage.setChildIndex(this._container, 0);
+    this.resize();
+  }
 
-    const line = drawLine(myCanvas.config.coreCanvasWidth);
-    // @ts-ignore
-    const texture = myCanvas.app.generateTexture(line);
+  resize() {
+    this._container.children.forEach((child) => child.destroy());
+    this._container.removeChildren();
     this._sprites = [];
+
+    const line = drawLine(this.myCanvas.config.coreCanvasWidth);
+    // @ts-ignore
+    const texture = this.myCanvas.app.generateTexture(line);
 
     for (let i = 0; i < 20; i++) {
       this._sprites.push(new PIXI.Sprite(texture)); // just hardcode 20 beatlines

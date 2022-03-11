@@ -8,20 +8,29 @@ export default class Highlighter {
   _texture!: PIXI.Texture;
   _sprite!: PIXI.Sprite;
   active: boolean;
-  constructor(
-    myCanvas: MyCanvas
-  ) {
+  myCanvas: MyCanvas;
+  constructor(myCanvas: MyCanvas) {
+    this.myCanvas = myCanvas;
     this._container = new PIXI.Container();
     this.active = false;
-    const rect = initRectangle(myCanvas.config.coreCanvasWidth, myCanvas.config.coreCanvasHeight);
+    myCanvas.stage.addChild(this._container);
+    this.resize();
+  }
+
+  resize() {
+    this._container.children.forEach((child) => child.destroy());
+    this._container.removeChildren();
+    const rect = initRectangle(
+      this.myCanvas.config.coreCanvasWidth,
+      this.myCanvas.config.coreCanvasHeight
+    );
     // @ts-ignore
-    this._texture = myCanvas.app.generateTexture(rect);
+    this._texture = this.myCanvas.app.generateTexture(rect);
     this._sprite = new PIXI.Sprite(this._texture);
     this._container.addChild(this._sprite);
     this._container.visible = false;
     this._container.position.y = 0;
     this._sprite.height = 0;
-    myCanvas.stage.addChild(this._container);
     rect.destroy({ children: true, texture: true, baseTexture: true });
   }
 

@@ -3,26 +3,35 @@ import MyCanvas from "../canvas";
 
 export default class StupidTopBottomBlockers {
   _container: PIXI.Container;
+  myCanvas: MyCanvas;
   constructor(myCanvas: MyCanvas) {
+    this.myCanvas = myCanvas;
     this._container = new PIXI.Container();
+    this.myCanvas.stage.addChild(this._container);
+    this.myCanvas.stage.setChildIndex(
+      this._container,
+      this.myCanvas.stage.children.length - 1
+    );
+    this.resize();
+  }
+
+  resize() {
+    this._container.children.forEach((child) => child.destroy());
+    this._container.removeChildren();
     const rect = initRectangle(
-      myCanvas.config.coreCanvasWidth,
-      myCanvas.config.yCenterCompensate + 2 // just add a bit more
+      this.myCanvas.config.coreCanvasWidth,
+      this.myCanvas.config.yCenterCompensate + 2 // just add a bit more
     );
     // @ts-ignore
-    const texture = myCanvas.app.generateTexture(rect);
+    const texture = this.myCanvas.app.generateTexture(rect);
     const topSprite = new PIXI.Sprite(texture);
     const botSprite = new PIXI.Sprite(texture);
     this._container.addChild(topSprite);
     this._container.addChild(botSprite);
-    topSprite.position.y = -myCanvas.config.yCenterCompensate;
-    botSprite.position.y =
-      myCanvas.config.coreCanvasHeight;
+    topSprite.position.y = -this.myCanvas.config.yCenterCompensate;
+    botSprite.position.y = this.myCanvas.config.coreCanvasHeight;
 
-    myCanvas.stage.addChild(this._container);
-    myCanvas.stage.setChildIndex(this._container, myCanvas.stage.children.length - 1);
     rect.destroy({ children: true, texture: true, baseTexture: true });
-    // texture.destroy();
   }
 
   destroy() {

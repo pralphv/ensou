@@ -5,27 +5,42 @@ import MyCanvas from "../canvas";
 export default class FlashingColumns {
   _container: PIXI.Container;
   _columns: PIXI.Sprite[];
+  myCanvas: MyCanvas;
   constructor(myCanvas: MyCanvas) {
     this._container = new PIXI.Container();
     this._columns = [];
-    const height = myCanvas.config.coreCanvasHeight;
+    this.myCanvas = myCanvas;
+    this.myCanvas.stage.addChild(this._container);
+    this.myCanvas.stage.setChildIndex(this._container, 1);
+    this.resize();
+  }
+
+  resize() {
+    this._container.children.forEach((child) => child.destroy());
+    this._container.removeChildren();
+    this._columns = [];
+    const height = this.myCanvas.config.coreCanvasHeight;
     // const height = isHorizontal
     //   ? stage.width
     //   : stage.height;
     // const width = isHorizontal
     // ? this._app.screen.height
     // : this._app.screen.width;
-    myCanvas.stage.addChild(this._container);
-    myCanvas.stage.setChildIndex(this._container, 1);
 
-    const whiteKeyRect = initRectangle(myCanvas.config.whiteKeyWidth, height);
-    const blackKeyRect = initRectangle(myCanvas.config.blackKeyWidth, height);
+    const whiteKeyRect = initRectangle(
+      this.myCanvas.config.whiteKeyWidth,
+      height
+    );
+    const blackKeyRect = initRectangle(
+      this.myCanvas.config.blackKeyWidth,
+      height
+    );
 
     // @ts-ignore
-    const whiteKeyTexture = myCanvas.app.generateTexture(whiteKeyRect);
+    const whiteKeyTexture = this.myCanvas.app.generateTexture(whiteKeyRect);
     // @ts-ignore
-    const blackKeyTexture = myCanvas.app.generateTexture(blackKeyRect);
-    let x: number = myCanvas.config.leftPadding;
+    const blackKeyTexture = this.myCanvas.app.generateTexture(blackKeyRect);
+    let x: number = this.myCanvas.config.leftPadding;
     let lastI: number; // to prevent duplicate notes from b and #
 
     Object.entries(PIANO_TUNING).forEach(([key, i]: [string, number]) => {
@@ -36,16 +51,16 @@ export default class FlashingColumns {
         const texture = isBlackKey ? blackKeyTexture : whiteKeyTexture;
         sprite = new PIXI.Sprite(texture);
         if (isBlackKey) {
-          sprite.position.x = x - myCanvas.config.blackKeyWidth / 2;
+          sprite.position.x = x - this.myCanvas.config.blackKeyWidth / 2;
         } else {
           sprite.position.x = x;
         }
-        sprite.position.y = -myCanvas.config.bottomTileHeight;
+        sprite.position.y = -this.myCanvas.config.bottomTileHeight;
         sprite.visible = false;
         this._container.addChild(sprite);
         this._columns.push(sprite);
         if (!isBlackKey) {
-          x += myCanvas.config.whiteKeyWidth;
+          x += this.myCanvas.config.whiteKeyWidth;
         }
       }
     });

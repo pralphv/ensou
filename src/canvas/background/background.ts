@@ -13,8 +13,10 @@ export default class Background {
   constructor(canvas: MyCanvas) {
     this.canvas = canvas;
     this.bottomTiles = new BottomTiles(canvas);
-    this.drawGuidingLines();
     this._container = new PIXI.Container();
+    this.canvas.stage.addChild(this._container);
+    this.canvas.stage.setChildIndex(this._container, 0);
+    this.resize();
 
     this.resetBottomTiles = this.resetBottomTiles.bind(this);
   }
@@ -26,11 +28,10 @@ export default class Background {
     }
   }
 
-  drawGuidingLines() {
-    let container = new PIXI.Container();
-    this.canvas.stage.addChild(container);
-    this.canvas.stage.setChildIndex(container, 0);
-
+  resize() {
+    this.bottomTiles.resize();
+    this._container.children.forEach((child) => child.destroy());
+    this._container.removeChildren();
     const horizontalLine = drawLine(this.canvas.config.coreCanvasHeight);
     // @ts-ignore
     const texture = this.canvas.app.generateTexture(horizontalLine);
@@ -50,11 +51,10 @@ export default class Background {
         if (GUIDE_LINES_NOTE_NUMBER.includes(i)) {
           const sprite = new PIXI.Sprite(texture);
           sprite.position.x = x;
-          container.addChild(sprite);
+          this._container.addChild(sprite);
         }
       }
     });
-    this._container = container;
     horizontalLine.destroy({
       children: true,
       baseTexture: true,
