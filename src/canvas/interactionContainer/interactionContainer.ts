@@ -2,7 +2,6 @@ import * as PIXI from "pixi.js";
 import { Transport } from "tone";
 
 import myMidiPlayer from "audio";
-import * as types from "../types";
 import MyCanvas from "../canvas";
 import { convertCanvasHeightToMidiTick } from "../utils";
 import { BUTTON_HEIGHT } from "features/toolbar/constants";
@@ -15,9 +14,11 @@ export default class InteractionContainer {
   isHovering: boolean;
   isShift: boolean;
   lastClickedTick: number;
+  myCanvas: MyCanvas;
   interactionSprite: PIXI.Sprite;
 
   constructor(myCanvas: MyCanvas) {
+    this.myCanvas = myCanvas;
     this.isDragging = false;
     this.isHovering = false;
     this.isShift = false;
@@ -126,6 +127,14 @@ export default class InteractionContainer {
     });
   }
 
+  resize() {
+    this.interactionSprite.height =
+      this.myCanvas.config.yCenterCompensate * 2 +
+      this.myCanvas.config.coreCanvasHeight -
+      BUTTON_HEIGHT -
+      this.myCanvas.config.progressBarHeight * 2;
+  }
+
   destroy() {
     this._container.destroy({
       children: true,
@@ -137,7 +146,7 @@ export default class InteractionContainer {
 
 function initRectangle(width: number, height: number) {
   const rect = new PIXI.Graphics();
-//   rect.beginFill(0x7fdded, 1);
+  //   rect.beginFill(0x7fdded, 1);
   rect.drawRect(0, 0, width, height);
   return rect;
 }

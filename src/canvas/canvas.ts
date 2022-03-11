@@ -86,7 +86,7 @@ class MyCanvas {
       this.app.resize(screenWidth, screenHeight);
 
       bigScreenWidth = screenWidth;
-      bigScreenHeight = screenHeight * 0.75;
+      bigScreenHeight = screenHeight ;
       
       coreCanvasHeight = bigScreenWidth * 9 / 16;
       coreCanvasWidth = bigScreenWidth;
@@ -142,6 +142,7 @@ class MyCanvas {
         this.highlighter,
         this.fallingNotes,
         this.songTime,
+        this.interactionContainer
       ].forEach((obj) => obj?.resize());
     }
   }

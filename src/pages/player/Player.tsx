@@ -102,12 +102,12 @@ export default function Player(): JSX.Element {
         setInstrumentLoading(false);
       });
 
-      // myCanvas.interactionContainer.interactionSprite.on(
-      //   "pointermove",
-      //   debounce(() => {
-      //     handleOnLeave();
-      //   }, 2000)
-      // );
+      myCanvas.interactionContainer.interactionSprite.on(
+        "pointermove",
+        debounce(() => {
+          handleOnLeave();
+        }, 2000)
+      );
       // download midi first. do this after the download events are set
       await myMidiPlayer.downloadMidiFromFirebase(songId);
     }
