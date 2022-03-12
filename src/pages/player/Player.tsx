@@ -7,7 +7,6 @@ import { useFirestore } from "react-redux-firebase";
 
 import LoadingScreen from "features/loadingScreen/LoadingScreen";
 import myCanvas from "canvas";
-import progressBar from "progressBar";
 import Toolbar from "features/toolbar/Toolbar";
 
 import instruments from "audio/instruments";
@@ -20,6 +19,7 @@ import useFullscreenStatus from "./fullscreener";
 import "./styles.css";
 import midiPlayer from "audio";
 import { debounce } from "lodash";
+import { BUTTON_HEIGHT } from "features/toolbar/constants";
 
 interface ISongMetaData {
   artist: string;
@@ -102,7 +102,7 @@ export default function Player(): JSX.Element {
         setInstrumentLoading(false);
       });
 
-      myCanvas.on(
+      myCanvas.interactionContainer.interactionSprite.on(
         "pointermove",
         debounce(() => {
           handleOnLeave();
@@ -127,7 +127,6 @@ export default function Player(): JSX.Element {
       setTimeout(() => {
         // leave some buffer so all scheduled events stop
         myCanvas.disconnectHTML();
-        progressBar.disconnectHTML();
       }, 500);
     };
   }, []);
@@ -144,7 +143,7 @@ export default function Player(): JSX.Element {
     () => (
       <div
         className={clsx({
-          "player-canvas": true,
+          // "player-canvas": true,
           "fullscreen-enabled": isFullscreen,
         })}
       >
@@ -169,25 +168,6 @@ export default function Player(): JSX.Element {
       // isHorizontal,
     ]
   );
-  const progressBarMemo = useMemo(
-    () => (
-      <div
-        className={clsx({
-          "progress-bar": true,
-          "progress-bar-fullscreen": isFullscreen,
-        })}
-        ref={(thisDiv: HTMLDivElement) => {
-          if (thisDiv) {
-            // undefined on cleanup
-            progressBar.connectHTML(thisDiv);
-          }
-        }}
-        onMouseEnter={handleOnEnter}
-        onMouseLeave={handleOnLeave}
-      ></div>
-    ),
-    [isFullscreen, isHovering]
-  );
   const toolbarMemo = useMemo(() => {
     let opacity = myMidiPlayer.getIsPlaying() ? 0 : 1;
     opacity = isHovering ? 1 : opacity;
@@ -196,6 +176,7 @@ export default function Player(): JSX.Element {
       <div
         style={{
           opacity,
+          marginTop: -BUTTON_HEIGHT
         }}
         className={clsx({ toolbarFullScreen: isFullscreen })}
         onMouseEnter={handleOnEnter}
@@ -217,7 +198,7 @@ export default function Player(): JSX.Element {
 
   const songNameMemo = useMemo(
     () => (
-      <div style={{ paddingLeft: "1%" }}>
+      <div style={{ padding: "1%" }}>
         <Typography variant="h6">
           {songMetaData?.filename} - {songMetaData?.artist}
         </Typography>
@@ -251,29 +232,32 @@ export default function Player(): JSX.Element {
 
   function handleOnEnter() {
     setIsHovering(true);
-    progressBar.show();
+    myCanvas.songTime.show();
+    myCanvas.progressBar.show();
+    myCanvas.darkBotOverlay.show();
   }
 
   function handleOnLeave() {
     setIsHovering(false);
     if (myMidiPlayer.isPlaying) {
-      progressBar.hide();
+      myCanvas.songTime.hide();
+      myCanvas.progressBar.hide();
+      myCanvas.darkBotOverlay.hide();
     }
   }
 
   return (
-    <div>
+    <>
       {helmentMemo}
       <div
         ref={maximizableElement}
         className={clsx({ "parent-container": isFullscreen })}
       >
         {canvasMemo}
-        {progressBarMemo}
         {toolbarMemo}
       </div>
       {songNameMemo}
       {loadingScreenMemo}
-    </div>
+    </>
   );
 }

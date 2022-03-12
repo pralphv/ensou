@@ -3,69 +3,42 @@ import { PIANO_TUNING } from "audio/constants";
 import { GUIDE_LINES_NOTE_NUMBER } from "./constants";
 import BottomTiles from "./bottomTiles";
 import * as types from "../types";
+import MyCanvas from "../canvas";
 
 export default class Background {
-  _app: PIXI.Renderer;
-  _stage: PIXI.Container;
+  canvas: MyCanvas;
   _container: PIXI.Container;
   bottomTiles: BottomTiles;
-  _config: types.IMyCanvasConfig;
-  onChange: () => void; // might be bad idea. should refactor
 
-  constructor(
-    app: PIXI.Renderer,
-    stage: PIXI.Container,
-    config: types.IMyCanvasConfig,
-    onChange: () => void
-  ) {
-    this._app = app;
-    this._stage = stage;
-    this.onChange = onChange;
-    this.bottomTiles = new BottomTiles(
-      this._app,
-      this._stage,
-      config.leftPadding,
-      config.blackKeyWidth,
-      config.whiteKeyWidth,
-      config.bottomTileHeight,
-      config.screenHeight,
-      onChange
-    );
-    this.drawGuidingLines();
+  constructor(canvas: MyCanvas) {
+    this.canvas = canvas;
+    this.bottomTiles = new BottomTiles(canvas);
     this._container = new PIXI.Container();
-    this._config = config;
+    this.canvas.stage.addChild(this._container);
+    this.canvas.stage.setChildIndex(this._container, 0);
+    this.resize();
 
     this.resetBottomTiles = this.resetBottomTiles.bind(this);
   }
 
   resetBottomTiles(textOn: boolean = false) {
-    this.bottomTiles = new BottomTiles(
-      this._app,
-      this._stage,
-      this._config.leftPadding,
-      this._config.blackKeyWidth,
-      this._config.whiteKeyWidth,
-      this._config.bottomTileHeight,
-      this._config.screenHeight,
-      this.onChange
-    );
+    this.bottomTiles = new BottomTiles(this.canvas);
     if (textOn) {
       this.bottomTiles.showText();
     }
   }
 
-  drawGuidingLines() {
-    let container = new PIXI.Container();
-    this._stage.addChild(container);
-    this._stage.setChildIndex(container, 0);
-
-    const horizontalLine = drawLine(this._app.screen.height);
+  resize() {
+    this.bottomTiles.resize();
+    this._container.children.forEach((child) => child.destroy());
+    this._container.removeChildren();
+    const horizontalLine = drawLine(this.canvas.config.coreCanvasHeight);
     // @ts-ignore
-    const texture = this._app.generateTexture(horizontalLine);
+    const texture = this.canvas.app.generateTexture(horizontalLine);
 
-    let x: number = 0;
+    let x: number = this.canvas.config.leftPadding;
     let lastI: number; // to prevent duplicate notes from b and #
-    const whiteKeyWidth = this.bottomTiles.whiteKeyWidth;
+    const whiteKeyWidth = this.canvas.config.whiteKeyWidth;
 
     Object.entries(PIANO_TUNING).forEach(([key, i]: [string, number]) => {
       if (i !== lastI) {
@@ -78,11 +51,10 @@ export default class Background {
         if (GUIDE_LINES_NOTE_NUMBER.includes(i)) {
           const sprite = new PIXI.Sprite(texture);
           sprite.position.x = x;
-          container.addChild(sprite);
+          this._container.addChild(sprite);
         }
       }
     });
-    this._container = container;
     horizontalLine.destroy({
       children: true,
       baseTexture: true,

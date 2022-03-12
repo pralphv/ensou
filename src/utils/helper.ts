@@ -41,3 +41,13 @@ export async function convertArrayBufferToAudioContext(
   }
   return sampleMap;
 }
+
+function minTwoDigits(number: number): string {
+  return number < 10 ? `0${number}` : `${number}`;
+}
+
+export function secTotime(seconds: number): string {
+  return `${minTwoDigits(Math.floor(seconds / 60) % 60)}:${minTwoDigits(
+    Math.floor(seconds % 60)
+  )}`;
+}

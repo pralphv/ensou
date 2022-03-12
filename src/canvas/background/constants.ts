@@ -13,7 +13,7 @@ export const GUIDE_LINES_NOTE_NUMBER = [
   67,
   74,
   79,
-  86,
+  // 86,
 ];
 
 export const TEXT_CONFIG = {

@@ -8,18 +8,22 @@ import FallingNotes from "./fallingNotes/fallingNotes";
 import FlashingBottomTiles from "./flashingBottomTiles/flashingBottomTiles";
 import FlashingLightsBottomTiles from "./flashingLightsBottomTiles/flashingLightsBottomTiles";
 import Highlighter from "./highlighter/highlighter";
+import StupidTopBottomBlockers from "./stupidTopBottomBlockers";
+import DarkBotOverlay from "./darkBotOverlay";
+import ProgressBar from "./progressBar";
+import InteractionContainer from "./interactionContainer";
 import ComboDisplay from "./comboDisplay/comboDisplay";
+import SongTime from "./songTime";
 import * as types from "./types";
 import myMidiPlayer from "audio";
-import progressBar from "progressBar";
 import Particles, { PARTICLE_MAX_LIFETIME } from "./particles";
-
-import { convertCanvasHeightToMidiTick } from "./utils";
+import { debounce } from "lodash";
 
 class MyCanvas {
   pixiCanvas?: HTMLDivElement;
   app: PIXI.Renderer;
   stage: PIXI.Container;
+  wholeCanvasStage: PIXI.Container;
   beatLines!: BeatLines;
   background!: Background;
   flashingColumns!: FlashingColumns;
@@ -28,70 +32,119 @@ class MyCanvas {
   flashingLightsBottomTiles!: FlashingLightsBottomTiles;
   particles: Particles;
   highlighter: Highlighter;
-  config: types.IMyCanvasConfig;
-  isShift: boolean;
-  lastClickedTick: number;
-  isDragging: boolean;
-  interaction!: PIXI.InteractionManager;
-  isHovering: boolean;
+  //@ts-ignore
+  config: types.IMyCanvasConfig; // defined in handleResize
   isHorizontal: boolean;
   comboDisplay: ComboDisplay;
   fps: Fps;
+  stupidTopBottomBlockers: StupidTopBottomBlockers;
+  darkBotOverlay: DarkBotOverlay;
+  progressBar: ProgressBar;
+  interactionContainer: InteractionContainer;
+  songTime: SongTime;
 
-  constructor(width: number, height: number) {
+  constructor() {
     this.app = new PIXI.Renderer({
-      resolution: window.devicePixelRatio || 1,
-      // autoDensity: true,
-      width,
-      height,
+      // resolution: window.devicePixelRatio || 1,
+      resolution: 1,
       transparent: false,
       antialias: true,
-      clearBeforeRender: true,
     });
     this.stage = new PIXI.Container();
-    const whiteKeyWidth = Math.floor(this.app.screen.width / 52);
-    this.config = {
-      canvasNoteScale: 10,
-      bottomTileHeight: this.app.screen.height * 0.08,
-      whiteKeyWidth,
-      blackKeyWidth: Math.floor(whiteKeyWidth * 0.55),
-      leftPadding: (this.app.screen.width - whiteKeyWidth * 52) * 0.75,
-      screenHeight: this.app.screen.height,
-    };
+    this.wholeCanvasStage = new PIXI.Container();
 
-    this.isShift = false;
-    this.isDragging = false;
-    this.isHovering = false;
+    this.handleResize();
     this.isHorizontal = false;
-    this.lastClickedTick = 0;
     this.render = this.render.bind(this);
-    this.handleKeyDownListener = this.handleKeyDownListener.bind(this);
-    this.handleKeyUpListener = this.handleKeyUpListener.bind(this);
-    this.handleWheel = this.handleWheel.bind(this);
     this.setIsHorizontal = this.setIsHorizontal.bind(this);
     this.increaseCanvasNoteScale = this.increaseCanvasNoteScale.bind(this);
     this.decreaseCanvasNoteScale = this.decreaseCanvasNoteScale.bind(this);
     this.buildComponents = this.buildComponents.bind(this);
-    this.on = this.on.bind(this);
     this.runRender = this.runRender.bind(this);
-    this.background = new Background(
-      this.app,
-      this.stage,
-      this.config,
-      this.runRender
-    );
-    this.highlighter = new Highlighter(this.app, this.stage, this.config);
+    this.background = new Background(this);
+    this.highlighter = new Highlighter(this);
+    this.darkBotOverlay = new DarkBotOverlay(this);
     this.comboDisplay = new ComboDisplay(this.app, this.stage);
-    this.fps = new Fps(this.stage, this.runRender);
-    this.particles = new Particles(
-      this.stage,
-      this.config.whiteKeyWidth,
-      this.config.blackKeyWidth,
-      this.config.leftPadding,
-      this.config.screenHeight,
-      this.config.bottomTileHeight,
-      this.runRender
-    );
+    this.fps = new Fps(this);
+    this.particles = new Particles(this);
+    this.stupidTopBottomBlockers = new StupidTopBottomBlockers(this);
+    this.progressBar = new ProgressBar(this);
+    this.interactionContainer = new InteractionContainer(this); // must put last for max zindex
+    this.songTime = new SongTime(this);
+  }
+
+  handleResize(resizeChildren: boolean = false) {
+    let screenWidth;
+    let screenHeight;
+    let bigScreenHeight;
+    let bigScreenWidth;
+    let coreCanvasHeight;
+    let coreCanvasWidth;
+    if (document.fullscreenElement) {
+      screenWidth = window.screen.width;
+      screenHeight = window.screen.height;
+      this.app.resize(screenWidth, screenHeight);
+
+      bigScreenWidth = screenWidth;
+      bigScreenHeight = screenHeight ;
+      
+      coreCanvasHeight = bigScreenWidth * 9 / 16;
+      coreCanvasWidth = bigScreenWidth;
+
+    } else {
+      let smallScreenWidth;
+      let smallScreenHeight;
+
+      screenWidth = window.innerWidth;
+      screenHeight = window.innerHeight;
+      bigScreenHeight = screenHeight * 0.75;
+      bigScreenWidth = bigScreenHeight * 16 / 9;
+      smallScreenWidth = screenWidth;
+      smallScreenHeight = smallScreenWidth / 16 * 9;
+      this.app.resize(screenWidth, bigScreenHeight);
+      if (bigScreenWidth <= screenWidth) {
+        coreCanvasHeight = bigScreenHeight;
+        coreCanvasWidth = bigScreenWidth;
+      } else {
+        coreCanvasHeight = smallScreenHeight;
+        coreCanvasWidth = smallScreenWidth;
+      }
+    }
+    const whiteKeyWidth = Math.floor(coreCanvasWidth / 52);
+    this.config = {
+      progressBarHeight: 4,
+      coreCanvasWidth: coreCanvasWidth,
+      coreCanvasHeight: coreCanvasHeight,
+      canvasNoteScale: 10,
+      bottomTileHeight: coreCanvasHeight * 0.08,
+      whiteKeyWidth,
+      blackKeyWidth: Math.floor(whiteKeyWidth * 0.55),
+      // mainly because whiteKeyWidth is floored from a float.
+      // etc. 17.3 -> 17
+      // 0.3 * 52 is still pretty big and causes large gaps
+      leftPadding: ((coreCanvasWidth / 52 - whiteKeyWidth) * 52) / 2,
+      yCenterCompensate: (bigScreenHeight - coreCanvasHeight) / 2,
+    };
+
+    this.stage.position.x = (screenWidth - coreCanvasWidth) / 2;
+    this.stage.position.y = this.config.yCenterCompensate;
+    if (resizeChildren) {
+      [
+        this.background,
+        this.highlighter,
+        this.darkBotOverlay,
+        this.flashingColumns,
+        this.particles,
+        this.progressBar,
+        this.flashingBottomTiles,
+        this.stupidTopBottomBlockers,
+        this.beatLines,
+        this.highlighter,
+        this.fallingNotes,
+        this.songTime,
+        this.interactionContainer
+      ].forEach((obj) => obj?.resize());
+    }
   }
 
   flash(columnIndex: number) {
@@ -114,40 +167,27 @@ class MyCanvas {
     this.render(Transport.ticks);
   }
 
+  safeRender() {
+    // does not render if already rendering
+    if (!myMidiPlayer.isPlaying) {
+      this.render(Transport.ticks);
+    }
+  }
+
   buildComponents() {
-    if (this.flashingColumns) {
-      this.flashingColumns.destroy();
-    }
-    if (this.flashingBottomTiles) {
-      this.flashingBottomTiles.destroy();
-    }
-    if (this.flashingLightsBottomTiles) {
-      this.flashingLightsBottomTiles.destroy();
-    }
-    this.flashingColumns = new FlashingColumns(
-      this.app,
-      this.stage,
-      undefined,
-      this.config,
-      this.background.bottomTiles.leftPadding,
-      this.background.bottomTiles.whiteKeyWidth,
-      this.background.bottomTiles.blackKeyWidth
-    );
-    this.flashingBottomTiles = new FlashingBottomTiles(
-      this.app,
-      this.stage,
-      this.config,
-      this.background.bottomTiles.leftPadding,
-      this.background.bottomTiles.whiteKeyWidth,
-      this.background.bottomTiles.blackKeyWidth
-    );
+    this.flashingColumns && this.flashingColumns.destroy();
+    this.flashingBottomTiles && this.flashingBottomTiles.destroy();
+    this.flashingLightsBottomTiles && this.flashingLightsBottomTiles.destroy();
+    this.flashingColumns = new FlashingColumns(this);
+    this.flashingBottomTiles = new FlashingBottomTiles(this);
     this.flashingLightsBottomTiles = new FlashingLightsBottomTiles(
-      this.app,
-      this.stage,
-      this.config,
-      this.background.bottomTiles.leftPadding,
-      this.background.bottomTiles.whiteKeyWidth,
-      this.background.bottomTiles.blackKeyWidth
+      this
+      // this.app,
+      // this.stage,
+      // this.config,
+      // this.background.bottomTiles.leftPadding,
+      // this.background.bottomTiles.whiteKeyWidth,
+      // this.background.bottomTiles.blackKeyWidth
     );
   }
 
@@ -155,67 +195,16 @@ class MyCanvas {
     if (this.pixiCanvas) {
       return;
     }
+    window.addEventListener(
+      "resize",
+      debounce(() => {
+        this.handleResize(true);
+        this.safeRender();
+      }, 500)
+    );
     htmlRef.appendChild(this.app.view);
     this.pixiCanvas = htmlRef;
-    this.interaction = new PIXI.InteractionManager(this.app);
     this.buildComponents();
-    window.addEventListener("keydown", this.handleKeyDownListener, false);
-    window.addEventListener("keyup", this.handleKeyUpListener, false);
-    window.addEventListener("wheel", this.handleWheel, false);
-
-    this.on("pointermove", (e: PIXI.InteractionEvent) => {
-      if (this.isDragging) {
-        const y: number = e.data.global.y;
-        let tick: number = convertCanvasHeightToMidiTick(y, Transport.ticks);
-        const newIsLarger: boolean = tick >= this.lastClickedTick;
-        const startTick = newIsLarger ? this.lastClickedTick : tick;
-        let endTick = newIsLarger ? tick : this.lastClickedTick;
-        // prevent small ranges due to slow clicks
-        endTick = endTick - startTick > 10 ? endTick : startTick;
-        myMidiPlayer.setLoopPoints(startTick, endTick);
-        const currentTick = Transport.ticks;
-        this.highlighter.draw(currentTick);
-        this.render(currentTick);
-      }
-    });
-    this.on("pointertap", () => {});
-    this.on("pointerdown", (e: PIXI.InteractionEvent) => {
-      if (myMidiPlayer.getIsPlaying()) {
-        myMidiPlayer.pause();
-        return;
-      }
-      this.highlighter.activate();
-      const currentTick = Transport.ticks;
-      this.isDragging = true;
-      const y: number = e.data.global.y;
-      let tick: number = convertCanvasHeightToMidiTick(y, currentTick);
-
-      const startTick: number = this.isShift
-        ? Math.min(this.lastClickedTick, tick)
-        : tick;
-      const endTick: number = this.isShift
-        ? Math.max(this.lastClickedTick, tick)
-        : tick;
-      myMidiPlayer.setLoopPoints(startTick, endTick);
-
-      if (!this.isShift) {
-        // for multi shift clicking
-        this.lastClickedTick = convertCanvasHeightToMidiTick(y, currentTick);
-      }
-      this.render(currentTick);
-    });
-    this.on("pointerup", () => {
-      this.isDragging = false;
-    });
-    this.on("pointerout", () => {
-      this.isDragging = false;
-    });
-    this.on("mouseout", () => {
-      this.isHovering = false;
-    });
-    this.on("mouseover", () => {
-      this.isHovering = true;
-    });
   }
 
   disconnectHTML() {
@@ -228,10 +217,6 @@ class MyCanvas {
     // this.flashingLightsBottomTiles.destroy();
     // this.fallingNotes?.destroy();
     // this.beatLines?.destroy();
-    window.removeEventListener("keydown", this.handleKeyDownListener, false);
-    window.removeEventListener("keyup", this.handleKeyUpListener, false);
-    window.removeEventListener("wheel", this.handleWheel, false);
-    this.interaction.destroy();
   }
 
   buildNotes() {
@@ -241,16 +226,8 @@ class MyCanvas {
     if (this.beatLines) {
       this.beatLines.destroy();
     }
-    this.fallingNotes = new FallingNotes(
-      this.app,
-      this.stage,
-      this.config,
-      this.background.bottomTiles.leftPadding,
-      this.background.bottomTiles.whiteKeyWidth,
-      this.background.bottomTiles.blackKeyWidth,
-      this.runRender
-    );
-    this.beatLines = new BeatLines(this.app, this.stage, this.config);
+    this.fallingNotes = new FallingNotes(this);
+    this.beatLines = new BeatLines(this);
   }
 
   destroy() {
@@ -261,7 +238,11 @@ class MyCanvas {
       this.beatLines.destroy();
       this.highlighter.destroy();
       this.particles.destroy();
-      this.interaction.destroy();
+      this.songTime.destroy();
+      this.progressBar.destroy();
+      this.stupidTopBottomBlockers.destroy();
+      this.darkBotOverlay.destroy();
+      this.interactionContainer.destroy();
       this.app.destroy();
     }
   }
@@ -274,14 +255,11 @@ class MyCanvas {
     this.beatLines?.draw(tick);
     this.highlighter.draw(tick);
     this.particles.draw(time);
+    this.progressBar.draw(tick);
     this.fps.draw(time);
+    this.songTime.draw();
     this.app.render(this.stage);
-  }
-
-  on(event: string, callback: Function) {
-    this.interaction.on(event, (e: PIXI.InteractionEvent) => {
-      callback(e);
-    });
+    this.app.render(this.wholeCanvasStage, undefined, false);
   }
 
   onBeforePlay() {
@@ -289,40 +267,6 @@ class MyCanvas {
     this.flashingBottomTiles.unFlashAll();
     this.flashingColumns.unFlashAll();
     this.particles.stopEmitAll();
-  }
-
-  handleKeyDownListener(e: any) {
-    if (e.shiftKey) {
-      this.isShift = true;
-    }
-  }
-
-  handleKeyUpListener(e: any) {
-    if (e.key === "Shift") {
-      this.isShift = false;
-    }
-  }
-
-  handleWheel(e: WheelEvent) {
-    if (!this.isHovering) {
-      return;
-    }
-    const totalTicks = myMidiPlayer.getTotalTicks();
-    if (e.ctrlKey) {
-      // maybe zoom in out
-    }
-    if (totalTicks) {
-      // if (Transport.ticks && totalTicks) {
-      let newTick: number = Transport.ticks + e.deltaY / 2;
-      const SCROLL_BUFFER: number = 300;
-      const withinUpperLimit = newTick + SCROLL_BUFFER < totalTicks;
-      const withinLowerLimit = newTick > 0;
-      if (withinUpperLimit && withinLowerLimit) {
-        myMidiPlayer.skipToTick(newTick);
-        this.render(newTick);
-        progressBar.render(newTick);
-      }
-    }
   }
 
   setIsHorizontal(value: boolean) {

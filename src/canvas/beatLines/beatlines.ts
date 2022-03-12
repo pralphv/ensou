@@ -1,29 +1,34 @@
 import * as PIXI from "pixi.js";
-import { Transport } from "tone";
 
 import { convertMidiTickToCanvasHeight } from "../utils";
-import { IMyCanvasConfig } from "../types";
 import myMidiPlayer from "audio";
+import MyCanvas from "../canvas";
 
 export default class BeatLines {
-  _app: PIXI.Renderer;
   _container: PIXI.Container;
   _sprites: PIXI.Sprite[];
-  _config: IMyCanvasConfig;
   _noOfSprites: number;
+  myCanvas: MyCanvas;
 
-  constructor(app: PIXI.Renderer, stage: PIXI.Container, config: IMyCanvasConfig) {
+  constructor(myCanvas: MyCanvas) {
     // probably should calculate how many beat lines there would be on the screen given a song
-    this._app = app;
+    this.myCanvas = myCanvas;
     this._container = new PIXI.Container();
-    this._config = config;
-    stage.addChild(this._container);
-    stage.setChildIndex(this._container, 0);
-
-    const line = drawLine(app.screen.width);
-    // @ts-ignore
-    const texture = app.generateTexture(line);
+    this._noOfSprites = 0;
     this._sprites = [];
+    myCanvas.stage.addChild(this._container);
+    myCanvas.stage.setChildIndex(this._container, 0);
+    this.resize();
+  }
+
+  resize() {
+    this._container.children.forEach((child) => child.destroy());
+    this._container.removeChildren();
+    this._sprites = [];
+
+    const line = drawLine(this.myCanvas.config.coreCanvasWidth);
+    // @ts-ignore
+    const texture = this.myCanvas.app.generateTexture(line);
 
     for (let i = 0; i < 20; i++) {
       this._sprites.push(new PIXI.Sprite(texture)); // just hardcode 20 beatlines
@@ -40,10 +45,12 @@ export default class BeatLines {
 
   draw(tick: number) {
     const ticksPerBar = myMidiPlayer.getPPQ() * 4;
-    const startTick =
-      Math.ceil(tick / ticksPerBar) * ticksPerBar;
+    const startTick = Math.ceil(tick / ticksPerBar) * ticksPerBar;
     for (let i = 0; i < this._noOfSprites; i++) {
-      const y = convertMidiTickToCanvasHeight(startTick + ticksPerBar * i, tick);
+      const y = convertMidiTickToCanvasHeight(
+        startTick + ticksPerBar * i,
+        tick
+      );
       this._sprites[i].position.y = y;
 
       if (y < 0) {

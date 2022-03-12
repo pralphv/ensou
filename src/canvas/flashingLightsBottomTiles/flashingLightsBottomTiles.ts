@@ -2,29 +2,33 @@ import * as PIXI from "pixi.js";
 import { PIANO_TUNING } from "audio/constants";
 import myMidiPlayer from "audio";
 import * as types from "../types";
+import MyCanvas from "../canvas";
 
 export default class FlashingLightsBottomTiles {
-  _app: PIXI.Renderer;
   _container: PIXI.Container;
   _columns: PIXI.Sprite[][];
-  constructor(
-    app: PIXI.Renderer,
-    stage: PIXI.Container,
-    config: types.IMyCanvasConfig,
-    leftPadding: number,
-    whiteKeyWidth: number,
-    blackKeyWidth: number
-  ) {
-    this._app = app;
+  constructor(myCanvas: MyCanvas) {
     this._container = new PIXI.Container();
     this._columns = [];
 
-    stage.addChild(this._container);
-    stage.setChildIndex(this._container, 4);
+    myCanvas.stage.addChild(this._container);
+    myCanvas.stage.setChildIndex(this._container, 4);
 
-    const circle0 = initCircle(whiteKeyWidth * 5, 0.7, this._app);
-    const circle1 = initCircle(whiteKeyWidth * 5, 0.9, this._app);
-    const circle2 = initCircle(whiteKeyWidth * 5, 1, this._app);
+    const circle0 = initCircle(
+      myCanvas.config.whiteKeyWidth * 5,
+      0.7,
+      myCanvas.app
+    );
+    const circle1 = initCircle(
+      myCanvas.config.whiteKeyWidth * 5,
+      0.9,
+      myCanvas.app
+    );
+    const circle2 = initCircle(
+      myCanvas.config.whiteKeyWidth * 5,
+      1,
+      myCanvas.app
+    );
 
     let x: number = 0;
     let lastI: number; // to prevent duplicate notes from b and #
@@ -36,16 +40,19 @@ export default class FlashingLightsBottomTiles {
         [circle0, circle1, circle2].forEach((circle) => {
           const sprite = new PIXI.Sprite(circle);
           sprite.position.x =
-            (isBlackKey ? x - blackKeyWidth / 2 : x) - whiteKeyWidth * 2;
+            (isBlackKey ? x - myCanvas.config.blackKeyWidth / 2 : x) -
+            myCanvas.config.whiteKeyWidth * 2;
           sprite.position.y =
-            app.screen.height - config.bottomTileHeight - whiteKeyWidth * 2;
+            myCanvas.config.coreCanvasHeight -
+            myCanvas.config.bottomTileHeight -
+            myCanvas.config.whiteKeyWidth * 2;
           sprite.visible = false;
           this._container.addChild(sprite);
           sprites.push(sprite);
         });
         this._columns.push(sprites);
         if (!isBlackKey) {
-          x += whiteKeyWidth;
+          x += myCanvas.config.whiteKeyWidth;
         }
       }
     });

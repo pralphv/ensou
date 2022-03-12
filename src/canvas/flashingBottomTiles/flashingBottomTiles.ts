@@ -1,35 +1,41 @@
 import * as PIXI from "pixi.js";
 import { PIANO_TUNING } from "audio/constants";
-import myMidiPlayer from "audio";
-import * as types from "../types";
+import MyCanvas from "../canvas";
 
 export default class FlashingBottomTiles {
   _container: PIXI.Container;
   _columns: PIXI.Sprite[];
-  constructor(
-    app: PIXI.Renderer,
-    stage: PIXI.Container,
-    config: types.IMyCanvasConfig,
-    leftPadding: number,
-    whiteKeyWidth: number,
-    blackKeyWidth: number
-  ) {
+  myCanvas: MyCanvas;
+  constructor(myCanvas: MyCanvas) {
     this._container = new PIXI.Container();
     this._columns = [];
+    this.myCanvas = myCanvas;
 
-    stage.addChild(this._container);
-    stage.setChildIndex(this._container, stage.children.length - 1);
+    myCanvas.stage.addChild(this._container);
+    myCanvas.stage.setChildIndex(
+      this._container,
+      myCanvas.stage.children.length - 1
+    );
+    this.resize();
+  }
 
-    const whiteKey = initRectangle(whiteKeyWidth + 1, config.bottomTileHeight);
+  resize() {
+    this._container.children.forEach((child) => child.destroy());
+    this._container.removeChildren();
+    this._columns = [];
+    const whiteKey = initRectangle(
+      this.myCanvas.config.whiteKeyWidth + 1,
+      this.myCanvas.config.bottomTileHeight
+    );
     const blackKey = initRectangle(
-      blackKeyWidth + 1,
-      config.bottomTileHeight * 0.66
+      this.myCanvas.config.blackKeyWidth + 1,
+      this.myCanvas.config.bottomTileHeight * 0.66
     );
     // @ts-ignore
-    const whiteKeyTexture = app.generateTexture(whiteKey);
+    const whiteKeyTexture = this.myCanvas.app.generateTexture(whiteKey);
     // @ts-ignore
-    const blackKeyTexture = app.generateTexture(blackKey);
-    let x: number = leftPadding;
+    const blackKeyTexture = this.myCanvas.app.generateTexture(blackKey);
+    let x: number = this.myCanvas.config.leftPadding;
     let lastI: number; // to prevent duplicate notes from b and #
     Object.entries(PIANO_TUNING).forEach(([key, i]: [string, number]) => {
       if (i !== lastI) {
@@ -38,13 +44,15 @@ export default class FlashingBottomTiles {
         let sprite: PIXI.Sprite;
         if (isBlackKey) {
           sprite = new PIXI.Sprite(blackKeyTexture);
-          sprite.position.x = x - blackKeyWidth / 2;
+          sprite.position.x = x - this.myCanvas.config.blackKeyWidth / 2;
         } else {
           sprite = new PIXI.Sprite(whiteKeyTexture);
           sprite.position.x = x;
-          x += whiteKeyWidth;
+          x += this.myCanvas.config.whiteKeyWidth;
         }
-        sprite.position.y = app.screen.height - config.bottomTileHeight;
+        sprite.position.y =
+          this.myCanvas.config.coreCanvasHeight -
+          this.myCanvas.config.bottomTileHeight;
         sprite.visible = false;
         this._container.addChild(sprite);
         this._columns.push(sprite);

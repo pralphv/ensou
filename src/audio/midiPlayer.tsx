@@ -5,7 +5,6 @@ import { isLoopLocalStorage } from "utils/localStorageUtils";
 import instruments from "./instruments";
 import { storageRef } from "firebaseApi/firebase";
 import myCanvas from "canvas";
-import progressBar from "progressBar";
 import game from "game";
 import { Midi, Track } from "@tonejs/midi";
 import { PlaybackState } from "tone";
@@ -14,6 +13,7 @@ import { TempoEvent } from "@tonejs/midi/dist/Header";
 import { PIANO_TUNING } from "../audio/constants";
 import metronome from "./metronome";
 import { PARTICLE_MAX_LIFETIME } from "canvas/particles/constants";
+import {secTotime} from "utils/helper";
 
 // needs to be in global types
 interface ISynthOptions {
@@ -53,6 +53,9 @@ export default class MyMidiPlayer {
   _canvasEventsScheduleIds: number[];
   _startedDrawing: boolean;
   _timeoutId: number;
+  playTime: string;
+  totalTime: string;
+  totalTimeSeconds: number;
 
   constructor() {
     console.log("Constructing new midi player");
@@ -76,6 +79,9 @@ export default class MyMidiPlayer {
     this._canvasEventsScheduleIds = [];
     this._startedDrawing = false;
     this._timeoutId = 1; // for stopping stopDrawing when user attacks again
+    this.playTime = "00:00";
+    this.totalTime = "00:00";
+    this.totalTimeSeconds = 0;
 
     this._handleFileLoaded = this._handleFileLoaded.bind(this);
     this.play = this.play.bind(this);
@@ -109,6 +115,15 @@ export default class MyMidiPlayer {
         this.scheduleNotesToPlay();
       }
     });
+    // window.addEventListener("keydown", (e: KeyboardEvent) => {
+    //   if (e.code === "Space") {
+    //     if (this.isPlaying) {
+    //       this.pause();
+    //     } else {
+    //       this.play();
+    //     }
+    //   }
+    // });
   }
 
   restartStates() {
@@ -187,8 +202,9 @@ export default class MyMidiPlayer {
     this.isPlaying = false;
     this.stopDrawing();
     instruments.stop();
-    myCanvas.particles.stopEmitAll();
     this.eventListeners.actioned();
+    // make sure nothing is playing anymore
+    setTimeout(myCanvas.particles.stopEmitAll, 500);
   }
 
   pause() {
@@ -301,6 +317,8 @@ export default class MyMidiPlayer {
 
   _setUpNewMidi(midi: Midi) {
     this.cleanup();
+    this.totalTime = secTotime(midi.duration);
+    this.totalTimeSeconds = midi.duration;
     this.notes = midi.tracks.map((track) => track.notes).flat();
     this.durationTicks = midi.durationTicks;
     this._scheduleTempoEvents(midi.header.tempos);
@@ -317,6 +335,7 @@ export default class MyMidiPlayer {
   }
 
   _scheduleDraw() {
+    this.playTime = secTotime(Transport.seconds);
     this.updateCanvas(Transport.ticks);
     this.scheduleId = requestAnimationFrame(this._scheduleDraw);
   }
@@ -330,8 +349,8 @@ export default class MyMidiPlayer {
     // we can know this by checking if fps is over 60
     // if fps is etc. 120, then there must be 2 requestAnimationFrame running
 
-    // to avoid re-requesting by accident
     if (!this._startedDrawing) {
+      // to avoid re-requesting by accident
       cancelAnimationFrame(this.scheduleId); //clear accidental re-draws
       requestAnimationFrame(this._scheduleDraw);
       this._startedDrawing = true;
@@ -349,7 +368,6 @@ export default class MyMidiPlayer {
 
   updateCanvas(tick: number) {
     myCanvas.render(tick);
-    progressBar.render(tick);
   }
 
   _setUpLoop(endTick: number) {

@@ -19,7 +19,7 @@ export default class ComboDisplay {
       fill: 0x7fdded,
     });
     this._container.addChild(this._text);
-    this._container.position.x = this._app.screen.width / 2;
+    this._container.position.x = stage.width / 2;
     this._container.position.y = this._container.height;
     this._text.anchor.set(0.5);
     stage.addChild(this._container);

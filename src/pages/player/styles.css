@@ -1,28 +1,6 @@
 .parent-container {
   display: flex;
-  align-items: center
-}
-
-.progress-bar {
-  margin: 0.5em 0em 0.1em 0em;
-  width: 100vw;
-  transform: scaleY(0.5);
-  /* top: 50%; */
-}
-
-.progress-bar:hover {
-  cursor: pointer;
-  transform: scaleY(1);
-}
-
-.progress-bar-fullscreen {
-  position:absolute;
-  bottom: 2.5em;
-}
-
-.fullscreen-enabled canvas {
-  aspect-ratio: 16 / 9;
-  width: 100vw;
+  align-items: center;
 }
 
 .fullscreen-enabled .horizontal canvas {
@@ -33,9 +11,9 @@
 
 .vertical canvas {
   display: block;
-  width: 80vw;
-  aspect-ratio: 16 / 9;
-  max-height: 80vh;
+  /* width: 80vw; */
+  /* aspect-ratio: 16 / 9; */
+  /* max-height: 80vh; */
   background-color: black;
   left: 0;
 }

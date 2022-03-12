@@ -6,6 +6,7 @@ import FolderIcon from "@mui/icons-material/Folder";
 import CustomButton from "./cutomButton/CustomButton";
 import { useLoadLocal } from "utils/customHooks";
 import UploadBackdrop from "features/uploadBackdrop/UploadBackdrop";
+import myCanvas from "canvas";
 import myMidiPlayer from "audio";
 
 export default function FileReaderButton(): JSX.Element {
@@ -19,7 +20,7 @@ export default function FileReaderButton(): JSX.Element {
       <div {...getRootProps()}>
         <input {...getInputProps()} />
         {isDragActive && <UploadBackdrop />}
-        <CustomButton disabled={myMidiPlayer.getIsPlaying()} size="small">
+        <CustomButton disabled={myMidiPlayer.getIsPlaying() } size="small">
           <FolderIcon />
         </CustomButton>
       </div>

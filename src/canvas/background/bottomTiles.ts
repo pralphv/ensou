@@ -1,53 +1,51 @@
 import * as PIXI from "pixi.js";
 import { PIANO_TUNING } from "audio/constants";
 import { TEXT_CONFIG } from "./constants";
-import * as types from "../types";
 import game from "game";
+import MyCanvas from "../canvas";
 
 export default class BottomTiles {
-  _app: PIXI.Renderer;
+  canvas: MyCanvas;
   _container: PIXI.Container;
-  leftPadding: number;
-  whiteKeyWidth: number;
-  blackKeyWidth: number;
   _textArray: PIXI.Text[];
-  onTextChange: () => void;
 
-  constructor(
-    app: PIXI.Renderer,
-    stage: PIXI.Container,
-    leftPadding: number,
-    blackKeyWidth: number,
-    whiteKeyWidth: number,
-    bottomTileHeight: number,
-    screenHeight: number,
-    onTextChange: () => void
-  ) {
-    this._app = app;
+  constructor(canvas: MyCanvas) {
+    this.canvas = canvas;
     this._container = new PIXI.Container();
-    this.onTextChange = onTextChange;
-
-    stage.addChild(this._container);
-    stage.setChildIndex(this._container, stage.children.length - 1);
-
     this._textArray = [];
 
-    this.leftPadding = leftPadding;
-    this.whiteKeyWidth = whiteKeyWidth;
-    this.blackKeyWidth = blackKeyWidth;
+    canvas.stage.addChild(this._container);
+    canvas.stage.setChildIndex(
+      this._container,
+      canvas.stage.children.length - 1
+    );
+    this.resize();
+  }
 
-    const whiteKey = initRectangle(whiteKeyWidth, bottomTileHeight, 0x000000);
+  resize() {
+    this._container.children.forEach((child) => child.destroy());
+    this._container.removeChildren();
+    this._textArray.forEach((text) =>
+      text.destroy({ children: true, texture: true, baseTexture: true })
+    );
+    this._textArray = [];
+
+    const whiteKey = initRectangle(
+      this.canvas.config.whiteKeyWidth,
+      this.canvas.config.bottomTileHeight,
+      0x000000
+    );
     const blackKey = initRectangle(
-      blackKeyWidth,
-      bottomTileHeight * 0.66,
+      this.canvas.config.blackKeyWidth,
+      this.canvas.config.bottomTileHeight * 0.66,
       0x7fdded
     );
 
     // @ts-ignore
-    const whiteKeyTexture = this._app.generateTexture(whiteKey);
+    const whiteKeyTexture = this.canvas.app.generateTexture(whiteKey);
     // @ts-ignore
-    const blackKeyTexture = this._app.generateTexture(blackKey);
-    let x: number = leftPadding;
+    const blackKeyTexture = this.canvas.app.generateTexture(blackKey);
+    let x: number = this.canvas.config.leftPadding;
 
     let lastI: number; // to prevent duplicate notes from b and #
     const whiteKeyContainer = new PIXI.Container();
@@ -61,7 +59,7 @@ export default class BottomTiles {
         if (isBlackKey) {
           const text = new PIXI.Text(game.noteLabelMap[key], {
             ...TEXT_CONFIG,
-            fontSize: Math.min(12, blackKeyWidth * 0.8),
+            fontSize: Math.min(12, this.canvas.config.blackKeyWidth * 0.8),
             fill: 0x2d353f,
             fontWeight: 800,
           });
@@ -70,15 +68,18 @@ export default class BottomTiles {
           sprite.addChild(text);
           blackKeyContainer.addChild(sprite);
           // sprite.position.x = x;
-          sprite.position.x = x - blackKeyWidth / 2;
+          sprite.position.x = x - this.canvas.config.blackKeyWidth / 2;
           text.anchor.x = 0.5;
-          text.position.x = blackKeyWidth / 2;
-          text.position.y = bottomTileHeight * 0.66 - text.style.fontSize - 5;
+          text.position.x = this.canvas.config.blackKeyWidth / 2;
+          text.position.y =
+            this.canvas.config.bottomTileHeight * 0.66 -
+            text.style.fontSize -
+            5;
           text.visible = false;
         } else {
           const text = new PIXI.Text(game.noteLabelMap[key], {
             ...TEXT_CONFIG,
-            fontSize: Math.min(12, whiteKeyWidth * 0.8),
+            fontSize: Math.min(12, this.canvas.config.whiteKeyWidth * 0.8),
           });
           this._textArray.push(text);
 
@@ -87,12 +88,16 @@ export default class BottomTiles {
           whiteKeyContainer.addChild(sprite);
           sprite.position.x = x;
           text.anchor.x = 0.5;
-          text.position.x = whiteKeyWidth / 2;
-          text.position.y = bottomTileHeight - text.style.fontSize - 5;
-          x += whiteKeyWidth;
+          text.position.x = this.canvas.config.whiteKeyWidth / 2;
+          text.position.y =
+            this.canvas.config.bottomTileHeight - text.style.fontSize - 5;
+          x += this.canvas.config.whiteKeyWidth;
           text.visible = false;
         }
-        sprite.position.y = screenHeight - bottomTileHeight - 1;
+        sprite.position.y =
+          this.canvas.config.coreCanvasHeight -
+          this.canvas.config.bottomTileHeight -
+          1;
       }
     });
     this._container.addChild(whiteKeyContainer);
@@ -106,14 +111,14 @@ export default class BottomTiles {
     for (const text of this._textArray) {
       text.visible = true;
     }
-    this.onTextChange();
+    this.canvas.runRender();
   }
 
   hideText() {
     for (const text of this._textArray) {
       text.visible = false;
     }
-    this.onTextChange();
+    this.canvas.runRender();
   }
 
   destroy() {
